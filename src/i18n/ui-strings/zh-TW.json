@@ -1,0 +1,12 @@
+{
+	"nav.home": "首頁",
+	"nav.blog": "部落格",
+	"nav.docs": "文件",
+	"blog.title": "部落格",
+	"blog.readMore": "閱讀更多",
+	"blog.publishedOn": "發布於",
+	"blog.updatedOn": "更新於",
+	"blog.minuteRead": "分鐘",
+	"blog.backToBlog": "← 返回部落格",
+	"footer.copyright": "© {year} GPUFlow. 保留所有權利。"
+}

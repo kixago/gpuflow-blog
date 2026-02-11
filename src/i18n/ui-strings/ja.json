@@ -1,0 +1,12 @@
+{
+	"nav.home": "ホーム",
+	"nav.blog": "ブログ",
+	"nav.docs": "ドキュメント",
+	"blog.title": "ブログ",
+	"blog.readMore": "続きを読む",
+	"blog.publishedOn": "公開日",
+	"blog.updatedOn": "更新日",
+	"blog.minuteRead": "分",
+	"blog.backToBlog": "← ブログに戻る",
+	"footer.copyright": "© {year} GPUFlow. All rights reserved."
+}

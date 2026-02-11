@@ -1,0 +1,12 @@
+{
+	"nav.home": "בית",
+	"nav.blog": "בלוג",
+	"nav.docs": "תיעוד",
+	"blog.title": "בלוג",
+	"blog.readMore": "קרא עוד",
+	"blog.publishedOn": "פורסם ב",
+	"blog.updatedOn": "עודכן ב",
+	"blog.minuteRead": "דקות",
+	"blog.backToBlog": "חזרה לבלוג ←",
+	"footer.copyright": "© {year} GPUFlow. כל הזכויות שמורות."
+}

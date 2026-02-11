@@ -1,0 +1,12 @@
+{
+  "nav.home": "Inicio",
+  "nav.blog": "Blog",
+  "nav.docs": "Documentación",
+  "blog.title": "Blog",
+  "blog.readMore": "Leer más",
+  "blog.publishedOn": "Publicado el",
+  "blog.updatedOn": "Actualizado el",
+  "blog.minuteRead": "min de lectura",
+  "blog.backToBlog": "← Volver al Blog",
+  "footer.copyright": "© {year} GPUFlow. Todos los derechos reservados."
+}

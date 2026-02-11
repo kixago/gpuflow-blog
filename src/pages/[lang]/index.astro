@@ -1,0 +1,178 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';  // ADD THIS
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import { languages, defaultLang, getTextDirection } from '../../i18n/locales';
+import type { LanguageCode } from '../../i18n/locales';
+
+// Generate a page for each language
+export function getStaticPaths() {
+    return Object.keys(languages).map((lang) => ({
+        params: { lang },
+    }));
+}
+
+const { lang } = Astro.params;
+const currentLang = lang as LanguageCode;
+const textDir = getTextDirection(currentLang);
+
+// Get all non-draft posts for this language
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+
+const posts = allPosts
+    .filter(post => post.data.locale === currentLang)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Featured post
+const featuredPost = posts.find(post => post.data.featured) || posts[0];
+
+// Recent posts (exclude featured)
+const recentPosts = posts
+    .filter(post => featuredPost && post.id !== featuredPost.id)
+    .slice(0, 6);
+
+// Categories from this language's posts
+const categories = [...new Set(posts.map(post => post.data.category))];
+
+// Language list for selector
+const languageList = Object.entries(languages).map(([code, name]) => ({
+    code: code as LanguageCode,
+    name,
+}));
+
+// Helper functions
+function getPostUrl(post: typeof posts[0]) {
+    return `/${post.id}/`;
+}
+
+function getExcerpt(post: typeof posts[0], maxLength = 140) {
+    if (post.data.excerpt) return post.data.excerpt;
+    const desc = post.data.description;
+    return desc.length > maxLength ? desc.slice(0, maxLength) + '…' : desc;
+}
+
+function getCategoryLabel(category: string) {
+    const labels: Record<string, string> = {
+        tutorials: '📚 Tutorials',
+        pricing: '💰 Pricing',
+        comparisons: '⚖️ Comparisons',
+        news: '📰 News',
+        guides: '📖 Guides',
+        tips: '💡 Tips',
+        benchmarks: '📊 Benchmarks',
+        'case-studies': '🏢 Case Studies',
+    };
+    return labels[category] || category;
+}
+
+// Page title with language
+const pageTitle = `${SITE_TITLE} - ${languages[currentLang]}`;
+---
+
+<!doctype html>
+<html lang={currentLang} dir={textDir}>
+  <head>
+      <BaseHead title={pageTitle} description={SITE_DESCRIPTION} />
+      
+      <!-- Alternate language links for SEO -->
+      {Object.keys(languages).map(code => (
+          <link rel="alternate" hreflang={code} href={`/${code}/`} />
+      ))}
+      <link rel="alternate" hreflang="x-default" href={`/${defaultLang}/`} />
+  </head>
+  <body>
+    <Header lang={currentLang} />
+    <section class="hero">
+        <div class="container">
+            <h1>Cloud GPU Insights & Tutorials</h1>
+            <p>Expert guides for ML engineers and AI developers</p>
+        </div>
+    </section>
+
+    {categories.length > 0 && (
+        <nav class="categories">
+            <span class="cat-pill active">All</span>
+            {categories.map(cat => (
+                <span class="cat-pill">{getCategoryLabel(cat)}</span>
+            ))}
+        </nav>
+    )}
+
+    <main class="container">
+        {posts.length === 0 ? (
+            <div class="empty">
+                <h2>No posts yet in {languages[currentLang]}</h2>
+                <p>Check back soon or try another language!</p>
+            </div>
+        ) : (
+            <>
+                {featuredPost && (
+                    <section>
+                        <div class="section-label">✨ Featured</div>
+                        <a href={getPostUrl(featuredPost)} class="featured-card">
+                            {featuredPost.data.heroImage ? (
+                                <Image
+                                    src={featuredPost.data.heroImage}
+                                    alt={featuredPost.data.heroImageAlt || featuredPost.data.title}
+                                    class="featured-img"
+                                    width={600}
+                                    height={412}
+                                    loading="eager"
+                                />
+                            ) : (
+                                <div class="featured-img-placeholder">📄</div>
+                            )}
+                            <div class="featured-body">
+                                <div class="featured-cat">{getCategoryLabel(featuredPost.data.category)}</div>
+                                <h2 class="featured-title">{featuredPost.data.title}</h2>
+                                <p class="featured-excerpt">{getExcerpt(featuredPost, 180)}</p>
+                                <div class="featured-meta">
+                                    <FormattedDate date={featuredPost.data.pubDate} /> · {featuredPost.data.author}
+                                </div>
+                            </div>
+                        </a>
+                    </section>
+                )}
+
+                {recentPosts.length > 0 && (
+                    <section>
+                        <h2 class="section-title">Recent Posts</h2>
+                        <div class="posts-grid">
+                            {recentPosts.map(post => (
+                                <a href={getPostUrl(post)} class="post-card">
+                                    {post.data.heroImage ? (
+                                        <Image
+                                            src={post.data.heroImage}
+                                            alt={post.data.heroImageAlt || post.data.title}
+                                            class="post-img"
+                                            width={400}
+                                            height={225}
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <div class="post-img-placeholder">📄</div>
+                                    )}
+                                    <div class="post-body">
+                                        <div class="post-cat">{getCategoryLabel(post.data.category)}</div>
+                                        <h3 class="post-title">{post.data.title}</h3>
+                                        <p class="post-excerpt">{getExcerpt(post, 100)}</p>
+                                        <div class="post-meta">
+                                            <FormattedDate date={post.data.pubDate} />
+                                        </div>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    </section>
+                )}
+            </>
+        )}
+    </main>
+
+    <Footer />
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+	"nav.home": "首页",
+	"nav.blog": "博客",
+	"nav.docs": "文档",
+	"blog.title": "博客",
+	"blog.readMore": "阅读更多",
+	"blog.publishedOn": "发布于",
+	"blog.updatedOn": "更新于",
+	"blog.minuteRead": "分钟",
+	"blog.backToBlog": "← 返回博客",
+	"footer.copyright": "© {year} GPUFlow. 保留所有权利。"
+}

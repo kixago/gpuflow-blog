@@ -1,0 +1,80 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog');
+
+const debugInfo = posts.map(post => ({
+    id: post.id,
+    url: `/${post.id}/`,  // ← Changed: removed /blog
+    title: post.data.title,
+    lang: post.id.split('/')[0],
+}));
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug - Blog Posts</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 2rem;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        h1 { color: #fff; }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 0.5rem 1rem;
+            text-align: left;
+        }
+        th { background: #333; color: #fff; }
+        a { color: #00ff00; }
+        .count { 
+            background: #333; 
+            padding: 0.5rem 1rem; 
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Blog Posts Debug</h1>
+    
+    <div class="count">
+        Total posts found: {posts.length}
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>Language</th>
+                <th>Title</th>
+                <th>URL (click to test)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {debugInfo.map((post, index) => (
+                <tr>
+                    <td>{index + 1}</td>
+                    <td>{post.id}</td>
+                    <td>{post.lang}</td>
+                    <td>{post.title}</td>
+                    <td><a href={post.url}>{post.url}</a></td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
+    
+    <h2>Raw Data</h2>
+    <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+</body>
+</html>

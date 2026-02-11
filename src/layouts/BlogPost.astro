@@ -1,19 +1,155 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 
+// i18n imports
+import { getAlternateLanguageUrls, useTranslations } from '../i18n/utils';
+import { getTextDirection } from '../i18n/locales';
+import {
+	SITE_CONFIG,
+	organizationSchema,
+	webSiteSchema,
+	createWebPageSchema,
+	createBreadcrumbSchema,
+	createArticleSchema,
+	createFAQSchema,
+	createSchemaGraph,
+	createBlogBreadcrumbs,
+} from '../schemas/reference';
+
 type Props = CollectionEntry<'blog'>['data'];
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const {
+	title,
+	description,
+	pubDate,
+	updatedDate,
+	heroImage,
+	heroImageAlt,
+	locale,
+	author = 'GPUFlow Team',
+	faq,
+} = Astro.props;
+
+// i18n setup
+const lang = locale;
+console.log('🔍 BlogPost DEBUG - locale:', locale, 'lang:', lang, 'dir:', getTextDirection(lang));
+const t = useTranslations(lang);
+const dir = getTextDirection(lang);
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
+
+// Generate OG image
+let ogImageURL = `${SITE_CONFIG.url}/og-default.jpg`;
+if (heroImage) {
+	const ogImage = await getImage({
+		src: heroImage,
+		width: 1200,
+		height: 630,
+		format: 'jpg',
+	});
+	ogImageURL = new URL(ogImage.src, Astro.site).toString();
+}
+
+// Build schema graph
+const breadcrumbItems = createBlogBreadcrumbs(title, canonicalURL, lang, {
+	home: t('nav.home'),
+	blog: t('nav.blog'),
+});
+
+const schemas = [
+	organizationSchema,
+	webSiteSchema,
+	createWebPageSchema({
+		url: canonicalURL,
+		title,
+		description,
+		datePublished: pubDate,
+		dateModified: updatedDate,
+		locale: lang,
+	}),
+	createBreadcrumbSchema(canonicalURL, breadcrumbItems),
+	createArticleSchema({
+		url: canonicalURL,
+		title,
+		description,
+		image: ogImageURL,
+		datePublished: pubDate,
+		dateModified: updatedDate,
+		locale: lang,
+		authorName: author,
+	}),
+];
+
+if (faq) {
+	schemas.push(createFAQSchema(canonicalURL, faq));
+}
+
+const schemaGraph = createSchemaGraph(schemas);
+
+// Hreflang URLs
+const alternateUrls = getAlternateLanguageUrls(SITE_CONFIG.url, Astro.url.pathname);
 ---
 
-<html lang="en">
+<html lang={lang} dir={dir}>
 	<head>
-		<BaseHead title={title} description={description} />
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="generator" content={Astro.generator} />
+
+		<!-- Canonical URL -->
+		<link rel="canonical" href={canonicalURL} />
+
+		<!-- Hreflang for all languages -->
+		{
+			alternateUrls.map(({ lang: altLang, url }) => (
+				<link rel="alternate" hreflang={altLang} href={url} />
+			))
+		}
+		<link
+			rel="alternate"
+			hreflang="x-default"
+			href={alternateUrls.find((u) => u.lang === 'en')?.url}
+		/>
+
+		<!-- Primary Meta Tags -->
+		<title>{title}</title>
+		<meta name="title" content={title} />
+		<meta name="description" content={description} />
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={ogImageURL} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:locale" content={lang} />
+
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:url" content={canonicalURL} />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImageURL} />
+
+		<!-- RSS Feed -->
+		<link
+			rel="alternate"
+			type="application/rss+xml"
+			title={`${SITE_CONFIG.name} RSS Feed`}
+			href="/rss.xml"
+		/>
+
+		<!-- Schema Graph -->
+		<script type="application/ld+json" set:html={JSON.stringify(schemaGraph)} />
+
 		<style>
 			main {
 				width: calc(100% - 2em);
@@ -52,15 +188,34 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			.last-updated-on {
 				font-style: italic;
 			}
+			/* RTL Support */
+			[dir='rtl'] .title {
+				text-align: right;
+			}
+			[dir='rtl'] .prose {
+				direction: rtl;
+			}
 		</style>
 	</head>
 
 	<body>
-		<Header />
+    <Header lang={lang} />
 		<main>
 			<article>
 				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+					{
+						heroImage && (
+							<Image
+								src={heroImage}
+								alt={heroImageAlt || title}
+								width={1020}
+								height={510}
+								loading="eager"
+								decoding="async"
+								format="webp"
+							/>
+						)
+					}
 				</div>
 				<div class="prose">
 					<div class="title">

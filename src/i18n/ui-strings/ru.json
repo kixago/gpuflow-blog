@@ -1,0 +1,12 @@
+{
+	"nav.home": "Главная",
+	"nav.blog": "Блог",
+	"nav.docs": "Документация",
+	"blog.title": "Блог",
+	"blog.readMore": "Читать далее",
+	"blog.publishedOn": "Опубликовано",
+	"blog.updatedOn": "Обновлено",
+	"blog.minuteRead": "мин",
+	"blog.backToBlog": "← Назад к блогу",
+	"footer.copyright": "© {year} GPUFlow. Все права защищены."
+}

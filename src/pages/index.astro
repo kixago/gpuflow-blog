@@ -1,49 +1,120 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+// Static redirect page with client-side language detection
 ---
-
 <!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This template
-				serves as a lightweight, minimally-styled starting point for anyone looking to build a personal
-				website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to
-				<a href="https://docs.astro.build/">read the docs</a>
-				or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>
-				by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPUFlow Blog - Redirecting...</title>
+    <script>
+        // Client-side language detection
+        const languages = {
+            'en': true, 'es': true, 'fr': true, 'de': true,
+            'ja': true, 'ko': true, 'zh-CN': true, 'zh-TW': true,
+            'pt-BR': true, 'ru': true, 'he': true, 'ar': true, 'hi': true
+        };
+        
+        const defaultLang = 'en';
+        
+        // Get browser languages (array of preferences)
+        const browserLangs = navigator.languages || [navigator.language || navigator.userLanguage];
+        
+        let detectedLang = defaultLang;
+        
+        // Loop through browser language preferences
+        for (let lang of browserLangs) {
+            // Try exact match first (e.g., 'pt-BR', 'zh-CN')
+            if (languages[lang]) {
+                detectedLang = lang;
+                break;
+            }
+            
+            // Try base language (e.g., 'pt' from 'pt-BR')
+            const baseLang = lang.split('-')[0];
+            
+            if (languages[baseLang]) {
+                detectedLang = baseLang;
+                break;
+            }
+            
+            // Special cases for languages with variants
+            if (baseLang === 'pt' && languages['pt-BR']) {
+                detectedLang = 'pt-BR';
+                break;
+            }
+            if (baseLang === 'zh') {
+                // Detect traditional vs simplified Chinese
+                if (lang.includes('TW') || lang.includes('HK') || lang.includes('Hant')) {
+                    detectedLang = 'zh-TW';
+                } else {
+                    detectedLang = 'zh-CN'; // Default to simplified (more common)
+                }
+                break;
+            }
+        }
+        
+        // Redirect immediately
+        window.location.replace('/' + detectedLang + '/');
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+        .loader {
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 50px;
+            height: 50px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader">
+        <div class="spinner"></div>
+        <h1>GPUFlow Blog</h1>
+        <p>Detecting your language...</p>
+    </div>
+    
+    <!-- Fallback for users with JavaScript disabled -->
+    <noscript>
+        <meta http-equiv="refresh" content="0; url=/en/">
+        <style>
+            .loader { display: none; }
+        </style>
+        <div style="text-align: center; padding: 2rem;">
+            <p>Redirecting to <a href="/en/" style="color: white; text-decoration: underline;">English version</a>...</p>
+        </div>
+    </noscript>
+</body>
 </html>

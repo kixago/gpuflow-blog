@@ -1,0 +1,12 @@
+{
+	"nav.home": "홈",
+	"nav.blog": "블로그",
+	"nav.docs": "문서",
+	"blog.title": "블로그",
+	"blog.readMore": "더 읽기",
+	"blog.publishedOn": "게시일",
+	"blog.updatedOn": "업데이트",
+	"blog.minuteRead": "분",
+	"blog.backToBlog": "← 블로그로 돌아가기",
+	"footer.copyright": "© {year} GPUFlow. All rights reserved."
+}

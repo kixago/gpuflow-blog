@@ -1,0 +1,30 @@
+---
+import { getCollection, render } from 'astro:content';
+import BlogPost from '../layouts/BlogPost.astro';
+
+export async function getStaticPaths() {
+    const posts = await getCollection('blog');
+    
+    return posts.map((post) => {
+        // post.id examples: "en/test-post" or "es/test-post"
+        // (Astro 5 already strips the .md extension from id)
+        const slug = post.id;
+        
+        return {
+            params: { slug },
+            props: { post },
+        };
+    });
+}
+
+const { post } = Astro.props;
+console.log('🔍 SLUG PAGE - post.data:', JSON.stringify(post.data, null, 2));
+const { Content } = await render(post);
+
+// Extract language from the post id for the html lang attribute
+const lang = post.id.split('/')[0];
+---
+
+<BlogPost {...post.data} lang={lang}>
+    <Content />
+</BlogPost>

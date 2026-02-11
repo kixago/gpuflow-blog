@@ -1,0 +1,12 @@
+{
+	"nav.home": "الرئيسية",
+	"nav.blog": "المدونة",
+	"nav.docs": "التوثيق",
+	"blog.title": "المدونة",
+	"blog.readMore": "اقرأ المزيد",
+	"blog.publishedOn": "نُشر في",
+	"blog.updatedOn": "تم التحديث في",
+	"blog.minuteRead": "دقيقة",
+	"blog.backToBlog": "العودة إلى المدونة ←",
+	"footer.copyright": "© {year} GPUFlow. جميع الحقوق محفوظة."
+}
