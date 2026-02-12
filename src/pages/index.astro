@@ -11,8 +11,8 @@
         // Client-side language detection
         const languages = {
             'en': true, 'es': true, 'fr': true, 'de': true,
-            'ja': true, 'ko': true, 'zh-CN': true, 'zh-TW': true,
-            'pt-BR': true, 'ru': true, 'he': true, 'ar': true, 'hi': true
+            'ja': true, 'ko': true, 'zh_cn': true, 'zh_tw': true,
+            'pt_br': true, 'ru': true, 'he': true, 'ar': true, 'hi': true
         };
         
         const defaultLang = 'en';
@@ -24,13 +24,13 @@
         
         // Loop through browser language preferences
         for (let lang of browserLangs) {
-            // Try exact match first (e.g., 'pt-BR', 'zh-CN')
+            // Try exact match first (e.g., 'pt_br', 'zh_cn')
             if (languages[lang]) {
                 detectedLang = lang;
                 break;
             }
             
-            // Try base language (e.g., 'pt' from 'pt-BR')
+            // Try base language (e.g., 'pt' from 'pt_br')
             const baseLang = lang.split('-')[0];
             
             if (languages[baseLang]) {
@@ -39,16 +39,16 @@
             }
             
             // Special cases for languages with variants
-            if (baseLang === 'pt' && languages['pt-BR']) {
-                detectedLang = 'pt-BR';
+            if (baseLang === 'pt' && languages['pt_br']) {
+                detectedLang = 'pt_br';
                 break;
             }
             if (baseLang === 'zh') {
                 // Detect traditional vs simplified Chinese
                 if (lang.includes('TW') || lang.includes('HK') || lang.includes('Hant')) {
-                    detectedLang = 'zh-TW';
+                    detectedLang = 'zh_tw';
                 } else {
-                    detectedLang = 'zh-CN'; // Default to simplified (more common)
+                    detectedLang = 'zh_cn'; // Default to simplified (more common)
                 }
                 break;
             }

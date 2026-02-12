@@ -1,7 +1,7 @@
 I am writing a blog for my website to try and get users .. I am using Astro with i18n to try and go after other languages since English is very difficult ... It is a GPU Marketplace and competing in english with vast.ai or something is tough .. so i am doing english but also these languages:
 
 ```
-ar/      de/      en/      es/      fr/      he/      hi/      _images/ ja/      ko/      pt-BR/   ru/      zh-CN/   zh-TW/
+ar/      de/      en/      es/      fr/      he/      hi/      _images/ ja/      ko/      pt_br/   ru/      zh_cn/   zh_tw/
 ```
 
 Here is the exact way it should be done for each language (should be the same just translated)

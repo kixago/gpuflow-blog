@@ -7,9 +7,9 @@ import fr from './ui-strings/fr.json';
 import de from './ui-strings/de.json';
 import ja from './ui-strings/ja.json';
 import ko from './ui-strings/ko.json';
-import zhCN from './ui-strings/zh-CN.json';
-import zhTW from './ui-strings/zh-TW.json';
-import ptBR from './ui-strings/pt-BR.json';
+import zhCN from './ui-strings/zh_cn.json';
+import zhTW from './ui-strings/zh_tw.json';
+import ptBR from './ui-strings/pt_br.json';
 import ru from './ui-strings/ru.json';
 import he from './ui-strings/he.json';
 import ar from './ui-strings/ar.json';
@@ -22,9 +22,9 @@ const ui = {
 	de,
 	ja,
 	ko,
-	'zh-CN': zhCN,
-	'zh-TW': zhTW,
-	'pt-BR': ptBR,
+	'zh_cn': zhCN,
+	'zh_tw': zhTW,
+	'pt_br': ptBR,
 	ru,
 	he,
 	ar,
@@ -55,7 +55,7 @@ export function getAlternateLanguageUrls(
 ): Array<{ lang: LanguageCode; url: string }> {
 	// Remove any existing language prefix
 	const cleanPath = pathname
-		.replace(/^\/(en|es|fr|de|ja|ko|zh-CN|zh-TW|pt-BR|ru|he|ar|hi)\//, '/');
+		.replace(/^\/(en|es|fr|de|ja|ko|zh_cn|zh_tw|pt_br|ru|he|ar|hi)\//, '/');
 
 	return Object.keys(languages).map((lang) => {
 		const langCode = lang as LanguageCode;

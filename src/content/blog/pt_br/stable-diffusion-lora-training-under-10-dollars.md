@@ -4,7 +4,7 @@ description: "Guia passo a passo para treinar modelos LoRA personalizados para S
 excerpt: "Um tutorial prático para treinar modelos LoRA de alta qualidade usando aluguel de GPUs. Abrange seleção de provedores, configuração e técnicas para manter os custos totais abaixo de $10."
 pubDate: 2025-02-11
 updatedDate: 2025-02-11
-locale: "pt-BR"
+locale: "pt_br"
 category: "tutorials"
 featured: false
 draft: false
@@ -105,7 +105,7 @@ A RTX 4090 geralmente oferece a melhor eficiência de custo. Ela treina quase t�
 
 Para o treinamento LoRA do SDXL, os cálculos mudam ligeiramente porque o modelo maior se beneficia mais da VRAM adicional e largura de banda de memória. A A100 torna-se mais competitiva para projetos SDXL complexos onde o treinamento de outra forma levaria quatro ou mais horas em hardware de consumo.
 
-Para uma análise abrangente dos preços de aluguel de GPU em todos os principais provedores, incluindo opções de nuvem empresarial e plataformas de mercado, consulte nossa [comparação completa de preços de aluguel de GPU para 2026](/pt-BR/comparacao-precos-aluguel-gpu-2026/).
+Para uma análise abrangente dos preços de aluguel de GPU em todos os principais provedores, incluindo opções de nuvem empresarial e plataformas de mercado, consulte nossa [comparação completa de preços de aluguel de GPU para 2026](/pt_br/comparacao-precos-aluguel-gpu-2026/).
 
 ![Placa gráfica NVIDIA RTX 4090 com sistema de refrigeração de triplo ventilador comumente usada para treinamento de modelos de IA](../_images/nvidia-4090.jpg)
 
@@ -583,7 +583,7 @@ Você pode produzir resultados razoáveis com apenas quinze a vinte imagens. No 
 
 ### Qual provedor de aluguel de GPU oferece o melhor custo-benefício para treinamento LoRA?
 
-Vast.ai geralmente oferece as tarifas horárias mais baixas para GPUs RTX 4090, frequentemente de $0.35 a $0.50 por hora. GPUFlow fornece preços competitivos com opções de pagamento em criptomoedas e sem requisitos de verificação de identidade. RunPod oferece a interface mais direta para usuários novos no aluguel de GPUs. Para uma comparação detalhada de todos os provedores e preços atuais, veja nossa [comparação abrangente de preços de aluguel de GPU](/pt-BR/comparacao-precos-aluguel-gpu-2026/).
+Vast.ai geralmente oferece as tarifas horárias mais baixas para GPUs RTX 4090, frequentemente de $0.35 a $0.50 por hora. GPUFlow fornece preços competitivos com opções de pagamento em criptomoedas e sem requisitos de verificação de identidade. RunPod oferece a interface mais direta para usuários novos no aluguel de GPUs. Para uma comparação detalhada de todos os provedores e preços atuais, veja nossa [comparação abrangente de preços de aluguel de GPU](/pt_br/comparacao-precos-aluguel-gpu-2026/).
 
 ### É mais econômico treinar múltiplos modelos LoRA em uma única sessão?
 
@@ -603,7 +603,7 @@ Os fatores críticos de sucesso permanecem inalterados em relação a abordagens
 
 Comece com um dataset modesto de vinte a trinta imagens. Treine com configurações conservadoras. Teste seus resultados completamente antes de expandir para projetos maiores. O custo por tentativa é baixo o suficiente para que a iteração seja prática—trate suas primeiras execuções de treinamento como experiências de aprendizado ao invés de saídas de produção.
 
-Para aqueles comparando opções de aluguel de GPU em todos os tipos de provedores e faixas de preço, nossa [comparação de preços de aluguel de GPU](/pt-BR/comparacao-precos-aluguel-gpu-2026/) fornece tarifas atuais para GPUs de consumo, hardware de data center e opções de nuvem empresarial.
+Para aqueles comparando opções de aluguel de GPU em todos os tipos de provedores e faixas de preço, nossa [comparação de preços de aluguel de GPU](/pt_br/comparacao-precos-aluguel-gpu-2026/) fornece tarifas atuais para GPUs de consumo, hardware de data center e opções de nuvem empresarial.
 
 ---
 

@@ -171,7 +171,7 @@ Pour SDXL, des légendes plus détaillées améliorent considérablement la qual
 - Éventuellement, utilisez des techniques simples d’augmentation : rotation légère, inversion horizontale, ajustement de luminosité.
 - Vérifiez la cohérence des légendes : chaque image doit correspondre exactement à sa légende.
 
-![Exemple d’organisation de dataset LoRA sur un disque local, avec noms de fichiers et légendes](../_images/lora-dataset-example.jpg)
+![Exemple d’organisation de dataset LoRA sur un disque local, avec noms de fichiers et légendes](../_images/lora-dataset-example.png)
 
 ---
 

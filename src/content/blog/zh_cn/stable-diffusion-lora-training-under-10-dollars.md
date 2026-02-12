@@ -4,7 +4,7 @@ description: "使用租用GPU训练Stable Diffusion自定义LoRA模型的分步�
 excerpt: "使用GPU租赁训练高质量LoRA模型的实用教程。涵盖供应商选择、配置以及将总成本控制在10美元以下的技术。"
 pubDate: 2026-02-11
 updatedDate: 2026-02-11
-locale: "zh-CN"
+locale: "zh_cn"
 category: "tutorials"
 featured: false
 draft: false
@@ -105,7 +105,7 @@ RTX 4090通常提供最佳的成本效益。它的训练速度几乎与数据中
 
 对于SDXL的LoRA训练，计算方式略有不同，因为更大的模型更能从额外的显存和内存带宽中受益。A100在复杂的SDXL项目中变得更具竞争力，否则在消费级硬件上训练可能需要四小时或更长时间。
 
-有关所有主要供应商的GPU租赁价格的全面分析，包括企业云选项和市场平台，请参阅我们的[2026年GPU租赁价格完整对比](/zh-CN/gpu-rental-pricing-comparison-2026/)。
+有关所有主要供应商的GPU租赁价格的全面分析，包括企业云选项和市场平台，请参阅我们的[2026年GPU租赁价格完整对比](/zh_cn/gpu-rental-pricing-comparison-2026/)。
 
 ![NVIDIA RTX 4090显卡，配备三风扇散热系统，常用于AI模型训练](../_images/nvidia-4090.jpg)
 
@@ -579,7 +579,7 @@ GPU可用性和定价根据需求波动。在非高峰时段（例如美国时�
 
 ### 哪家GPU租赁供应商为LoRA训练提供最佳性价比？
 
-Vast.ai通常为RTX 4090 GPU提供最低的小时费率，通常为每小时0.35至0.50美元。GPUFlow提供有竞争力的定价，支持加密货币支付且无需身份验证。RunPod为GPU租赁新手提供最直观的界面。有关所有供应商和当前定价的详细比较，请参阅我们的[GPU租赁价格综合比较](/zh-CN/gpu-rental-pricing-comparison-2026/)。
+Vast.ai通常为RTX 4090 GPU提供最低的小时费率，通常为每小时0.35至0.50美元。GPUFlow提供有竞争力的定价，支持加密货币支付且无需身份验证。RunPod为GPU租赁新手提供最直观的界面。有关所有供应商和当前定价的详细比较，请参阅我们的[GPU租赁价格综合比较](/zh_cn/gpu-rental-pricing-comparison-2026/)。
 
 ### 在单个会话中训练多个LoRA模型是否更具成本效益？
 
@@ -599,7 +599,7 @@ Vast.ai通常为RTX 4090 GPU提供最低的小时费率，通常为每小时0.35
 
 从二十到三十张图像的适度数据集开始。使用保守的设置进行训练。在扩展到更大的项目之前彻底测试您的结果。每次尝试的成本足够低，迭代是实际可行的——将您的前几次训练运行视为学习经验，而不是生产输出。
 
-对于那些比较所有供应商类型和价格点的GPU租赁选项的人，我们的[GPU租赁价格比较](/zh-CN/gpu-rental-pricing-comparison-2026/)提供消费级GPU、数据中心硬件和企业云选项的当前费率。
+对于那些比较所有供应商类型和价格点的GPU租赁选项的人，我们的[GPU租赁价格比较](/zh_cn/gpu-rental-pricing-comparison-2026/)提供消费级GPU、数据中心硬件和企业云选项的当前费率。
 
 ---
 

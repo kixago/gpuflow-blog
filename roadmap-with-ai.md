@@ -27,7 +27,7 @@
    ├─> Japanese (ja)
    ├─> Korean (ko)
    ├─> Chinese Simplified (zh)
-   └─> Chinese Traditional (zh_TW)
+   └─> Chinese Traditional (zh_tw)
 
 ✅ Technical Infrastructure
    ├─> Full documentation suite
