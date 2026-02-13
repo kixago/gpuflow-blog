@@ -4,238 +4,229 @@ import type { CollectionEntry } from 'astro:content';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import '../styles/global.css';
 
-// i18n imports
 import { getAlternateLanguageUrls, useTranslations } from '../i18n/utils';
 import { getTextDirection } from '../i18n/locales';
 import {
-	SITE_CONFIG,
-	organizationSchema,
-	webSiteSchema,
-	createWebPageSchema,
-	createBreadcrumbSchema,
-	createArticleSchema,
-	createFAQSchema,
-	createSchemaGraph,
-	createBlogBreadcrumbs,
+  SITE_CONFIG,
+  organizationSchema,
+  webSiteSchema,
+  createWebPageSchema,
+  createBreadcrumbSchema,
+  createArticleSchema,
+  createFAQSchema,
+  createSchemaGraph,
+  createBlogBreadcrumbs,
 } from '../schemas/reference';
 
 type Props = CollectionEntry<'blog'>['data'];
 
 const {
-	title,
-	description,
-	pubDate,
-	updatedDate,
-	heroImage,
-	heroImageAlt,
-	locale,
-	author = 'GPUFlow Team',
-	faq,
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  heroImage,
+  heroImageAlt,
+  locale,
+  author = 'GPUFlow Team',
+  category = 'guides',
+  faq,
 } = Astro.props;
 
-// i18n setup
 const lang = locale;
-console.log('🔍 BlogPost DEBUG - locale:', locale, 'lang:', lang, 'dir:', getTextDirection(lang));
 const t = useTranslations(lang);
 const dir = getTextDirection(lang);
 const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
 
-// Generate OG image
 let ogImageURL = `${SITE_CONFIG.url}/og-default.jpg`;
 if (heroImage) {
-	const ogImage = await getImage({
-		src: heroImage,
-		width: 1200,
-		height: 630,
-		format: 'jpg',
-	});
-	ogImageURL = new URL(ogImage.src, Astro.site).toString();
+  const ogImage = await getImage({
+    src: heroImage,
+    width: 1200,
+    height: 630,
+    format: 'jpg',
+  });
+  ogImageURL = new URL(ogImage.src, Astro.site).toString();
 }
 
-// Build schema graph
 const breadcrumbItems = createBlogBreadcrumbs(title, canonicalURL, lang, {
-	home: t('nav.home'),
-	blog: t('nav.blog'),
+  home: t('nav.home'),
+  blog: t('nav.blog'),
 });
 
 const schemas = [
-	organizationSchema,
-	webSiteSchema,
-	createWebPageSchema({
-		url: canonicalURL,
-		title,
-		description,
-		datePublished: pubDate,
-		dateModified: updatedDate,
-		locale: lang,
-	}),
-	createBreadcrumbSchema(canonicalURL, breadcrumbItems),
-	createArticleSchema({
-		url: canonicalURL,
-		title,
-		description,
-		image: ogImageURL,
-		datePublished: pubDate,
-		dateModified: updatedDate,
-		locale: lang,
-		authorName: author,
-	}),
+  organizationSchema,
+  webSiteSchema,
+  createWebPageSchema({
+    url: canonicalURL,
+    title,
+    description,
+    datePublished: pubDate,
+    dateModified: updatedDate,
+    locale: lang,
+  }),
+  createBreadcrumbSchema(canonicalURL, breadcrumbItems),
+  createArticleSchema({
+    url: canonicalURL,
+    title,
+    description,
+    image: ogImageURL,
+    datePublished: pubDate,
+    dateModified: updatedDate,
+    locale: lang,
+    authorName: author,
+  }),
 ];
 
 if (faq) {
-	schemas.push(createFAQSchema(canonicalURL, faq));
+  schemas.push(createFAQSchema(canonicalURL, faq));
 }
 
 const schemaGraph = createSchemaGraph(schemas);
-
-// Hreflang URLs
 const alternateUrls = getAlternateLanguageUrls(SITE_CONFIG.url, Astro.url.pathname);
 ---
 
+<!DOCTYPE html>
 <html lang={lang} dir={dir}>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-		<meta name="generator" content={Astro.generator} />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="generator" content={Astro.generator} />
 
-		<!-- Canonical URL -->
-		<link rel="canonical" href={canonicalURL} />
+    <link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin />
+    <link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin />
 
-		<!-- Hreflang for all languages -->
-		{
-			alternateUrls.map(({ lang: altLang, url }) => (
-				<link rel="alternate" hreflang={altLang} href={url} />
-			))
-		}
-		<link
-			rel="alternate"
-			hreflang="x-default"
-			href={alternateUrls.find((u) => u.lang === 'en')?.url}
-		/>
+    <link rel="canonical" href={canonicalURL} />
 
-		<!-- Primary Meta Tags -->
-		<title>{title}</title>
-		<meta name="title" content={title} />
-		<meta name="description" content={description} />
+    {alternateUrls.map(({ lang: altLang, url }) => (
+      <link rel="alternate" hreflang={altLang} href={url} />
+    ))}
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={alternateUrls.find((u) => u.lang === 'en')?.url}
+    />
 
-		<!-- Open Graph -->
-		<meta property="og:type" content="article" />
-		<meta property="og:url" content={canonicalURL} />
-		<meta property="og:title" content={title} />
-		<meta property="og:description" content={description} />
-		<meta property="og:image" content={ogImageURL} />
-		<meta property="og:image:width" content="1200" />
-		<meta property="og:image:height" content="630" />
-		<meta property="og:locale" content={lang} />
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
 
-		<!-- Twitter -->
-		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:url" content={canonicalURL} />
-		<meta name="twitter:title" content={title} />
-		<meta name="twitter:description" content={description} />
-		<meta name="twitter:image" content={ogImageURL} />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={lang} />
 
-		<!-- RSS Feed -->
-		<link
-			rel="alternate"
-			type="application/rss+xml"
-			title={`${SITE_CONFIG.name} RSS Feed`}
-			href="/rss.xml"
-		/>
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
 
-		<!-- Schema Graph -->
-		<script type="application/ld+json" set:html={JSON.stringify(schemaGraph)} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${SITE_CONFIG.name} RSS Feed`}
+      href="/rss.xml"
+    />
 
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-			/* RTL Support */
-			[dir='rtl'] .title {
-				text-align: right;
-			}
-			[dir='rtl'] .prose {
-				direction: rtl;
-			}
-		</style>
-	</head>
+    <script type="application/ld+json" set:html={JSON.stringify(schemaGraph)} />
+  </head>
 
-	<body>
+  <body>
+    <div class="reading-progress" id="reading-progress"></div>
+    
     <Header lang={lang} />
-		<main>
-			<article>
-				<div class="hero-image">
-					{
-						heroImage && (
-							<Image
-								src={heroImage}
-								alt={heroImageAlt || title}
-								width={1020}
-								height={510}
-								loading="eager"
-								decoding="async"
-								format="webp"
-							/>
-						)
-					}
-				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1>{title}</h1>
-						<hr />
-					</div>
-					<slot />
-				</div>
-			</article>
-		</main>
-		<Footer />
-	</body>
+
+    <main>
+      <article>
+        {heroImage && (
+          <div class="article-hero">
+            <Image
+              src={heroImage}
+              alt={heroImageAlt || title}
+              width={1200}
+              height={500}
+              quality={85}
+              loading="eager"
+              fetchpriority="high"
+            />
+          </div>
+        )}
+
+        <div class="article-header">
+          <div class="article-meta">
+            <span class="article-category">{category}</span>
+            <time class="article-date" datetime={pubDate.toISOString()}>
+              <FormattedDate date={pubDate} />
+            </time>
+            {updatedDate && (
+              <time class="article-date" datetime={updatedDate.toISOString()}>
+                Updated <FormattedDate date={updatedDate} />
+              </time>
+            )}
+          </div>
+          
+          <h1 class="article-title">{title}</h1>
+          <p class="article-description">{description}</p>
+        </div>
+
+        <div class="article-content">
+          <slot />
+        </div>
+
+        {faq && faq.length > 0 && (
+          <div class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            {faq.map((item) => (
+              <div class="faq-item">
+                <h3 class="faq-question">{item.question}</h3>
+                <p class="faq-answer">{item.answer}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </article>
+    </main>
+
+    <Footer />
+
+    <script>
+      function updateReadingProgress() {
+        const article = document.querySelector('article');
+        const progressBar = document.getElementById('reading-progress');
+        
+        if (!article || !progressBar) return;
+
+        const articleTop = article.offsetTop;
+        const articleHeight = article.offsetHeight;
+        const windowHeight = window.innerHeight;
+        const scrollTop = window.scrollY;
+
+        const scrollableDistance = articleHeight - windowHeight;
+        const scrolled = scrollTop - articleTop;
+        
+        if (scrolled <= 0) {
+          progressBar.style.width = '0%';
+        } else if (scrolled >= scrollableDistance) {
+          progressBar.style.width = '100%';
+        } else {
+          const progress = (scrolled / scrollableDistance) * 100;
+          progressBar.style.width = `${progress}%`;
+        }
+      }
+
+      window.addEventListener('scroll', updateReadingProgress);
+      window.addEventListener('resize', updateReadingProgress);
+      updateReadingProgress();
+    </script>
+  </body>
 </html>

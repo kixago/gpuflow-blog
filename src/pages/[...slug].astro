@@ -3,29 +3,20 @@ import { getCollection, render } from 'astro:content';
 import BlogPost from '../layouts/BlogPost.astro';
 
 export async function getStaticPaths() {
-    const posts = await getCollection('blog');
-    
-    // DEBUG
-    console.log('📁 Total posts found:', posts.length);
-    console.log('📁 All post IDs:', posts.map(p => p.id));
-    
-    return posts.map((post) => {
-        const slug = post.id;
-        
-        return {
-            params: { slug },
-            props: { post },
-        };
-    });
+  const posts = await getCollection('blog');
+  
+  return posts.map((post) => {
+    return {
+      params: { slug: post.id },
+      props: { post },
+    };
+  });
 }
 
 const { post } = Astro.props;
-console.log('🔍 SLUG PAGE - post.data:', JSON.stringify(post.data, null, 2));
 const { Content } = await render(post);
-
-const lang = post.id.split('/')[0];
 ---
 
-<BlogPost {...post.data} lang={lang}>
-    <Content />
+<BlogPost {...post.data}>
+  <Content />
 </BlogPost>

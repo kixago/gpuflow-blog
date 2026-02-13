@@ -8,4 +8,15 @@ import { defineConfig } from "astro/config";
 export default defineConfig({
   site: "https://blog.gpuflow.app",
   integrations: [mdx(), sitemap()],
+
+  image: {
+    layout: "constrained",
+    responsiveStyles: true,
+    service: {
+      entrypoint: "astro/assets/services/sharp",
+      config: {
+        limitInputPixels: false,
+      },
+    },
+  },
 });
