@@ -64,7 +64,7 @@ O GPUFlow construiu seu marketplace especificamente em torno de pagamentos com c
 **Requisito de KYC:** Nenhum  
 **Mecanismo de Escrow:** Contratos inteligentes na Polygon com liberação automatizada  
 **Taxa da plataforma:** 10-15%  
-**Preço típico de GPU:** RTX 4090 a $0,50-0,80/h, A100 a $1,20-1,80/h
+**Preços típicos de GPU:** RTX 4090 a $0,50-0,80/hr, A100 a $1,20-1,80/hr. Para uma comparação detalhada entre todos os provedores, veja nossa [Comparação de Preços de Aluguel de GPU 2026](/pt_br/gpu-rental-pricing-comparison-2026/).
 
 O GPUFlow prioriza o acesso imediato. A plataforma visa usuários que valorizam a privacidade, querem evitar a verificação de identidade ou preferem fluxos de trabalho nativos de blockchain. A configuração leva aproximadamente 30 segundos — conectar a carteira, depositar criptomoeda, selecionar a GPU e acessar via terminal web.
 
