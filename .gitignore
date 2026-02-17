@@ -11,8 +11,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
-
+article*.md
+research-notes.md
+roadmap-with-ai.md
+*.modelfile
 # environment variables
 .env
 .env.production
