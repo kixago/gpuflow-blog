@@ -3,6 +3,7 @@ import '../styles/global.css';
 import type { ImageMetadata } from 'astro';
 import FallbackImage from '../assets/blog-placeholder-1.jpg';
 import { SITE_TITLE } from '../consts';
+import { languages } from '../i18n/locales';
 
 interface Props {
   title: string;
@@ -12,6 +13,16 @@ interface Props {
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const { title, description, image = FallbackImage } = Astro.props;
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://yourdomain.com';
+
+// Map your locale codes to proper hreflang codes
+const hreflangMap: Record<string, string> = {
+  'zh_cn': 'zh-CN',
+  'zh_tw': 'zh-TW',
+  'pt_br': 'pt-BR',
+};
+const getHreflang = (code: string) => hreflangMap[code] || code;
 ---
 
 <meta charset="utf-8" />
@@ -31,6 +42,16 @@ const { title, description, image = FallbackImage } = Astro.props;
 <link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin />
 
 <link rel="canonical" href={canonicalURL} />
+
+<!-- hreflang tags -->
+{Object.keys(languages).map((code) => (
+  <link 
+    rel="alternate" 
+    hreflang={getHreflang(code)} 
+    href={`${siteUrl}/${code}/`} 
+  />
+))}
+<link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/`} />
 
 <title>{title}</title>
 <meta name="title" content={title} />
