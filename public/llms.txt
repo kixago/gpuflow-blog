@@ -1,0 +1,23 @@
+# GPUFlow Blog
+
+> Company news, product updates, and announcements for GPUFlow - the decentralized GPU rental marketplace.
+
+## Documentation
+
+For technical documentation, guides, and reference material, see:
+- [GPUFlow Documentation](https://docs.gpuflow.app/llms.txt)
+
+## About This Site
+
+This blog contains:
+- Product announcements and updates
+- Company news
+- Use case stories
+- Community highlights
+
+For how-to guides, API reference, installation instructions, and troubleshooting, please use our documentation site.
+
+## Links
+
+- Documentation: https://docs.gpuflow.app
+- Main Platform: https://gpuflow.app
