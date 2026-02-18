@@ -30,7 +30,7 @@ Un desarrollador en São Paulo y un desarrollador en San Francisco ambos alquila
 
 Este artículo desglosa exactamente lo que realmente cuesta el alquiler de GPU desde diferentes países cuando consideras cada tarifa entre tu cuenta bancaria y los ingresos del proveedor de GPU. Luego muestra el mismo cálculo usando criptomonedas en la red Polygon, donde el costo total de transacción es $0.03 independientemente de si estás en Lagos, Tokio o Buenos Aires. Los ahorros no son teóricos. Son específicos, calculables y en algunos países lo suficientemente sustanciales como para financiar horas adicionales de GPU cada mes.
 
-""Para una guía completa del proceso de pago con criptomonedas en sí—incluyendo configuración de wallet, escrow de contratos inteligentes y guías específicas de plataformas—consulta nuestra [Guía Completa para Alquilar GPUs con Criptomonedas](../es/rent-gpu-with-crypto.md).""
+""Para una guía completa del proceso de pago con criptomonedas en sí—incluyendo configuración de wallet, escrow de contratos inteligentes y guías específicas de plataformas—consulta nuestra [Guía Completa para Alquilar GPUs con Criptomonedas](../es/rent-gpu-with-crypto).""
 
 ---
 

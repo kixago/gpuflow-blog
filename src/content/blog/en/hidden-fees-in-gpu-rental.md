@@ -30,7 +30,7 @@ A developer in São Paulo and a developer in San Francisco both rent the same RT
 
 This article breaks down exactly what GPU rental actually costs from different countries when you account for every fee between your bank account and the GPU provider's income. Then it shows the same calculation using cryptocurrency on Polygon network, where the total transaction cost is $0.03 regardless of whether you are in Lagos, Tokyo, or Buenos Aires. The savings are not theoretical. They are specific, calculable, and in some countries substantial enough to fund additional GPU hours every month.
 
-""For a complete walkthrough of the cryptocurrency payment process itself—including wallet setup, smart contract escrow, and platform-specific guides—see our [Complete Guide to Renting GPUs with Cryptocurrency](../en/rent-gpu-with-crypto.md).""
+""For a complete walkthrough of the cryptocurrency payment process itself—including wallet setup, smart contract escrow, and platform-specific guides—see our [Complete Guide to Renting GPUs with Cryptocurrency](../en/rent-gpu-with-crypto).""
 
 ---
 

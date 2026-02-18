@@ -30,7 +30,7 @@ Ein Entwickler in São Paulo und ein Entwickler in San Francisco mieten beide di
 
 Dieser Artikel schlüsselt genau auf, was GPU-Miete aus verschiedenen Ländern tatsächlich kostet, wenn Sie jede Gebühr zwischen Ihrem Bankkonto und dem Einkommen des GPU-Anbieters berücksichtigen. Dann zeigt er dieselbe Berechnung unter Verwendung von Kryptowährung im Polygon-Netzwerk, wo die gesamten Transaktionskosten 0,03 $ betragen, egal ob Sie in Lagos, Tokio oder Buenos Aires sind. Die Einsparungen sind nicht theoretisch. Sie sind spezifisch, berechenbar und in einigen Ländern erheblich genug, um jeden Monat zusätzliche GPU-Stunden zu finanzieren.
 
-""Für eine vollständige Anleitung zum Kryptowährungszahlungsprozess selbst – einschließlich Wallet-Einrichtung, Smart-Contract-Escrow und plattformspezifischer Anleitungen – siehe unseren [Vollständigen Leitfaden zur GPU-Miete mit Kryptowährung](../de/rent-gpu-with-crypto.md).""
+""Für eine vollständige Anleitung zum Kryptowährungszahlungsprozess selbst – einschließlich Wallet-Einrichtung, Smart-Contract-Escrow und plattformspezifischer Anleitungen – siehe unseren [Vollständigen Leitfaden zur GPU-Miete mit Kryptowährung](../de/rent-gpu-with-crypto).""
 
 ---
 
