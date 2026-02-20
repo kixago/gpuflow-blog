@@ -28,7 +28,7 @@ Alquilar una GPU en AWS requiere una tarjeta de crédito, número de teléfono, 
 
 Las plataformas de alquiler de GPU sin KYC eliminan por completo la verificación de identidad del proceso. Usted conecta una billetera de criptomonedas, deposita fondos y accede al hardware. Todo el proceso de incorporación toma menos de sesenta segundos. Esta guía examina qué plataformas operan sin requisitos de KYC, qué compromisos prácticos existen y cómo evaluar si una plataforma sin verificación merece su confianza y su dinero.
 
-Para un recorrido completo sobre los pagos con criptomonedas, incluyendo la configuración de la billetera, la mecánica de depósito en garantía mediante contratos inteligentes y comparaciones de plataformas, consulte nuestra [Guía completa para alquilar GPUs con criptomonedas](../es/rent-gpu-with-crypto/).
+Para un recorrido completo sobre los pagos con criptomonedas, incluyendo la configuración de la billetera, la mecánica de depósito en garantía mediante contratos inteligentes y comparaciones de plataformas, consulte nuestra [Guía completa para alquilar GPUs con criptomonedas](/es/rent-gpu-with-crypto/).
 
 ---
 
@@ -190,7 +190,7 @@ GPUFlow opera completamente sobre rieles de criptomonedas:
 
 Tu pago se bloquea en un contrato inteligente visible en la cadena (on-chain). Ni GPUFlow ni el proveedor de la GPU pueden acceder a estos fondos hasta que se cumplan las condiciones del alquiler. Esto proporciona garantías criptográficas más fuertes que confiar en que una plataforma verificada con KYC retenga tu dinero honestamente.
 
-Para una explicación detallada de cómo el depósito en garantía mediante contrato inteligente protege tu pago y elimina el riesgo de contraparte, consulta nuestra [Guía completa para alquilar GPUs con criptomonedas](../es/rent-gpu-with-crypto/).
+Para una explicación detallada de cómo el depósito en garantía mediante contrato inteligente protege tu pago y elimina el riesgo de contraparte, consulta nuestra [Guía completa para alquilar GPUs con criptomonedas](/es/rent-gpu-with-crypto/).
 
 **Mejor para:**
 
@@ -417,7 +417,7 @@ Las plataformas sin KYC aceptan criptomonedas porque las criptomonedas permiten 
 
 **Mitigación:**
 
-La curva de aprendizaje de las criptomonedas es de aproximadamente 30-60 minutos. Nuestra [Guía completa para alquilar GPUs con criptomonedas](../es/rent-gpu-with-crypto/) cubre la configuración de la billetera, la adquisición de stablecoins y el recorrido del primer alquiler en detalle. Una vez establecido, el flujo de trabajo es comparable a cualquier método de pago.
+La curva de aprendizaje de las criptomonedas es de aproximadamente 30-60 minutos. Nuestra [Guía completa para alquilar GPUs con criptomonedas](/es/rent-gpu-with-crypto/) cubre la configuración de la billetera, la adquisición de stablecoins y el recorrido del primer alquiler en detalle. Una vez establecido, el flujo de trabajo es comparable a cualquier método de pago.
 
 ---
 
@@ -676,7 +676,7 @@ Su criptomoneda se bloquea en un contrato inteligente cuando comienza el alquile
 
 Incluso si los operadores de GPUFlow quisieran robar fondos, el contrato inteligente lo impide. La confianza se deposita en el código auditado, no en la honestidad de las personas.
 
-Para una explicación detallada de cómo funciona el depósito en garantía mediante contrato inteligente y cómo verificar sus fondos en la cadena, consulte nuestra [Guía completa para alquilar GPUs con criptomonedas](../es/rent-gpu-with-crypto/).
+Para una explicación detallada de cómo funciona el depósito en garantía mediante contrato inteligente y cómo verificar sus fondos en la cadena, consulte nuestra [Guía completa para alquilar GPUs con criptomonedas](/es/rent-gpu-with-crypto/).
 
 **Depósito en garantía mantenido por la plataforma (Modelo Vast.ai):**
 
@@ -1141,7 +1141,7 @@ La ventaja de no tener KYC es más visible en el tiempo hasta la GPU. Cuando nec
 - Seleccione "Polygon Mainnet"
 - Reintente la conexión o transacción
 
-Para una solución de problemas completa e instrucciones detalladas de configuración de billetera, consulte nuestra [Guía completa para alquilar GPUs con criptomonedas](../es/rent-gpu-with-crypto/).
+Para una solución de problemas completa e instrucciones detalladas de configuración de billetera, consulte nuestra [Guía completa para alquilar GPUs con criptomonedas](/es/rent-gpu-with-crypto/).
 
 ![Guía visual paso a paso que muestra cinco etapas del alquiler de GPU sin KYC: instalación de billetera con icono de extensión de navegador, respaldo de frase semilla con icono de papel y bolígrafo, configuración de red con logotipo de Polygon, financiamiento con icono de moneda USDC y alquiler de GPU con icono de servidor, conectados por flechas que muestran un cronograma total de 5 minutos](../_images/no-kyc-five-minute-setup-visual-guide.png)
 
@@ -1207,9 +1207,9 @@ La GPU que alquila rinde idénticamente si envió escaneos de pasaporte o conect
 
 **De este sitio:**
 
-- [Guía completa para alquilar GPUs con criptomonedas](../es/rent-gpu-with-crypto/) — Recorrido completo incluyendo depósito en garantía mediante contrato inteligente, prácticas de seguridad y comparaciones de plataformas
-- [Tarifas ocultas en el alquiler de GPU: Cómo las criptomonedas ahorran dinero a los usuarios internacionales](../es/gpu-rental-hidden-fees-international/) — Análisis de costos detallado que muestra por qué las criptomonedas ahorran dinero a los usuarios internacionales
-- [Comparación de precios de alquiler de GPU 2026](../es/gpu-rental-pricing-comparison-2026/) — Precios actuales en todas las principales plataformas
+- [Guía completa para alquilar GPUs con criptomonedas](/es/rent-gpu-with-crypto/) — Recorrido completo incluyendo depósito en garantía mediante contrato inteligente, prácticas de seguridad y comparaciones de plataformas
+- [Tarifas ocultas en el alquiler de GPU: Cómo las criptomonedas ahorran dinero a los usuarios internacionales](/es/gpu-rental-hidden-fees-international/) — Análisis de costos detallado que muestra por qué las criptomonedas ahorran dinero a los usuarios internacionales
+- [Comparación de precios de alquiler de GPU 2026](/es/gpu-rental-pricing-comparison-2026/) — Precios actuales en todas las principales plataformas
 
 **Recursos externos:**
 

@@ -30,7 +30,7 @@ Un développeur à São Paulo et un développeur à San Francisco louent tous de
 
 Cet article détaille exactement ce que coûte réellement la location de GPU depuis différents pays lorsque vous prenez en compte chaque frais entre votre compte bancaire et les revenus du fournisseur de GPU. Il montre ensuite le même calcul en utilisant les cryptomonnaies sur le réseau Polygon, où le coût total de transaction est de 0,03 $ que vous soyez à Lagos, Tokyo ou Buenos Aires. Les économies ne sont pas théoriques. Elles sont spécifiques, calculables et dans certains pays suffisamment substantielles pour financer des heures de GPU supplémentaires chaque mois.
 
-""Pour une présentation complète du processus de paiement en cryptomonnaies lui-même—incluant la configuration du portefeuille, le séquestre par contrat intelligent et les guides spécifiques aux plateformes—consultez notre [Guide Complet pour Louer des GPU avec des Cryptomonnaies](../fr/rent-gpu-with-crypto).""
+""Pour une présentation complète du processus de paiement en cryptomonnaies lui-même—incluant la configuration du portefeuille, le séquestre par contrat intelligent et les guides spécifiques aux plateformes—consultez notre [Guide Complet pour Louer des GPU avec des Cryptomonnaies](/fr/rent-gpu-with-crypto).""
 
 ---
 
@@ -80,7 +80,7 @@ Pour un développeur louant 1 000 $ de temps GPU par mois, ces frais coûtent 12
 - **Coût total : 100,52 $**
 - **Économie : 11,50-13,00 $ (11,5-13%)**
 
-"[Notre Guide Complet pour Louer des GPU avec des Cryptomonnaies](../fr/rent-gpu-with-crypto) explique le séquestre par contrat intelligent en détail—le mécanisme qui protège à la fois votre paiement et garantit l'accès au GPU."
+"[Notre Guide Complet pour Louer des GPU avec des Cryptomonnaies](/fr/rent-gpu-with-crypto) explique le séquestre par contrat intelligent en détail—le mécanisme qui protège à la fois votre paiement et garantit l'accès au GPU."
 
 ### Inde : Frais de Transactions Étrangères sur Chaque Achat
 
@@ -798,7 +798,7 @@ Les plateformes de location de GPU paient également des frais pour recevoir vot
 
 Les plateformes acceptant les cryptomonnaies peuvent facturer des frais de plateforme plus bas car leurs coûts de traitement des paiements sont proches de zéro. Les frais de plateforme de 10-15% de GPUFlow versus les frais de ~20% de RunPod reflètent partiellement cette différence.
 
-"Le séquestre par contrat intelligent—couvert en profondeur dans notre guide de [location de GPU avec cryptomonnaies](../fr/rent-gpu-with-crypto)—réduit également les coûts de la plateforme en automatisant la résolution des litiges."
+"Le séquestre par contrat intelligent—couvert en profondeur dans notre guide de [location de GPU avec cryptomonnaies](/fr/rent-gpu-with-crypto)—réduit également les coûts de la plateforme en automatisant la résolution des litiges."
 
 Lorsque les plateformes réduisent les coûts de traitement des paiements, elles peuvent :
 
@@ -1451,4 +1451,4 @@ La transaction minimum viable dépend de la structure de frais de votre pays. Da
 
 ---
 
-**Prêt à éliminer les frais cachés de votre location de GPU ?** [GPUFlow](https://gpuflow.app) accepte les paiements en cryptomonnaies sur le réseau Polygon avec séquestre par contrat intelligent et sans exigences KYC. Connectez votre portefeuille et commencez à calculer en moins de 60 secondes—avec les mêmes frais bas que vous soyez à Lagos, São Paulo, Mumbai ou n'importe où ailleurs.
+**Prêt à éliminer les frais cachés de votre location de GPU ?** [GPUFlow](https://[gpuflow.app](https://gpuflow.app)) accepte les paiements en cryptomonnaies sur le réseau Polygon avec séquestre par contrat intelligent et sans exigences KYC. Connectez votre portefeuille et commencez à calculer en moins de 60 secondes—avec les mêmes frais bas que vous soyez à Lagos, São Paulo, Mumbai ou n'importe où ailleurs.

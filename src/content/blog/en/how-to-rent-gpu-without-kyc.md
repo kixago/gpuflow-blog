@@ -28,7 +28,7 @@ Renting a GPU from AWS requires a credit card, phone number, address verificatio
 
 No-KYC GPU rental platforms eliminate identity verification from the process entirely. You connect a cryptocurrency wallet, deposit funds, and access hardware. The entire onboarding takes under sixty seconds. This guide examines which platforms operate without KYC requirements, what practical tradeoffs exist, and how to evaluate whether a no-verification platform deserves your trust and your money.
 
-For a complete walkthrough of cryptocurrency payments including wallet setup, smart contract escrow mechanics, and platform comparisons, see our [Complete Guide to Renting GPUs with Cryptocurrency](../en/rent-gpu-with-crypto/).
+For a complete walkthrough of cryptocurrency payments including wallet setup, smart contract escrow mechanics, and platform comparisons, see our [Complete Guide to Renting GPUs with Cryptocurrency](/en/rent-gpu-with-crypto/).
 
 ---
 
@@ -190,7 +190,7 @@ GPUFlow operates entirely on cryptocurrency rails:
 
 Your payment locks in a smart contract viewable on-chain. Neither GPUFlow nor the GPU provider can access these funds until rental conditions are met. This provides cryptographic guarantees stronger than trusting a KYC-verified platform to hold your money honestly.
 
-For detailed explanation of how smart contract escrow protects your payment and eliminates counterparty risk, see our [Complete Guide to Renting GPUs with Cryptocurrency](../en/rent-gpu-with-crypto/).
+For detailed explanation of how smart contract escrow protects your payment and eliminates counterparty risk, see our [Complete Guide to Renting GPUs with Cryptocurrency](/en/rent-gpu-with-crypto/).
 
 **Best for:**
 
@@ -417,7 +417,7 @@ No-KYC platforms accept cryptocurrency because cryptocurrency enables no-KYC ope
 
 **Mitigation:**
 
-The cryptocurrency learning curve is approximately 30-60 minutes. Our [Complete Guide to Renting GPUs with Cryptocurrency](../en/rent-gpu-with-crypto/) covers wallet setup, stablecoin acquisition, and first-rental walkthrough in detail. Once established, the workflow is comparable to any payment method.
+The cryptocurrency learning curve is approximately 30-60 minutes. Our [Complete Guide to Renting GPUs with Cryptocurrency](/en/rent-gpu-with-crypto/) covers wallet setup, stablecoin acquisition, and first-rental walkthrough in detail. Once established, the workflow is comparable to any payment method.
 
 ---
 
@@ -676,7 +676,7 @@ Your cryptocurrency locks in a smart contract when rental begins. This contract 
 
 Even if GPUFlow's operators wanted to steal funds, the smart contract prevents it. Trust is placed in audited code, not people's honesty.
 
-For detailed explanation of how smart contract escrow works and how to verify your funds on-chain, see our [Complete Guide to Renting GPUs with Cryptocurrency](../en/rent-gpu-with-crypto/).
+For detailed explanation of how smart contract escrow works and how to verify your funds on-chain, see our [Complete Guide to Renting GPUs with Cryptocurrency](/en/rent-gpu-with-crypto/).
 
 **Platform-held escrow (Vast.ai model):**
 
@@ -1141,7 +1141,7 @@ The no-KYC advantage is most visible in time-to-GPU. When you need compute resou
 - Select "Polygon Mainnet"
 - Retry connection or transaction
 
-For comprehensive troubleshooting and detailed wallet setup instructions, see our [Complete Guide to Renting GPUs with Cryptocurrency](../en/rent-gpu-with-crypto/).
+For comprehensive troubleshooting and detailed wallet setup instructions, see our [Complete Guide to Renting GPUs with Cryptocurrency](/en/rent-gpu-with-crypto/).
 
 ![Step-by-step visual guide showing five stages of no-KYC GPU rental: wallet installation with browser extension icon, seed phrase backup with paper and pen icon, network configuration with Polygon logo, funding with USDC coin icon, and GPU rental with server icon, connected by arrows showing 5-minute total timeline](../_images/no-kyc-five-minute-setup-visual-guide.png)
 
@@ -1207,9 +1207,9 @@ The GPU you rent performs identically whether you submitted passport scans or co
 
 **From this site:**
 
-- [Complete Guide to Renting GPUs with Cryptocurrency](../en/rent-gpu-with-crypto/) — Full walkthrough including smart contract escrow, security practices, and platform comparisons
-- [Hidden Fees in GPU Rental: How Crypto Saves International Users Money](../en/gpu-rental-hidden-fees-international/) — Detailed cost analysis showing why cryptocurrency saves money for international users
-- [GPU Rental Pricing Comparison 2026](../en/gpu-rental-pricing-comparison-2026/) — Current pricing across all major platforms
+- [Complete Guide to Renting GPUs with Cryptocurrency](/en/rent-gpu-with-crypto/) — Full walkthrough including smart contract escrow, security practices, and platform comparisons
+- [Hidden Fees in GPU Rental: How Crypto Saves International Users Money](/en/gpu-rental-hidden-fees-international/) — Detailed cost analysis showing why cryptocurrency saves money for international users
+- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026/) — Current pricing across all major platforms
 
 **External resources:**
 

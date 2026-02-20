@@ -30,7 +30,7 @@ Un desarrollador en São Paulo y un desarrollador en San Francisco ambos alquila
 
 Este artículo desglosa exactamente lo que realmente cuesta el alquiler de GPU desde diferentes países cuando consideras cada tarifa entre tu cuenta bancaria y los ingresos del proveedor de GPU. Luego muestra el mismo cálculo usando criptomonedas en la red Polygon, donde el costo total de transacción es $0.03 independientemente de si estás en Lagos, Tokio o Buenos Aires. Los ahorros no son teóricos. Son específicos, calculables y en algunos países lo suficientemente sustanciales como para financiar horas adicionales de GPU cada mes.
 
-""Para una guía completa del proceso de pago con criptomonedas en sí—incluyendo configuración de wallet, escrow de contratos inteligentes y guías específicas de plataformas—consulta nuestra [Guía Completa para Alquilar GPUs con Criptomonedas](../es/rent-gpu-with-crypto).""
+""Para una guía completa del proceso de pago con criptomonedas en sí—incluyendo configuración de wallet, escrow de contratos inteligentes y guías específicas de plataformas—consulta nuestra [Guía Completa para Alquilar GPUs con Criptomonedas](/es/rent-gpu-with-crypto).""
 
 ---
 
@@ -80,7 +80,7 @@ Para un desarrollador que alquila $1,000 en tiempo de GPU mensualmente, estas ta
 - **Costo total: $100.52**
 - **Ahorro: $11.50-13.00 (11.5-13%)**
 
-"[Nuestra Guía Completa para Alquilar GPUs con Criptomonedas](../es/rent-gpu-with-crypto) explica el escrow de contratos inteligentes en detalle—el mecanismo que protege tanto tu pago como garantiza el acceso a la GPU."
+"[Nuestra Guía Completa para Alquilar GPUs con Criptomonedas](/es/rent-gpu-with-crypto) explica el escrow de contratos inteligentes en detalle—el mecanismo que protege tanto tu pago como garantiza el acceso a la GPU."
 
 ### India: Tarifas por Transacciones Extranjeras en Cada Compra
 
@@ -798,7 +798,7 @@ Las plataformas de alquiler de GPU también pagan tarifas para recibir tu pago. 
 
 Las plataformas que aceptan criptomonedas pueden cobrar tarifas de plataforma más bajas porque sus costos de procesamiento de pagos son cercanos a cero. La tarifa de plataforma del 10-15% de GPUFlow versus la tarifa del ~20% de RunPod refleja parcialmente esta diferencia.
 
-"El escrow de contrato inteligente—cubierto en profundidad en nuestra guía de [alquiler de GPU con criptomonedas](../es/rent-gpu-with-crypto)—reduce aún más los costos de la plataforma al automatizar la resolución de disputas."
+"El escrow de contrato inteligente—cubierto en profundidad en nuestra guía de [alquiler de GPU con criptomonedas](/es/rent-gpu-with-crypto)—reduce aún más los costos de la plataforma al automatizar la resolución de disputas."
 
 Cuando las plataformas reducen los costos de procesamiento de pagos, pueden:
 
@@ -1449,4 +1449,4 @@ La transacción mínima viable depende de la estructura de tarifas de tu país. 
 
 ---
 
-**¿Listo para eliminar las tarifas ocultas de tu alquiler de GPU?** [GPUFlow](https://gpuflow.app) acepta pagos con criptomonedas en la red Polygon con escrow de contrato inteligente y sin requisitos de KYC. Conecta tu wallet y comienza a computar en menos de 60 segundos—con las mismas tarifas bajas ya sea que estés en Lagos, São Paulo, Mumbai o cualquier otro lugar.
+**¿Listo para eliminar las tarifas ocultas de tu alquiler de GPU?** [GPUFlow](https://[gpuflow.app](https://gpuflow.app)) acepta pagos con criptomonedas en la red Polygon con escrow de contrato inteligente y sin requisitos de KYC. Conecta tu wallet y comienza a computar en menos de 60 segundos—con las mismas tarifas bajas ya sea que estés en Lagos, São Paulo, Mumbai o cualquier otro lugar.

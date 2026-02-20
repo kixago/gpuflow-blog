@@ -28,7 +28,7 @@ Louer un GPU chez AWS nécessite une carte de crédit, un numéro de téléphone
 
 Les plateformes de location de GPU sans KYC (Know Your Customer) éliminent entièrement la vérification d'identité du processus. Vous connectez un portefeuille de crypto-monnaie, déposez des fonds et accédez au matériel. L'ensemble du processus de mise en route prend moins de soixante secondes. Ce guide examine quelles plateformes opèrent sans exigences KYC, quels sont les compromis pratiques existants et comment évaluer si une plateforme sans vérification mérite votre confiance et votre argent.
 
-Pour une explication complète des paiements en crypto-monnaie, y compris la configuration du portefeuille, la mécanique du séquestre par contrat intelligent et les comparaisons de plateformes, consultez notre [Guide complet de la location de GPU avec des crypto-monnaies](../fr/rent-gpu-with-crypto/).
+Pour une explication complète des paiements en crypto-monnaie, y compris la configuration du portefeuille, la mécanique du séquestre par contrat intelligent et les comparaisons de plateformes, consultez notre [Guide complet de la location de GPU avec des crypto-monnaies](/fr/rent-gpu-with-crypto/).
 
 ---
 
@@ -190,7 +190,7 @@ GPUFlow fonctionne entièrement sur des rails de crypto-monnaie :
 
 Votre paiement est bloqué dans un contrat intelligent visible sur la chaîne (on-chain). Ni GPUFlow ni le fournisseur de GPU ne peuvent accéder à ces fonds tant que les conditions de location ne sont pas remplies. Cela offre des garanties cryptographiques plus fortes que de faire confiance à une plateforme vérifiée KYC pour détenir votre argent honnêtement.
 
-Pour une explication détaillée de la façon dont le séquestre par contrat intelligent protège votre paiement et élimine le risque de contrepartie, consultez notre [Guide complet de la location de GPU avec des crypto-monnaies](../fr/rent-gpu-with-crypto/).
+Pour une explication détaillée de la façon dont le séquestre par contrat intelligent protège votre paiement et élimine le risque de contrepartie, consultez notre [Guide complet de la location de GPU avec des crypto-monnaies](/fr/rent-gpu-with-crypto/).
 
 **Idéal pour :**
 
@@ -417,7 +417,7 @@ Les plateformes sans KYC acceptent la crypto-monnaie car elle permet un fonction
 
 **Atténuation :**
 
-La courbe d'apprentissage de la crypto-monnaie est d'environ 30 à 60 minutes. Notre [Guide complet de la location de GPU avec des crypto-monnaies](../fr/rent-gpu-with-crypto/) couvre la configuration du portefeuille, l'acquisition de stablecoins et le déroulement de la première location en détail. Une fois établi, le flux de travail est comparable à n'importe quelle méthode de paiement.
+La courbe d'apprentissage de la crypto-monnaie est d'environ 30 à 60 minutes. Notre [Guide complet de la location de GPU avec des crypto-monnaies](/fr/rent-gpu-with-crypto/) couvre la configuration du portefeuille, l'acquisition de stablecoins et le déroulement de la première location en détail. Une fois établi, le flux de travail est comparable à n'importe quelle méthode de paiement.
 
 ---
 
@@ -676,7 +676,7 @@ Votre crypto-monnaie est bloquée dans un contrat intelligent au début de la lo
 
 Même si les opérateurs de GPUFlow voulaient voler les fonds, le contrat intelligent l'empêche. La confiance est placée dans le code audité, pas dans l'honnêteté des gens.
 
-Pour une explication détaillée de la façon dont le séquestre par contrat intelligent fonctionne et comment vérifier vos fonds sur la chaîne, consultez notre [Guide complet de la location de GPU avec des crypto-monnaies](../fr/rent-gpu-with-crypto/).
+Pour une explication détaillée de la façon dont le séquestre par contrat intelligent fonctionne et comment vérifier vos fonds sur la chaîne, consultez notre [Guide complet de la location de GPU avec des crypto-monnaies](/fr/rent-gpu-with-crypto/).
 
 **Séquestre détenu par la plateforme (Modèle Vast.ai) :**
 
@@ -1141,7 +1141,7 @@ L'avantage du sans KYC est le plus visible dans le délai d'obtention du GPU. Lo
 - Sélectionnez "Polygon Mainnet"
 - Réessayez la connexion ou la transaction
 
-Pour un dépannage complet et des instructions détaillées de configuration de portefeuille, consultez notre [Guide complet de la location de GPU avec des crypto-monnaies](../fr/rent-gpu-with-crypto/).
+Pour un dépannage complet et des instructions détaillées de configuration de portefeuille, consultez notre [Guide complet de la location de GPU avec des crypto-monnaies](/fr/rent-gpu-with-crypto/).
 
 ![Guide visuel étape par étape montrant cinq phases de la location de GPU sans KYC : installation du portefeuille avec icône d'extension de navigateur, sauvegarde de la phrase mnémonique avec icône de papier et stylo, configuration du réseau avec logo Polygon, financement avec icône de pièce USDC, et location de GPU avec icône de serveur, connectées par des flèches montrant un calendrier total de 5 minutes](../_images/no-kyc-five-minute-setup-visual-guide.png)
 
@@ -1207,9 +1207,9 @@ Le GPU que vous louez fonctionne de manière identique que vous ayez soumis des 
 
 **De ce site :**
 
-- [Guide complet de la location de GPU avec des crypto-monnaies](../fr/rent-gpu-with-crypto/) — Procédure complète incluant le séquestre par contrat intelligent, les pratiques de sécurité et les comparaisons de plateformes
-- [Frais cachés dans la location de GPU : Comment la crypto économise de l'argent aux utilisateurs internationaux](../fr/gpu-rental-hidden-fees-international/) — Analyse détaillée des coûts montrant pourquoi la crypto-monnaie économise de l'argent aux utilisateurs internationaux
-- [Comparaison des prix de location de GPU 2026](../fr/gpu-rental-pricing-comparison-2026/) — Tarification actuelle sur toutes les principales plateformes
+- [Guide complet de la location de GPU avec des crypto-monnaies](/fr/rent-gpu-with-crypto/) — Procédure complète incluant le séquestre par contrat intelligent, les pratiques de sécurité et les comparaisons de plateformes
+- [Frais cachés dans la location de GPU : Comment la crypto économise de l'argent aux utilisateurs internationaux](/fr/gpu-rental-hidden-fees-international/) — Analyse détaillée des coûts montrant pourquoi la crypto-monnaie économise de l'argent aux utilisateurs internationaux
+- [Comparaison des prix de location de GPU 2026](/fr/gpu-rental-pricing-comparison-2026/) — Tarification actuelle sur toutes les principales plateformes
 
 **Ressources externes :**
 

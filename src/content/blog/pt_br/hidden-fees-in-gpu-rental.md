@@ -30,7 +30,7 @@ Um desenvolvedor em São Paulo e um desenvolvedor em São Francisco alugam a mes
 
 Este artigo detalha exatamente quanto o aluguel de GPU realmente custa de diferentes países quando você contabiliza cada taxa entre sua conta bancária e a renda do provedor de GPU. Em seguida, mostra o mesmo cálculo usando criptomoeda na rede Polygon, onde o custo total da transação é de $0,03, independentemente de você estar em Lagos, Tóquio ou Buenos Aires. A economia não é teórica. Ela é específica, calculável e, em alguns países, substancial o suficiente para financiar horas adicionais de GPU todos os meses.
 
-""Para um passo a passo completo do processo de pagamento com criptomoeda em si—incluindo configuração de carteira, garantia via contrato inteligente (escrow) e guias específicos da plataforma—veja nosso [Guia Completo para Alugar GPUs com Criptomoeda](../pt_br/rent-gpu-with-crypto).""
+""Para um passo a passo completo do processo de pagamento com criptomoeda em si—incluindo configuração de carteira, garantia via contrato inteligente (escrow) e guias específicos da plataforma—veja nosso [Guia Completo para Alugar GPUs com Criptomoeda](/pt_br/rent-gpu-with-crypto).""
 
 ---
 
@@ -80,7 +80,7 @@ Para um desenvolvedor alugando $1.000 em tempo de GPU mensalmente, essas taxas c
 - **Custo total: $100,52**
 - **Economia: $11,50-13,00 (11,5-13%)**
 
-"[Nosso Guia Completo para Alugar GPUs com Criptomoeda](../pt_br/rent-gpu-with-crypto) explica o escrow de contrato inteligente em detalhes—o mecanismo que protege tanto seu pagamento quanto garante o acesso à GPU."
+"[Nosso Guia Completo para Alugar GPUs com Criptomoeda](/pt_br/rent-gpu-with-crypto) explica o escrow de contrato inteligente em detalhes—o mecanismo que protege tanto seu pagamento quanto garante o acesso à GPU."
 
 ### Índia: Taxas de Transação Estrangeira em Cada Compra
 
@@ -796,7 +796,7 @@ Plataformas de aluguel de GPU também pagam taxas para receber seu pagamento. Es
 
 Plataformas que aceitam criptomoeda podem cobrar taxas de plataforma mais baixas porque seus custos de processamento de pagamento são próximos de zero. A taxa de plataforma de 10-15% do GPUFlow versus a taxa de ~20% do RunPod reflete parcialmente essa diferença.
 
-"Escrow de contrato inteligente—coberto em profundidade em nosso guia para [aluguel de GPU com criptomoeda](../pt_br/rent-gpu-with-crypto) que reduz ainda mais os custos da plataforma ao automatizar a resolução de disputas."
+"Escrow de contrato inteligente—coberto em profundidade em nosso guia para [aluguel de GPU com criptomoeda](/pt_br/rent-gpu-with-crypto) que reduz ainda mais os custos da plataforma ao automatizar a resolução de disputas."
 
 Quando as plataformas reduzem os custos de processamento de pagamento, elas podem:
 
@@ -1558,7 +1558,7 @@ GPUFlow e algumas plataformas patrocinam taxas de gás para usuários de primeir
 
 Com USDC em sua carteira MetaMask na rede Polygon e pequeno saldo de MATIC para gás:
 
-1. Visite a plataforma de aluguel de GPU (ex: gpuflow.app)
+1. Visite a plataforma de aluguel de GPU (ex: [gpuflow.app](https://gpuflow.app))
 2. Clique em "Conectar Carteira"
 3. Selecione MetaMask
 4. Aprove a conexão no popup do MetaMask
@@ -1908,4 +1908,4 @@ A transação viável mínima depende da estrutura de taxas do seu país. Em pa�
 
 ---
 
-**Pronto para eliminar taxas ocultas do seu aluguel de GPU?** [GPUFlow](https://gpuflow.app) aceita pagamentos com criptomoeda na rede Polygon com escrow de contrato inteligente e sem requisitos de KYC. Conecte sua carteira e comece a computar em menos de 60 segundos—com as mesmas taxas baixas, esteja você em Lagos, São Paulo, Mumbai ou em qualquer outro lugar.
+**Pronto para eliminar taxas ocultas do seu aluguel de GPU?** [GPUFlow](https://[gpuflow.app](https://gpuflow.app)) aceita pagamentos com criptomoeda na rede Polygon com escrow de contrato inteligente e sem requisitos de KYC. Conecte sua carteira e comece a computar em menos de 60 segundos—com as mesmas taxas baixas, esteja você em Lagos, São Paulo, Mumbai ou em qualquer outro lugar.

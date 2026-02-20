@@ -1,6 +1,3 @@
-Here is the first third of the article translated into Portuguese (Brazil).
-
-```markdown
 ---
 title: "Como Alugar GPUs Sem KYC ou Verificação de Identidade"
 description: "Guia completo para plataformas de aluguel de GPU que não exigem verificação de identidade. Compare opções sem KYC, incluindo GPUFlow e Vast.ai, entenda as compensações e comece a alugar em minutos."
@@ -31,7 +28,7 @@ Alugar uma GPU da AWS requer um cartão de crédito, número de telefone, verifi
 
 Plataformas de aluguel de GPU sem KYC (No-KYC) eliminam totalmente a verificação de identidade do processo. Você conecta uma carteira de criptomoeda, deposita fundos e acessa o hardware. Todo o processo de entrada leva menos de sessenta segundos. Este guia examina quais plataformas operam sem requisitos de KYC, quais compensações práticas existem e como avaliar se uma plataforma sem verificação merece sua confiança e seu dinheiro.
 
-Para um passo a passo completo sobre pagamentos com criptomoedas, incluindo configuração de carteira, mecânica de escrow via contrato inteligente e comparações de plataformas, consulte nosso [Guia Completo para Alugar GPUs com Criptomoeda](../pt_br/rent-gpu-with-crypto/).
+Para um passo a passo completo sobre pagamentos com criptomoedas, incluindo configuração de carteira, mecânica de escrow via contrato inteligente e comparações de plataformas, consulte nosso [Guia Completo para Alugar GPUs com Criptomoeda](/pt_br/rent-gpu-with-crypto/).
 
 ---
 
@@ -193,7 +190,7 @@ A GPUFlow opera inteiramente sobre trilhos de criptomoeda:
 
 Seu pagamento é bloqueado em um contrato inteligente visível on-chain. Nem a GPUFlow nem o provedor de GPU podem acessar esses fundos até que as condições de aluguel sejam atendidas. Isso fornece garantias criptográficas mais fortes do que confiar em uma plataforma verificada por KYC para manter seu dinheiro honestamente.
 
-Para uma explicação detalhada de como o escrow via contrato inteligente protege seu pagamento e elimina o risco de contraparte, consulte nosso [Guia Completo para Alugar GPUs com Criptomoeda](../pt_br/rent-gpu-with-crypto/).
+Para uma explicação detalhada de como o escrow via contrato inteligente protege seu pagamento e elimina o risco de contraparte, consulte nosso [Guia Completo para Alugar GPUs com Criptomoeda](/pt_br/rent-gpu-with-crypto/).
 
 **Melhor para:**
 
@@ -368,6 +365,7 @@ Fora das principais plataformas, provedores individuais de GPU às vezes aceitam
 | P2P Direto | Geralmente nenhum   | Cripto               | Nenhum (ou manual)      | 0%                 |
 
 **Estrutura de decisão:**
+
 ```
 
 Quer privacidade máxima + proteção de contrato inteligente?
@@ -419,7 +417,7 @@ Plataformas sem KYC aceitam criptomoeda porque a criptomoeda permite a operaçã
 
 **Mitigação:**
 
-A curva de aprendizado de criptomoedas é de aproximadamente 30 a 60 minutos. Nosso [Guia Completo para Alugar GPUs com Criptomoeda](../pt_br/rent-gpu-with-crypto/) cobre a configuração da carteira, aquisição de stablecoin e o passo a passo do primeiro aluguel em detalhes. Uma vez estabelecido, o fluxo de trabalho é comparável a qualquer método de pagamento.
+A curva de aprendizado de criptomoedas é de aproximadamente 30 a 60 minutos. Nosso [Guia Completo para Alugar GPUs com Criptomoeda](/pt_br/rent-gpu-with-crypto/) cobre a configuração da carteira, aquisição de stablecoin e o passo a passo do primeiro aluguel em detalhes. Uma vez estabelecido, o fluxo de trabalho é comparável a qualquer método de pagamento.
 
 ---
 
@@ -678,7 +676,7 @@ Sua criptomoeda é bloqueada em um contrato inteligente quando o aluguel começa
 
 Mesmo se os operadores da GPUFlow quisessem roubar fundos, o contrato inteligente impede isso. A confiança é depositada no código auditado, não na honestidade das pessoas.
 
-Para uma explicação detalhada de como o escrow via contrato inteligente funciona e como verificar seus fundos on-chain, consulte nosso [Guia Completo para Alugar GPUs com Criptomoeda](../pt_br/rent-gpu-with-crypto/).
+Para uma explicação detalhada de como o escrow via contrato inteligente funciona e como verificar seus fundos on-chain, consulte nosso [Guia Completo para Alugar GPUs com Criptomoeda](/pt_br/rent-gpu-with-crypto/).
 
 **Garantia mantida pela plataforma (Modelo Vast.ai):**
 
@@ -1008,7 +1006,7 @@ Chain ID: 137
 Currency Symbol: MATIC
 Block Explorer: https://polygonscan.com
 
-```
+````
 
 5. Clique em "Salvar"
 6. Selecione "Polygon Mainnet" no menu suspenso de rede
@@ -1080,7 +1078,7 @@ nvidia-smi
 # - Modelo da GPU (deve corresponder à listagem)
 # - Quantidade de VRAM (deve corresponder à listagem)
 # - Temperatura e utilização
-```
+````
 
 **Para acesso Jupyter:**
 
@@ -1143,7 +1141,7 @@ A vantagem de não ter KYC é mais visível no tempo até a GPU. Quando você pr
 - Selecione "Polygon Mainnet"
 - Tente novamente a conexão ou transação
 
-Para solução de problemas abrangente e instruções detalhadas de configuração de carteira, consulte nosso [Guia Completo para Alugar GPUs com Criptomoeda](../pt_br/rent-gpu-with-crypto/).
+Para solução de problemas abrangente e instruções detalhadas de configuração de carteira, consulte nosso [Guia Completo para Alugar GPUs com Criptomoeda](/pt_br/rent-gpu-with-crypto/).
 
 ![Guia visual passo a passo mostrando cinco estágios do aluguel de GPU sem KYC: instalação de carteira com ícone de extensão de navegador, backup de frase semente com ícone de papel e caneta, configuração de rede com logotipo da Polygon, financiamento com ícone de moeda USDC e aluguel de GPU com ícone de servidor, conectados por setas mostrando um cronograma total de 5 minutos](../_images/no-kyc-five-minute-setup-visual-guide.png)
 
@@ -1209,9 +1207,9 @@ A GPU que você aluga tem desempenho idêntico, quer você tenha enviado escanea
 
 **Deste site:**
 
-- [Guia Completo para Alugar GPUs com Criptomoeda](../pt_br/rent-gpu-with-crypto/) — Passo a passo completo, incluindo escrow via contrato inteligente, práticas de segurança e comparações de plataformas
-- [Taxas Ocultas no Aluguel de GPU: Como Cripto Economiza Dinheiro de Usuários Internacionais](../pt_br/gpu-rental-hidden-fees-international/) — Análise de custos detalhada mostrando por que a criptomoeda economiza dinheiro para usuários internacionais
-- [Comparação de Preços de Aluguel de GPU 2026](../pt_br/gpu-rental-pricing-comparison-2026/) — Preços atuais em todas as principais plataformas
+- [Guia Completo para Alugar GPUs com Criptomoeda](/pt_br/rent-gpu-with-crypto/) — Passo a passo completo, incluindo escrow via contrato inteligente, práticas de segurança e comparações de plataformas
+- [Taxas Ocultas no Aluguel de GPU: Como Cripto Economiza Dinheiro de Usuários Internacionais](/pt_br/gpu-rental-hidden-fees-international/) — Análise de custos detalhada mostrando por que a criptomoeda economiza dinheiro para usuários internacionais
+- [Comparação de Preços de Aluguel de GPU 2026](/pt_br/gpu-rental-pricing-comparison-2026/) — Preços atuais em todas as principais plataformas
 
 **Recursos externos:**
 

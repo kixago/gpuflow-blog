@@ -28,7 +28,7 @@ Das Mieten einer GPU bei AWS erfordert eine Kreditkarte, eine Telefonnummer, ein
 
 No-KYC-GPU-Mietplattformen entfernen die Identitätsprüfung vollständig aus dem Prozess. Sie verbinden eine Kryptowährungs-Wallet, zahlen Geld ein und greifen auf die Hardware zu. Der gesamte Onboarding-Prozess dauert weniger als sechzig Sekunden. Dieser Leitfaden untersucht, welche Plattformen ohne KYC-Anforderungen arbeiten, welche praktischen Kompromisse bestehen und wie Sie beurteilen können, ob eine Plattform ohne Verifizierung Ihr Vertrauen und Ihr Geld verdient.
 
-Eine vollständige Anleitung zu Zahlungen mit Kryptowährungen, einschließlich Wallet-Einrichtung, Funktionsweise von Smart-Contract-Treuhandkonten und Plattformvergleichen, finden Sie in unserem [Leitfaden zum Mieten von GPUs mit Kryptowährung](../de/rent-gpu-with-crypto/).
+Eine vollständige Anleitung zu Zahlungen mit Kryptowährungen, einschließlich Wallet-Einrichtung, Funktionsweise von Smart-Contract-Treuhandkonten und Plattformvergleichen, finden Sie in unserem [Leitfaden zum Mieten von GPUs mit Kryptowährung](/de/rent-gpu-with-crypto/).
 
 ---
 
@@ -190,7 +190,7 @@ GPUFlow operiert vollständig auf Kryptowährungs-Schienen:
 
 Ihre Zahlung wird in einem Smart Contract gesperrt, der On-Chain einsehbar ist. Weder GPUFlow noch der GPU-Anbieter können auf diese Gelder zugreifen, bis die Mietbedingungen erfüllt sind. Dies bietet kryptographische Garantien, die stärker sind als das Vertrauen in eine KYC-verifizierte Plattform, Ihr Geld ehrlich zu verwahren.
 
-Für eine detaillierte Erklärung, wie Smart-Contract-Treuhand Ihre Zahlung schützt und das Gegenparteirisiko eliminiert, siehe unseren [Leitfaden zum Mieten von GPUs mit Kryptowährung](../de/rent-gpu-with-crypto/).
+Für eine detaillierte Erklärung, wie Smart-Contract-Treuhand Ihre Zahlung schützt und das Gegenparteirisiko eliminiert, siehe unseren [Leitfaden zum Mieten von GPUs mit Kryptowährung](/de/rent-gpu-with-crypto/).
 
 **Am besten für:**
 
@@ -417,7 +417,7 @@ No-KYC-Plattformen akzeptieren Kryptowährung, weil Kryptowährung den Betrieb o
 
 **Milderung:**
 
-Die Lernkurve für Kryptowährungen beträgt etwa 30-60 Minuten. Unser [Leitfaden zum Mieten von GPUs mit Kryptowährung](../de/rent-gpu-with-crypto/) deckt Wallet-Einrichtung, Stablecoin-Erwerb und den Durchlauf der ersten Miete im Detail ab. Sobald eingerichtet, ist der Arbeitsablauf vergleichbar mit jeder anderen Zahlungsmethode.
+Die Lernkurve für Kryptowährungen beträgt etwa 30-60 Minuten. Unser [Leitfaden zum Mieten von GPUs mit Kryptowährung](/de/rent-gpu-with-crypto/) deckt Wallet-Einrichtung, Stablecoin-Erwerb und den Durchlauf der ersten Miete im Detail ab. Sobald eingerichtet, ist der Arbeitsablauf vergleichbar mit jeder anderen Zahlungsmethode.
 
 ---
 
@@ -676,7 +676,7 @@ Ihre Kryptowährung wird zu Beginn der Miete in einem Smart Contract gesperrt. D
 
 Selbst wenn die Betreiber von GPUFlow Gelder stehlen wollten, verhindert der Smart Contract dies. Das Vertrauen liegt im geprüften Code, nicht in der Ehrlichkeit von Menschen.
 
-Für eine detaillierte Erklärung, wie Smart-Contract-Treuhand funktioniert und wie Sie Ihre Gelder On-Chain verifizieren, siehe unseren [Leitfaden zum Mieten von GPUs mit Kryptowährung](../de/rent-gpu-with-crypto/).
+Für eine detaillierte Erklärung, wie Smart-Contract-Treuhand funktioniert und wie Sie Ihre Gelder On-Chain verifizieren, siehe unseren [Leitfaden zum Mieten von GPUs mit Kryptowährung](/de/rent-gpu-with-crypto/).
 
 **Von der Plattform gehaltene Treuhand (Vast.ai-Modell):**
 
@@ -1141,7 +1141,7 @@ Der No-KYC-Vorteil ist am deutlichsten bei der Zeit bis zur GPU sichtbar. Wenn S
 - Wählen Sie "Polygon Mainnet"
 - Wiederholen Sie die Verbindung oder Transaktion
 
-Für umfassende Fehlerbehebung und detaillierte Wallet-Einrichtungsanweisungen, siehe unseren [Leitfaden zum Mieten von GPUs mit Kryptowährung](../de/rent-gpu-with-crypto/).
+Für umfassende Fehlerbehebung und detaillierte Wallet-Einrichtungsanweisungen, siehe unseren [Leitfaden zum Mieten von GPUs mit Kryptowährung](/de/rent-gpu-with-crypto/).
 
 ![Visuelle Schritt-für-Schritt-Anleitung, die fünf Phasen der No-KYC-GPU-Miete zeigt: Wallet-Installation mit Browser-Erweiterungssymbol, Seed-Phrase-Backup mit Papier-und-Stift-Symbol, Netzwerkkonfiguration mit Polygon-Logo, Finanzierung mit USDC-Münzsymbol und GPU-Miete mit Server-Symbol, verbunden durch Pfeile, die einen Gesamtzeitrahmen von 5 Minuten zeigen](../_images/no-kyc-five-minute-setup-visual-guide.png)
 
@@ -1207,9 +1207,9 @@ Die GPU, die Sie mieten, leistet identisch, ob Sie Pass-Scans eingereicht oder e
 
 **Von dieser Seite:**
 
-- [Leitfaden zum Mieten von GPUs mit Kryptowährung](../de/rent-gpu-with-crypto/) — Vollständiger Durchlauf einschließlich Smart-Contract-Treuhand, Sicherheitspraktiken und Plattformvergleichen
-- [Versteckte Gebühren bei der GPU-Miete: Wie Krypto internationalen Nutzern Geld spart](../de/gpu-rental-hidden-fees-international/) — Detaillierte Kostenanalyse, die zeigt, warum Kryptowährung internationalen Nutzern Geld spart
-- [Preisvergleich GPU-Miete 2026](../de/gpu-rental-pricing-comparison-2026/) — Aktuelle Preise aller großen Plattformen
+- [Leitfaden zum Mieten von GPUs mit Kryptowährung](/de/rent-gpu-with-crypto/) — Vollständiger Durchlauf einschließlich Smart-Contract-Treuhand, Sicherheitspraktiken und Plattformvergleichen
+- [Versteckte Gebühren bei der GPU-Miete: Wie Krypto internationalen Nutzern Geld spart](/de/gpu-rental-hidden-fees-international/) — Detaillierte Kostenanalyse, die zeigt, warum Kryptowährung internationalen Nutzern Geld spart
+- [Preisvergleich GPU-Miete 2026](/de/gpu-rental-pricing-comparison-2026/) — Aktuelle Preise aller großen Plattformen
 
 **Externe Ressourcen:**
 

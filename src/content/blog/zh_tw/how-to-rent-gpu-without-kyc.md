@@ -28,7 +28,7 @@ faq:
 
 無 KYC（No-KYC）GPU 租賃平台完全從流程中消除了身份驗證。您連接加密貨幣錢包，存入資金，即可存取硬體。整個註冊流程耗時不到六十秒。本指南將檢視哪些平台在無 KYC 要求下運作，存在哪些實際的權衡，以及如何評估一個無需驗證的平台是否值得您的信任和金錢。
 
-有關加密貨幣支付的完整流程，包括錢包設置、智能合約託管機制和平台比較，請參閱我們的[使用加密貨幣租用 GPU 的完整指南](../zh_tw/rent-gpu-with-crypto/)。
+有關加密貨幣支付的完整流程，包括錢包設置、智能合約託管機制和平台比較，請參閱我們的[使用加密貨幣租用 GPU 的完整指南](/zh_tw/rent-gpu-with-crypto/)。
 
 ---
 
@@ -190,7 +190,7 @@ GPUFlow 完全在加密貨幣軌道上運行：
 
 您的付款鎖定在一個鏈上可見的智能合約中。在滿足租賃條件之前，GPUFlow 和 GPU 供應商都無法存取這些資金。這提供了比信任經過 KYC 驗證的平台誠實持有您的資金更強的加密保證。
 
-關於智能合約託管如何保護您的付款並消除交易對手風險的詳細解釋，請參閱我們的[使用加密貨幣租用 GPU 的完整指南](../zh_tw/rent-gpu-with-crypto/)。
+關於智能合約託管如何保護您的付款並消除交易對手風險的詳細解釋，請參閱我們的[使用加密貨幣租用 GPU 的完整指南](/zh_tw/rent-gpu-with-crypto/)。
 
 **最適合：**
 
@@ -417,7 +417,7 @@ RunPod 通過 Coinbase Commerce 接受加密貨幣：
 
 **緩解措施：**
 
-加密貨幣的學習曲線約為 30-60 分鐘。我們的[使用加密貨幣租用 GPU 的完整指南](../zh_tw/rent-gpu-with-crypto/)詳細涵蓋了錢包設置、穩定幣獲取和首次租賃流程。一旦建立，工作流程與任何支付方式相當。
+加密貨幣的學習曲線約為 30-60 分鐘。我們的[使用加密貨幣租用 GPU 的完整指南](/zh_tw/rent-gpu-with-crypto/)詳細涵蓋了錢包設置、穩定幣獲取和首次租賃流程。一旦建立，工作流程與任何支付方式相當。
 
 ---
 
@@ -676,7 +676,7 @@ KYC 平台透過監管合規性來傳達可信度：「我們持有牌照、經�
 
 即使 GPUFlow 的營運商想要竊取資金，智能合約也會阻止這種行為。信任建立在經過審計的程式碼上，而不是人的誠實上。
 
-關於智能合約託管如何運作以及如何在鏈上驗證您的資金的詳細解釋，請參閱我們的[使用加密貨幣租用 GPU 的完整指南](../zh_tw/rent-gpu-with-crypto/)。
+關於智能合約託管如何運作以及如何在鏈上驗證您的資金的詳細解釋，請參閱我們的[使用加密貨幣租用 GPU 的完整指南](/zh_tw/rent-gpu-with-crypto/)。
 
 **平台持有託管（Vast.ai 模型）：**
 
@@ -1141,7 +1141,7 @@ print(f"VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
 - 選擇 "Polygon Mainnet"
 - 重試連接或交易
 
-有關全面的故障排除和詳細的錢包設置說明，請參閱我們的[使用加密貨幣租用 GPU 的完整指南](../zh_tw/rent-gpu-with-crypto/)。
+有關全面的故障排除和詳細的錢包設置說明，請參閱我們的[使用加密貨幣租用 GPU 的完整指南](/zh_tw/rent-gpu-with-crypto/)。
 
 ![分步視覺指南顯示無 KYC GPU 租賃的五個階段：帶有瀏覽器擴充功能圖示的錢包安裝，帶有紙筆圖示的助記詞備份，帶有 Polygon 標誌的網路配置，帶有 USDC 硬幣圖示的資金注入，以及帶有伺服器圖示的 GPU 租賃，通過箭頭連接顯示 5 分鐘的總時間線](../_images/no-kyc-five-minute-setup-visual-guide.png)
 
@@ -1207,9 +1207,9 @@ print(f"VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
 
 **來自本站：**
 
-- [使用加密貨幣租用 GPU 的完整指南](../zh_tw/rent-gpu-with-crypto/) — 包括智能合約託管、安全實踐和平台比較的完整流程
-- [GPU 租賃中的隱藏費用：加密貨幣如何為國際用戶省錢](../zh_tw/gpu-rental-hidden-fees-international/) — 詳細的成本分析，顯示為何加密貨幣為國際用戶省錢
-- [GPU 租賃價格比較 2026](../zh_tw/gpu-rental-pricing-comparison-2026/) — 所有主要平台的當前定價
+- [使用加密貨幣租用 GPU 的完整指南](/zh_tw/rent-gpu-with-crypto/) — 包括智能合約託管、安全實踐和平台比較的完整流程
+- [GPU 租賃中的隱藏費用：加密貨幣如何為國際用戶省錢](/zh_tw/gpu-rental-hidden-fees-international/) — 詳細的成本分析，顯示為何加密貨幣為國際用戶省錢
+- [GPU 租賃價格比較 2026](/zh_tw/gpu-rental-pricing-comparison-2026/) — 所有主要平台的當前定價
 
 **外部資源：**
 

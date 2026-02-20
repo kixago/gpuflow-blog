@@ -30,7 +30,7 @@ Ein Entwickler in São Paulo und ein Entwickler in San Francisco mieten beide di
 
 Dieser Artikel schlüsselt genau auf, was GPU-Miete aus verschiedenen Ländern tatsächlich kostet, wenn Sie jede Gebühr zwischen Ihrem Bankkonto und dem Einkommen des GPU-Anbieters berücksichtigen. Dann zeigt er dieselbe Berechnung unter Verwendung von Kryptowährung im Polygon-Netzwerk, wo die gesamten Transaktionskosten 0,03 $ betragen, egal ob Sie in Lagos, Tokio oder Buenos Aires sind. Die Einsparungen sind nicht theoretisch. Sie sind spezifisch, berechenbar und in einigen Ländern erheblich genug, um jeden Monat zusätzliche GPU-Stunden zu finanzieren.
 
-""Für eine vollständige Anleitung zum Kryptowährungszahlungsprozess selbst – einschließlich Wallet-Einrichtung, Smart-Contract-Escrow und plattformspezifischer Anleitungen – siehe unseren [Vollständigen Leitfaden zur GPU-Miete mit Kryptowährung](../de/rent-gpu-with-crypto).""
+""Für eine vollständige Anleitung zum Kryptowährungszahlungsprozess selbst – einschließlich Wallet-Einrichtung, Smart-Contract-Escrow und plattformspezifischer Anleitungen – siehe unseren [Vollständigen Leitfaden zur GPU-Miete mit Kryptowährung](/de/rent-gpu-with-crypto).""
 
 ---
 
@@ -80,7 +80,7 @@ Für einen Entwickler, der monatlich GPU-Zeit im Wert von 1.000 $ mietet, kosten
 - **Gesamtkosten: 100,52 $**
 - **Ersparnis: 11,50-13,00 $ (11,5-13%)**
 
-"[Unser vollständiger Leitfaden zur GPU-Miete mit Kryptowährung](../de/rent-gpu-with-crypto) erklärt Smart-Contract-Escrow im Detail – der Mechanismus, der sowohl Ihre Zahlung schützt als auch den GPU-Zugang garantiert."
+"[Unser vollständiger Leitfaden zur GPU-Miete mit Kryptowährung](/de/rent-gpu-with-crypto) erklärt Smart-Contract-Escrow im Detail – der Mechanismus, der sowohl Ihre Zahlung schützt als auch den GPU-Zugang garantiert."
 
 ### Indien: Auslandstransaktionsgebühren bei jedem Kauf
 
@@ -798,7 +798,7 @@ GPU-Mietplattformen zahlen auch Gebühren, um Ihre Zahlung zu empfangen. Diese K
 
 Plattformen, die Kryptowährung akzeptieren, können niedrigere Plattformgebühren erheben, weil ihre Zahlungsabwicklungskosten nahe null sind. GPUFlows 10-15%-Plattformgebühr versus RunPods ~20%-Gebühr spiegelt teilweise diesen Unterschied wider.
 
-"Smart-Contract-Escrow – ausführlich behandelt in unserem Leitfaden zur [GPU-Miete mit Kryptowährung](../de/rent-gpu-with-crypto) – reduziert Plattformkosten weiter durch Automatisierung der Streitbeilegung."
+"Smart-Contract-Escrow – ausführlich behandelt in unserem Leitfaden zur [GPU-Miete mit Kryptowährung](/de/rent-gpu-with-crypto) – reduziert Plattformkosten weiter durch Automatisierung der Streitbeilegung."
 
 Wenn Plattformen Zahlungsabwicklungskosten reduzieren, können sie:
 
@@ -1449,4 +1449,4 @@ Die tragbare Mindesttransaktion hängt von der Gebührenstruktur Ihres Landes ab
 
 ---
 
-**Bereit, versteckte Gebühren bei Ihrer GPU-Miete zu eliminieren?** [GPUFlow](https://gpuflow.app) akzeptiert Kryptowährungszahlungen im Polygon-Netzwerk mit Smart-Contract-Escrow und ohne KYC-Anforderungen. Verbinden Sie Ihre Wallet und beginnen Sie in unter 60 Sekunden mit dem Rechnen – mit denselben niedrigen Gebühren, ob Sie in Lagos, São Paulo, Mumbai oder anderswo sind.
+**Bereit, versteckte Gebühren bei Ihrer GPU-Miete zu eliminieren?** [GPUFlow](https://[gpuflow.app](https://gpuflow.app)) akzeptiert Kryptowährungszahlungen im Polygon-Netzwerk mit Smart-Contract-Escrow und ohne KYC-Anforderungen. Verbinden Sie Ihre Wallet und beginnen Sie in unter 60 Sekunden mit dem Rechnen – mit denselben niedrigen Gebühren, ob Sie in Lagos, São Paulo, Mumbai oder anderswo sind.
