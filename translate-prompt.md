@@ -307,18 +307,18 @@ Do not describe QA unless asked.
 
 Languages in alphabetical order:
 
-ar ✅  
-de ✅  
-en ✅  
-es ✅  
-fr ✅  
-he ✅  
-hi ✅  
-ja ✅  
-ko ✅  
-pt_br ✅  
-ru ✅  
-zh_cn ✅  
+ar
+de
+en
+es
+fr
+he
+hi
+ja
+ko
+pt_br
+ru
+zh_cn
 zh_tw
 
 Always proceed to the next incomplete language.
