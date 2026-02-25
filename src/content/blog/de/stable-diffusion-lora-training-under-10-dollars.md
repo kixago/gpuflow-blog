@@ -30,7 +30,7 @@ Das Training eigener LoRA-Modelle für Stable Diffusion gehört zu den effizient
 
 Häufig wird angenommen, dass dafür entweder teure lokale Workstations oder hohe Cloud-Budgets notwendig sind. Beides stimmt heute so nicht mehr. Mit aktuellen GPU-Mietpreisen und optimierten Trainingsparametern lässt sich ein produktionsreifes LoRA-Modell für unter zehn Dollar trainieren – teilweise sogar deutlich darunter.
 
-Dieser Leitfaden zeigt den gesamten Prozess: Auswahl der passenden GPU, Vorbereitung des Datensatzes, Konfiguration des Trainings, Durchführung der Session und abschließende Validierung. Die Kosten werden dabei transparent betrachtet – nicht theoretisch, sondern praxisnah kalkuliert.
+Beginnen Sie mit einem bescheidenen Datensatz von zwanzig bis dreißig Bildern. Trainieren Sie mit konservativen Einstellungen. Testen Sie Ihre Ergebnisse gründlich, bevor Sie zu größeren Projekten expandieren. Die Kosten pro Versuch sind niedrig genug, dass Iteration praktikabel ist—behandeln Sie Ihre ersten Trainingsläufe als Lernerfahrungen statt als Produktionsausgaben. Dieser gleiche Workflow gilt für andere Modelltypen. Wenn Sie mit Text statt mit Bildern arbeiten, sehen Sie unseren Leitfaden zum [Feinabstimmen großer Sprachmodelle](/de/private-llm-fine-tuning-guide) unter Verwendung derselben dezentralen GPU-Infrastruktur.
 
 **Voraussetzungen:**
 

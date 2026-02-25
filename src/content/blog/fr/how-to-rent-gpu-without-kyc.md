@@ -1149,7 +1149,7 @@ Pour un dépannage complet et des instructions détaillées de configuration de 
 
 ## Conclusion : Accès sans barrières
 
-La location de GPU sans vérification d'identité résout un problème réel pour des millions de développeurs dans le monde. Les barrières imposées par les fournisseurs de cloud traditionnels — cartes de crédit liées à des systèmes bancaires spécifiques, documents d'identité de pays spécifiques, comptes d'entreprise d'entreprises établies — excluent les développeurs capables en fonction de la géographie et de la bureaucratie plutôt que du mérite technique ou de la capacité de paiement.
+La location de GPU sans vérification d'identité résout un vrai problème pour des millions de développeurs dans le monde. Les barrières imposées par les fournisseurs cloud traditionnels—cartes de crédit liées à des systèmes bancaires spécifiques, documents d'identité de pays spécifiques, comptes d'entreprise d'entreprises établies—excluent les développeurs capables en fonction de la géographie et de la bureaucratie plutôt que du mérite technique ou de la capacité de paiement. Une fois que vous avez loué un GPU de manière anonyme, vous pouvez l'utiliser pour des tâches intensives en calcul qui nécessitent de la confidentialité. Par exemple, vous pouvez [affiner des modèles de langage à poids ouverts](/fr/private-llm-fine-tuning-guide) sur des ensembles de données propriétaires sans exposer vos données aux fournisseurs cloud.
 
 ### Points clés à retenir
 

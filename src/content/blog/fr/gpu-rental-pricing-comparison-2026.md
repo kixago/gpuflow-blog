@@ -511,7 +511,8 @@ Les plateformes de place de marché offrent généralement une tarification plus
 
 ## Méthodologie et Sources
 
-Les données de prix dans cette analyse ont été collectées directement sur les sites web des fournisseurs et les places de marché en février 2026. Les tarifs des fournisseurs cloud reflètent les prix à la demande dans les régions US East sans remises d'engagement. Les tarifs des places de marché représentent les fourchettes observées sur les annonces disponibles au moment de la recherche.
+featured: false
+Les données tarifaires de cette analyse ont été collectées directement sur les sites des fournisseurs et les places de marché en février 2026. Les tarifs des fournisseurs cloud reflètent les prix à la demande dans les régions Est des États-Unis sans remises d'engagement. Les tarifs des places de marché représentent les fourchettes observées sur les annonces disponibles au moment de la recherche. Pour référence, un [flux de travail typique d'ajustement fin de LLM](/fr/private-llm-fine-tuning-guide) utilisant un modèle de 8B paramètres coûte entre trois et huit dollars sur une RTX 4090 décentralisée, contre 150-300 dollars sur AWS.
 
 **Sources Principales :**
 

@@ -601,7 +601,7 @@ Training custom LoRA models has become remarkably accessible. The computational 
 
 The critical success factors remain unchanged from more expensive training approaches: quality training data, appropriate parameter selection, and careful validation of results. No amount of computational power compensates for poor source images or misconfigured training runs.
 
-Start with a modest dataset of twenty to thirty images. Train at conservative settings. Test your results thoroughly before expanding to larger projects. The per-attempt cost is low enough that iteration is practical—treating your first few training runs as learning experiences rather than production outputs.
+Start with a modest dataset of twenty to thirty images. Train at conservative settings. Test your results thoroughly before expanding to larger projects. The per-attempt cost is low enough that iteration is practical—treating your first few training runs as learning experiences rather than production outputs. This same workflow applies to other model types. If you are working with text instead of images, see our guide on [fine-tuning large language models](/en/private-llm-fine-tuning-guide) using the same decentralized GPU infrastructure.
 
 For those comparing GPU rental options across all provider types and price points, our [GPU rental pricing comparison](/en/gpu-rental-pricing-comparison-2026/) provides current rates for consumer GPUs, datacenter hardware, and enterprise cloud options.
 

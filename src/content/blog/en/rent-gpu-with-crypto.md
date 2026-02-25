@@ -38,7 +38,7 @@ Traditional GPU rental through AWS, Azure, or Google Cloud requires credit cards
 
 The intersection of cryptocurrency payments and GPU rental serves several practical purposes beyond ideological preference for decentralization.
 
-**Privacy and reduced verification requirements.** Many crypto-native GPU platforms operate without mandatory KYC (Know Your Customer) verification. You can rent computing resources using only a wallet address and cryptocurrency balance. This appeals to privacy-conscious users, individuals in regions with limited banking infrastructure, and developers who prefer pseudonymous transactions.
+**Privacy and reduced verification requirements.** Many crypto-native GPU platforms operate without mandatory KYC (Know Your Customer) verification. You can rent computing resources using only a wallet address and cryptocurrency balance. This appeals to privacy-conscious users, individuals in regions with limited banking infrastructure, and developers who prefer pseudonymous transactions. Cryptocurrency payments enable workflows that are impossible with traditional banking. For instance, you can [train LLM models on sensitive datasets](/en/private-llm-fine-tuning-guide) without linking your identity to the compute provider.
 
 **Lower platform fees translate to better pricing.** Traditional payment processing through credit cards and payment gateways costs 2.5-3.5% plus fixed fees. Cryptocurrency transactions eliminate merchant processing fees entirely—you pay only blockchain network fees, typically $0.10-2.00 per transaction regardless of amount. Platforms can pass these savings to users through reduced platform fees.
 

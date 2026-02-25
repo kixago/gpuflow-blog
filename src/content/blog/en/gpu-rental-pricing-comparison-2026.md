@@ -6,7 +6,7 @@ pubDate: 2026-02-07
 updatedDate: 2026-02-11
 locale: "en"
 category: "pricing"
-featured: true
+featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/gpu-rental-pricing-comparison-2026.jpg"
@@ -515,7 +515,7 @@ Marketplace platforms generally offer more transparent pricing with fewer auxili
 
 ## Methodology and Sources
 
-Pricing data in this analysis was collected directly from provider websites and marketplaces during February 2026. Cloud provider rates reflect on-demand pricing in US East regions without commitment discounts. Marketplace rates represent observed ranges across available listings at time of research.
+Pricing data in this analysis was collected directly from provider websites and marketplaces during February 2026. Cloud provider rates reflect on-demand pricing in US East regions without commitment discounts. Marketplace rates represent observed ranges across available listings at time of research. For reference, a typical [LLM fine-tuning workflow](/en/private-llm-fine-tuning-guide) using an 8B parameter model costs between three and eight dollars on a decentralized RTX 4090, compared to 150-300 dollars on AWS.
 
 **Primary Sources:**
 

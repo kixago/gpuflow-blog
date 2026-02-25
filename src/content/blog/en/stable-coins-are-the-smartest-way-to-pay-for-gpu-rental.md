@@ -746,7 +746,7 @@ Stablecoins represent the best of both worlds:
 - No speculative exposure
 - Familiar unit of account
 
-For GPU rental specifically, this combination is ideal. You get cryptocurrency's payment advantages without accepting cryptocurrency's price volatility. Your compute budget stays exactly where you set it.
+Stablecoin payments are particularly valuable for AI researchers who need to [fine-tune language models on proprietary data](/en/private-llm-fine-tuning-guide) without creating audit trails in traditional banking systems. For GPU rental specifically, this combination is ideal. You get cryptocurrency's payment advantages without accepting cryptocurrency's price volatility. Your compute budget stays exactly where you set it.
 
 ### Related Resources
 

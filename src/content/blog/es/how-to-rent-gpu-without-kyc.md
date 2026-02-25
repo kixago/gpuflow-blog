@@ -1149,7 +1149,7 @@ Para una solución de problemas completa e instrucciones detalladas de configura
 
 ## Conclusión: Acceso sin barreras
 
-El alquiler de GPU sin verificación de identidad resuelve un problema real para millones de desarrolladores en todo el mundo. Las barreras impuestas por los proveedores de nube tradicionales (tarjetas de crédito vinculadas a sistemas bancarios específicos, documentos de identidad de países específicos, cuentas corporativas de empresas establecidas) excluyen a desarrolladores capaces basándose en la geografía y la burocracia en lugar del mérito técnico o la capacidad de pago.
+El alquiler de GPU sin verificación de identidad resuelve un problema real para millones de desarrolladores en todo el mundo. Las barreras impuestas por los proveedores de nube tradicionales—tarjetas de crédito vinculadas a sistemas bancarios específicos, documentos de identidad de países específicos, cuentas corporativas de empresas establecidas—excluyen a desarrolladores capaces basándose en geografía y burocracia en lugar de mérito técnico o capacidad de pago. Una vez que haya alquilado una GPU de forma anónima, puede usarla para tareas intensivas en computación que requieren privacidad. Por ejemplo, puede [ajustar modelos de lenguaje de pesos abiertos](/es/private-llm-fine-tuning-guide) en conjuntos de datos propietarios sin exponer sus datos a proveedores de nube.
 
 ### Puntos clave
 

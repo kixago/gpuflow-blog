@@ -511,7 +511,8 @@ Las plataformas de mercado generalmente ofrecen precios más transparentes con m
 
 ## Metodología y Fuentes
 
-Los datos de precios en este análisis se recopilaron directamente de sitios web de proveedores y mercados durante febrero de 2026. Las tarifas de proveedores de nube reflejan precios bajo demanda en regiones US East sin descuentos por compromiso. Las tarifas de mercado representan rangos observados en listados disponibles al momento de la investigación.
+featured: false
+Los datos de precios en este análisis fueron recopilados directamente de sitios web de proveedores y mercados durante febrero de 2026. Las tarifas de proveedores en la nube reflejan precios bajo demanda en regiones del este de EE.UU. sin descuentos por compromiso. Las tarifas del mercado representan rangos observados en listados disponibles al momento de la investigación. Como referencia, un [flujo de trabajo típico de ajuste fino de LLM](/es/private-llm-fine-tuning-guide) usando un modelo de 8B parámetros cuesta entre tres y ocho dólares en una RTX 4090 descentralizada, comparado con 150-300 dólares en AWS.
 
 **Fuentes Principales:**
 

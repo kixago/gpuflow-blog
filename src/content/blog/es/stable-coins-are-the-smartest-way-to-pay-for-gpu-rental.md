@@ -746,7 +746,7 @@ Las stablecoins representan lo mejor de ambos mundos:
 - Sin exposición especulativa
 - Unidad de cuenta familiar
 
-Para el alquiler de GPU específicamente, esta combinación es ideal. Obtiene las ventajas de pago de las criptomonedas sin aceptar la volatilidad de precios de las criptomonedas. Su presupuesto de cómputo permanece exactamente donde lo estableció.
+Los pagos con stablecoins son particularmente valiosos para investigadores de IA que necesitan [ajustar modelos de lenguaje en datos propietarios](/es/private-llm-fine-tuning-guide) sin crear pistas de auditoría en sistemas bancarios tradicionales. Para el alquiler de GPU específicamente, esta combinación es ideal. Obtiene las ventajas de pago de las criptomonedas sin aceptar la volatilidad de precios de las criptomonedas. Su presupuesto de cómputo permanece exactamente donde lo estableció.
 
 ### Recursos relacionados
 

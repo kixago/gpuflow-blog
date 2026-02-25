@@ -511,7 +511,8 @@ Marktplatz-Plattformen bieten generell transparentere Preise mit weniger zusätz
 
 ## Methodik und Quellen
 
-Die Preisdaten in dieser Analyse wurden im Februar 2026 direkt von Anbieter-Websites und Marktplätzen erhoben. Die Cloud-Anbieter-Preise spiegeln On-Demand-Preise in US-East-Regionen ohne Commitment-Rabatte wider. Marktplatzpreise stellen beobachtete Spannen über verfügbare Angebote zum Zeitpunkt der Recherche dar.
+featured: false
+Die Preisdaten in dieser Analyse wurden direkt von Anbieter-Websites und Marktplätzen im Februar 2026 erhoben. Cloud-Anbieter-Tarife spiegeln On-Demand-Preise in US-Ost-Regionen ohne Bindungsrabatte wider. Marktplatz-Tarife stellen beobachtete Spannen über verfügbare Angebote zum Zeitpunkt der Recherche dar. Als Referenz kostet ein typischer [LLM-Feinabstimmungs-Workflow](/de/private-llm-fine-tuning-guide) mit einem 8B-Parameter-Modell zwischen drei und acht Dollar auf einer dezentralen RTX 4090, verglichen mit 150-300 Dollar auf AWS.
 
 **Primärquellen:**
 

@@ -1149,7 +1149,7 @@ Für umfassende Fehlerbehebung und detaillierte Wallet-Einrichtungsanweisungen, 
 
 ## Fazit: Zugang ohne Barrieren
 
-Die GPU-Miete ohne Identitätsprüfung löst ein echtes Problem für Millionen von Entwicklern weltweit. Die Barrieren, die von traditionellen Cloud-Anbietern auferlegt werden – Kreditkarten, die an bestimmte Bankensysteme gebunden sind, Identitätsdokumente aus bestimmten Ländern, Firmenkonten von etablierten Unternehmen –, schließen fähige Entwickler aufgrund von Geografie und Bürokratie statt technischer Leistung oder Zahlungsfähigkeit aus.
+GPU-Vermietung ohne Identitätsüberprüfung löst ein echtes Problem für Millionen von Entwicklern weltweit. Die Barrieren, die traditionelle Cloud-Anbieter auferlegen—Kreditkarten, die an bestimmte Bankensysteme gebunden sind, Identitätsdokumente aus bestimmten Ländern, Firmenkonten von etablierten Unternehmen—schließen fähige Entwickler basierend auf Geografie und Bürokratie aus, anstatt auf technischem Verdienst oder Zahlungsfähigkeit. Sobald Sie eine GPU anonym gemietet haben, können Sie sie für rechenintensive Aufgaben verwenden, die Privatsphäre erfordern. Beispielsweise können Sie [Sprachmodelle mit offenen Gewichten feinabstimmen](/de/private-llm-fine-tuning-guide) auf proprietären Datensätzen, ohne Ihre Daten Cloud-Anbietern preiszugeben.
 
 ### Wichtige Erkenntnisse
 

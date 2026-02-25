@@ -601,7 +601,7 @@ Treinar modelos LoRA personalizados tornou-se notavelmente acessível. As barrei
 
 Os fatores críticos de sucesso permanecem inalterados em relação a abordagens de treinamento mais caras: dados de treinamento de qualidade, seleção apropriada de parâmetros e validação cuidadosa dos resultados. Nenhuma quantidade de poder computacional compensa imagens fonte ruins ou execuções de treinamento mal configuradas.
 
-Comece com um dataset modesto de vinte a trinta imagens. Treine com configurações conservadoras. Teste seus resultados completamente antes de expandir para projetos maiores. O custo por tentativa é baixo o suficiente para que a iteração seja prática—trate suas primeiras execuções de treinamento como experiências de aprendizado ao invés de saídas de produção.
+Comece com um conjunto de dados modesto de vinte a trinta imagens. Treine com configurações conservadoras. Teste seus resultados minuciosamente antes de expandir para projetos maiores. O custo por tentativa é baixo o suficiente para que a iteração seja prática—tratando suas primeiras execuções de treinamento como experiências de aprendizado em vez de saídas de produção. Este mesmo fluxo de trabalho se aplica a outros tipos de modelos. Se você está trabalhando com texto em vez de imagens, consulte nosso guia sobre [ajuste fino de modelos de linguagem grandes](/pt_br/private-llm-fine-tuning-guide) usando a mesma infraestrutura GPU descentralizada.
 
 Para aqueles comparando opções de aluguel de GPU em todos os tipos de provedores e faixas de preço, nossa [comparação de preços de aluguel de GPU](/pt_br/comparacao-precos-aluguel-gpu-2026/) fornece tarifas atuais para GPUs de consumo, hardware de data center e opções de nuvem empresarial.
 

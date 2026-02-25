@@ -82,7 +82,7 @@ Plusieurs LoRA peuvent être combinés à l’inférence. Il est possible d’en
 **Stockage et distribution.**  
 La taille réduite facilite l’archivage et le partage. Il est réaliste de conserver des dizaines de LoRA spécialisés.
 
-C’est cette efficacité qui rend possible un entraînement sous la barre des dix dollars : vous louez un GPU performant pour une à trois heures, non pour une journée entière.
+Commencez avec un ensemble de données modeste de vingt à trente images. Entraînez avec des paramètres conservateurs. Testez vos résultats minutieusement avant de vous étendre à de plus grands projets. Le coût par tentative est suffisamment bas pour que l'itération soit pratique—en traitant vos premières sessions d'entraînement comme des expériences d'apprentissage plutôt que comme des résultats de production. Ce même flux de travail s'applique à d'autres types de modèles. Si vous travaillez avec du texte au lieu d'images, consultez notre guide sur [l'affinage de grands modèles de langage](/fr/private-llm-fine-tuning-guide) en utilisant la même infrastructure GPU décentralisée.
 
 ---
 

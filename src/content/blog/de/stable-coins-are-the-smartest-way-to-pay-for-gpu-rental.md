@@ -746,7 +746,7 @@ Stablecoins repräsentieren das Beste aus beiden Welten:
 - Kein spekulatives Risiko
 - Vertraute Recheneinheit
 
-Speziell für die GPU-Miete ist diese Kombination ideal. Sie erhalten die Zahlungsvorteile von Kryptowährungen, ohne deren Preisvolatilität zu akzeptieren. Ihr Rechenbudget bleibt genau dort, wo Sie es festgelegt haben.
+Stablecoin-Zahlungen sind besonders wertvoll für KI-Forscher, die [Sprachmodelle auf proprietären Daten feinabstimmen](/de/private-llm-fine-tuning-guide) müssen, ohne Prüfpfade in traditionellen Bankensystemen zu erstellen. Für GPU-Vermietung ist diese Kombination ideal. Sie erhalten die Zahlungsvorteile von Kryptowährungen, ohne die Preisvolatilität von Kryptowährungen zu akzeptieren. Ihr Rechenbudget bleibt genau dort, wo Sie es festgelegt haben.
 
 ### Verwandte Ressourcen
 

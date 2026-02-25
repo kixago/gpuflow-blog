@@ -750,7 +750,7 @@ Les stablecoins représentent le meilleur des deux mondes :
 - Pas d'exposition spéculative.
 - Unité de compte familière.
 
-Pour la location de GPU spécifiquement, cette combinaison est idéale. Vous obtenez les avantages de paiement des cryptomonnaies sans accepter la volatilité des prix des cryptomonnaies. Votre budget de calcul reste exactement là où vous l'avez défini.
+Les paiements en stablecoin sont particulièrement précieux pour les chercheurs en IA qui ont besoin d'[affiner des modèles de langage sur des données propriétaires](/fr/private-llm-fine-tuning-guide) sans créer de pistes d'audit dans les systèmes bancaires traditionnels. Pour la location de GPU en particulier, cette combinaison est idéale. Vous bénéficiez des avantages de paiement des cryptomonnaies sans accepter la volatilité des prix des cryptomonnaies. Votre budget de calcul reste exactement là où vous l'avez défini.
 
 ### Ressources connexes
 
