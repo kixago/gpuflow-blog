@@ -35,6 +35,7 @@ const {
   faq,
 } = Astro.props;
 
+const tybbitSiteId  "45ee90ef902f";
 const lang = locale;
 const t = useTranslations(lang);
 const dir = getTextDirection(lang);
@@ -139,6 +140,11 @@ const alternateUrls = getAlternateLanguageUrls(SITE_CONFIG.url, Astro.url.pathna
     />
 
     <script type="application/ld+json" set:html={JSON.stringify(schemaGraph)} />
+    <script
+        src="https://anal.kixago.com/api/script.js"
+    data-site-id={rybbitSiteId}
+        defer
+    ></script>
   </head>
 
   <body>
