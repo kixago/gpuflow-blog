@@ -105,7 +105,9 @@ const alternateUrls = getAlternateLanguageUrls(SITE_CONFIG.url, Astro.url.pathna
     <link rel="canonical" href={canonicalURL} />
 
     {alternateUrls.map(({ lang: altLang, url }) => (
-      <link rel="alternate" hreflang={altLang} href={url} />
+      <link rel="alternate" hreflang={
+        ({ 'zh_cn': 'zh-CN', 'zh_tw': 'zh-TW', 'pt_br': 'pt-BR' })[altLang] || altLang
+      } href={url} />
     ))}
     <link
       rel="alternate"
