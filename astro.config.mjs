@@ -7,7 +7,12 @@ import { defineConfig } from "astro/config";
 // https://astro.build/config
 export default defineConfig({
   site: "https://blog.gpuflow.app",
-  integrations: [mdx(), sitemap()],
+  integrations: [
+    mdx(),
+    sitemap({
+      filter: (page) => !page.includes("/debug/"),
+    }),
+  ],
 
   image: {
     layout: "constrained",
