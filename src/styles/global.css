@@ -123,6 +123,11 @@ pre > code {
   color: #d4d4d4;
 }
 
+/* Long inline code (URLs, function names) may break so it fits a phone screen. */
+:not(pre) > code {
+  overflow-wrap: anywhere;
+}
+
 blockquote {
   border-left: 4px solid rgb(var(--accent));
   padding: 1rem 0 1rem 1.5rem;
@@ -213,6 +218,11 @@ li {
 
 .logo span {
   color: rgb(var(--accent));
+}
+
+/* Keep "GPUFlow" in reading order on right-to-left pages. */
+[dir="rtl"] .logo {
+  direction: ltr;
 }
 
 .nav {
@@ -724,6 +734,79 @@ article {
   margin: 0;
 }
 
+.post-footer {
+  max-width: 800px;
+  padding-bottom: 3rem;
+}
+
+.cta-box {
+  margin: 1rem 0 3rem;
+  padding: 2rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+}
+
+.cta-box h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.cta-box p {
+  margin: 0 0 1.25rem;
+}
+
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.cta-actions a {
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cta-primary {
+  background: #fff;
+  color: var(--accent-dark);
+}
+
+.cta-secondary {
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  color: #fff;
+}
+
+.more-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.more-list li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgb(var(--gray-light));
+  margin: 0;
+}
+
+.more-list a {
+  display: block;
+  font-weight: 700;
+  color: rgb(var(--black));
+  text-decoration: none;
+}
+
+.more-list a:hover {
+  color: rgb(var(--accent));
+}
+
+.more-meta {
+  font-size: 0.85rem;
+  color: rgb(var(--gray));
+}
+
 @media (max-width: 1024px) {
   .posts-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -733,6 +816,12 @@ article {
 @media (max-width: 768px) {
   body {
     font-size: 16px;
+  }
+
+  /* Wide tables scroll sideways instead of widening the page. */
+  .article-content table {
+    display: block;
+    overflow-x: auto;
   }
 
   .container {
@@ -886,6 +975,10 @@ article {
 [dir="rtl"] ol {
   padding-right: 1.5em;
   padding-left: 0;
+}
+
+[dir="rtl"] .more-list {
+  padding-right: 0;
 }
 
 [dir="rtl"] .article-content ul,

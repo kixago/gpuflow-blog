@@ -1,56 +1,54 @@
 ---
-title: "Ollama vs vLLM vs TGI：RTX 4090 推理基準測試（實測數據，非行銷說法）"
-description: "在 RTX 4090 上針對 Llama‑3.1‑8B 進行的受控基準測試，比較 Ollama、vLLM 與 Hugging Face TGI 的吞吐量、延遲、VRAM 使用量與每 token 成本。"
-excerpt: "在單張 RTX 4090 上使用 Llama‑3.1‑8B 對 Ollama、vLLM 與 TGI 進行實測基準測試。真實吞吐量、真實延遲、真實成本影響。"
+title: "Ollama vs vLLM vs TGI：RTX 4090 推論效能實測（實際量測，不是行銷數字）"
+description: "在 RTX 4090 上以受控條件比較 Ollama、vLLM 與 Hugging Face TGI 執行 Llama‑3.1‑8B 推論的表現，分析吞吐量、延遲、VRAM 用量與每 token 成本。"
+excerpt: "在單張 RTX 4090 上以 Llama‑3.1‑8B 實測 Ollama、vLLM 與 TGI。真實的吞吐量、真實的延遲，以及對成本的實際影響。"
 pubDate: 2026-02-25
-updatedDate: 2026-02-25
+updatedDate: 2026-09-29
 locale: "zh_tw"
 category: "benchmarks"
 featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/rtx4090-inference-benchmark-hero.png"
-heroImageAlt: "終端機上顯示 RTX 4090 GPU 推理基準測試與效能指標"
+heroImageAlt: "終端機上顯示的 RTX 4090 GPU 推論效能測試與各項效能指標"
 faq:
-  - question: "在 RTX 4090 上為 Llama-3.1-8B 提供推理時，哪個推理伺服器最快？"
-    answer: "在 RTX 4090 上進行的 FP16 實測中，vLLM 在並發負載下達到最高的持續吞吐量，在八個請求串流下約為每秒 185 至 215 個 tokens。TGI 的吞吐量為每秒 150 至 176 個 tokens，而 Ollama 在相同條件下平均為每秒 95 至 108 個 tokens。"
+  - question: "在 RTX 4090 上跑 Llama-3.1-8B，哪個推論伺服器最快？"
+    answer: "在 RTX 4090 上以 FP16 實測，vLLM 在並行負載下的持續吞吐量最高，8 個串流合計約每秒 185 到 215 個 token。TGI 為每秒 150 到 176 個 token，Ollama 在相同條件下平均每秒 95 到 108 個 token。"
 
-  - question: "vLLM 是否比 Ollama 或 TGI 使用更多 VRAM？"
-    answer: "在以 FP16 服務 Llama-3.1-8B 時，vLLM 使用約 20 至 22GB 的 VRAM。TGI 的使用量相近，約為 21 至 23GB。Ollama 整體 VRAM 使用較少，通常在 14 至 17GB 之間，但在並發負載下未能達到相同的吞吐量。"
+  - question: "vLLM 用的 VRAM 比 Ollama 或 TGI 多嗎？"
+    answer: "以 FP16 服務 Llama-3.1-8B 時，vLLM 約使用 20 到 22GB 的 VRAM，TGI 用量相近，約 21 到 23GB。Ollama 整體用得較少，通常在 14 到 17GB 之間，但在並行負載下達不到相同的吞吐量。"
 
-  - question: "Ollama 適合用於生產環境推理工作負載嗎？"
-    answer: "Ollama 適用於開發環境與低並發的內部工具。在測試中，它在八個並發請求串流下的擴展效率不如 vLLM 或 TGI。對於具有持續流量的生產 API，通常選擇針對連續批次優化的推理伺服器會更有效率。"
+  - question: "Ollama 適合用在正式環境的推論工作嗎？"
+    answer: "Ollama 適合開發環境和低並行量的內部工具。測試中，在 8 個並行請求串流下，它的擴展效率不如 vLLM 或 TGI。流量持續的正式環境 API，通常用針對連續批次處理最佳化的伺服器會比較有效率。"
 
-  - question: "在 RTX 4090 上執行 Llama-3.1-8B 推理的成本是多少？"
-    answer: "以平均每小時約 0.45 美元的租用價格計算，使用 vLLM 生成 500,000 個 tokens 需要約 41 至 42 分鐘，成本約為 0.31 美元。在相同工作負載下使用 Ollama 則需要約 83 至 84 分鐘，成本約為 0.63 美元。實際成本會因工作負載與租用價格而異。"
+  - question: "在 RTX 4090 上執行 Llama-3.1-8B 推論要花多少錢？"
+    answer: "以平均租金每小時約 0.45 美元計算，用 vLLM 生成 500,000 個 token 大約需要 41 到 42 分鐘，費用約 0.31 美元。同樣的工作用 Ollama 大約需要 83 到 84 分鐘，費用約 0.63 美元。實際費用依工作內容和租用價格而異。"
 
-  - question: "此基準測試使用了哪些提示與生成設定？"
-    answer: "本基準測試使用 512 token 的輸入提示，並為每個請求生成 128 個 tokens，採用 greedy decoding，temperature 設為 0。所有測量均在模型預熱後進行，並使用八個並發請求串流，未啟用 speculative decoding。"
+  - question: "這次效能測試用了哪些提示詞和生成設定？"
+    answer: "測試使用 512 個 token 的輸入提示詞，每個請求生成 128 個 token，採用 temperature 設為 0 的貪婪解碼。所有量測都在模型暖機後進行，使用 8 個並行請求串流，未啟用推測解碼。"
 
-  - question: "我可以自行重現這個 RTX 4090 推理基準測試嗎？"
-    answer: "可以。本文提供了硬體規格、CUDA 版本、驅動程式版本、解碼參數與並發設定。只要在單張 RTX 4090 上以 FP16 部署 Llama-3.1-8B，並匹配相同的提示長度與並發設定，即可重現相近的測試結果。"
+  - question: "我可以自己重現這次 RTX 4090 推論效能測試嗎？"
+    answer: "可以。文中列出了硬體規格、CUDA 版本、驅動程式版本、解碼參數和並行設定。只要在單張 RTX 4090 上以 FP16 部署 Llama-3.1-8B，並使用相同的提示詞長度和並行設定，就能得到相近的結果。"
 ---
 
-````
+自己跑模型，只完成了一半。
 
-自行執行模型，只完成了一半。
+完成微調之後（詳見我們的 [私有 LLM 微調指南](/zh_tw/private-llm-fine-tuning-guide/)），接下來要做的是營運上的決定：怎麼有效率地提供模型服務？
 
-在完成 fine‑tuning 之後——如我們在 [Private LLM Fine‑Tuning Guide](/zh_tw/private-llm-fine-tuning-guide) 中所說明——下一個決策屬於營運層面：如何高效率地提供模型推理服務？
+推論決定了：
 
-推理決定：
-
-- 每 token 成本
+- 每個 token 的成本
 - 負載下的延遲
-- GPU 使用效率
-- 消費級硬體是否能在生產環境中可行
+- GPU 的使用效率
+- 消費級硬體能不能用在正式環境
 
-本次基準測試比較三種廣泛使用的推理堆疊：
+本次效能測試比較三種常用的推論堆疊：
 
 - Ollama
 - vLLM
 - Hugging Face Text Generation Inference（TGI）
 
-目標不是偏好。目標是測量。
+目的不在個人偏好，而在量測。
 
 ---
 
@@ -60,67 +58,67 @@ faq:
 
 - GPU：NVIDIA RTX 4090（24GB VRAM）
 - CPU：16 核心 Ryzen 等級消費級處理器
-- 記憶體：64GB DDR5
+- RAM：64GB DDR5
 - 儲存裝置：NVMe SSD
 - CUDA：12.1
-- NVIDIA Driver：550+
+- NVIDIA 驅動程式：550 以上
 
 **模型**
 
 - `meta-llama/Llama-3.1-8B`
-- 精度：FP16（未使用 4‑bit 量化）
-- Context window：4096 tokens
+- 精度：FP16（未做 4 位元量化）
+- 上下文長度：4096 個 token
 
-**基準測試條件**
+**測試條件**
 
-- 512 token 輸入提示
-- 128 token 輸出生成
-- Greedy decoding（temperature = 0）
-- 未使用 speculative decoding
-- 未使用 tensor parallelism
-- 僅 warm start（測量前模型已預載）
-- 8 個並發請求串流（在支援情況下）
+- 512 個 token 的輸入提示詞
+- 生成 128 個 token 的輸出
+- 貪婪解碼（temperature = 0）
+- 未啟用推測解碼
+- 未使用張量平行
+- 僅測暖啟動（量測前已預先載入模型）
+- 8 個並行請求串流（支援時）
 
-所有測試均在乾淨環境下執行，無背景工作負載。每項數據為五次測試的平均值。
-
----
-
-![終端機顯示 RTX 4090 上的結構化推理基準測試指標](../_images/rtx4090-inference-terminal-results.png)
+所有測試都在沒有其他背景工作的乾淨機器上執行。每項數據為五次執行的平均值。
 
 ---
 
-# 結果
+![終端機顯示 RTX 4090 上結構化的推論效能測試指標](../_images/rtx4090-inference-terminal-results.png)
+
+---
+
+# 測試結果
 
 ## 1. Ollama
 
-Ollama 著重於簡潔性。安裝步驟最少，模型會自動下載。
+Ollama 以簡單為優先。安裝步驟極少，模型會自動下載。
 
 ```bash
 ollama run llama3
-````
+```
 
-對於批次行為或排程策略，幾乎沒有可調整的設定。
+批次處理行為和排程策略能調整的地方很有限。
 
 ### 實測效能（RTX 4090，FP16）
 
-- **單串流吞吐量：** 62–74 tokens/sec
-- **8 串流吞吐量：** 95–108 tokens/sec
-- **首 token 延遲：** 720–980 ms
-- **實測 VRAM 使用量：** 14–17GB
+- **單一串流吞吐量：** 每秒 62–74 個 token
+- **8 串流吞吐量：** 每秒 95–108 個 token
+- **首個 token 延遲：** 720–980 ms
+- **實際 VRAM 用量：** 14–17GB
 
 ### 觀察
 
-- 在並發情境下 GPU 使用率波動。
-- 超過 4 串流後，吞吐量擴展呈現非線性。
-- 無法存取進階批次最佳化控制。
+- 並行時 GPU 使用率起伏不定。
+- 超過 4 個串流後，吞吐量的成長不再是線性的。
+- 沒有提供進階批次處理最佳化的控制選項。
 
-Ollama 適合本地開發與低流量服務。在持續並發負載下，無法完全飽和 GPU。
+Ollama 在本機開發和低流量服務上表現穩定。但在持續的並行負載下，無法讓 GPU 滿載。
 
 ---
 
 ## 2. vLLM
 
-vLLM 為吞吐量而設計。其 PagedAttention 實作可在並發請求下提升 KV cache 效率。
+vLLM 是為吞吐量而設計的。它的 PagedAttention 實作能在並行請求下提升 KV 快取的效率。
 
 安裝：
 
@@ -138,24 +136,24 @@ python -m vllm.entrypoints.openai.api_server \
 
 ### 實測效能（RTX 4090，FP16）
 
-- **單串流吞吐量：** 92–104 tokens/sec
-- **8 串流吞吐量：** 185–215 tokens/sec
-- **首 token 延遲：** 360–480 ms
-- **實測 VRAM 使用量：** 20–22GB
+- **單一串流吞吐量：** 每秒 92–104 個 token
+- **8 串流吞吐量：** 每秒 185–215 個 token
+- **首個 token 延遲：** 360–480 ms
+- **實際 VRAM 用量：** 20–22GB
 
 ### 觀察
 
-- 在負載下 GPU 使用率維持在 95% 以上。
-- 連續批次（continuous batching）提升擴展效率。
-- 在並發串流下延遲保持穩定。
+- 負載下 GPU 使用率維持在 95% 以上。
+- 連續批次處理提升了擴展效率。
+- 在多個並行串流下，延遲依然穩定。
 
-在每小時租用時間的基準下，vLLM 達到最高的持續吞吐量。
+以每小時租用時間計算，vLLM 的持續吞吐量最高。
 
 ---
 
 ## 3. Hugging Face Text Generation Inference（TGI）
 
-TGI 是容器化的生產級推理伺服器。
+TGI 是容器化的正式環境推論伺服器。
 
 ```bash
 docker run --gpus all \
@@ -166,112 +164,106 @@ docker run --gpus all \
 
 ### 實測效能（RTX 4090，FP16）
 
-- **單串流吞吐量：** 78–88 tokens/sec
-- **8 串流吞吐量：** 150–176 tokens/sec
-- **首 token 延遲：** 510–690 ms
-- **實測 VRAM 使用量：** 21–23GB
+- **單一串流吞吐量：** 每秒 78–88 個 token
+- **8 串流吞吐量：** 每秒 150–176 個 token
+- **首個 token 延遲：** 510–690 ms
+- **實際 VRAM 用量：** 21–23GB
 
 ### 觀察
 
-- 效能穩定且可預測。
-- 吞吐量擴展優於 Ollama，但低於 vLLM。
-- 因容器執行環境而有較高的營運開銷。
+- 效能穩定，可以預期。
+- 吞吐量的擴展比 Ollama 好，但不及 vLLM。
+- 因為有容器執行環境，營運負擔比較重。
 
-TGI 提供生產控制與監控功能，但未能從單張 4090 中榨取最大吞吐量。
+TGI 提供正式環境需要的控制與監控功能，但沒辦法把單張 4090 的吞吐量發揮到極限。
 
 ---
 
-![nvidia-smi 顯示並發推理期間的 GPU 使用率](../_images/rtx4090-nvidia-smi-inference-load.png)
+![nvidia-smi 輸出，顯示並行推論時的 GPU 使用率](../_images/rtx4090-nvidia-smi-inference-load.png)
 
 ---
 
 # 直接比較
 
-| 堆疊   | 單串流     | 8 串流      | 首 token 延遲 | VRAM    | GPU 飽和度 |
-| ------ | ---------- | ----------- | ------------- | ------- | ---------- |
-| Ollama | 62–74 t/s  | 95–108 t/s  | 720–980ms     | 14–17GB | 部分       |
-| TGI    | 78–88 t/s  | 150–176 t/s | 510–690ms     | 21–23GB | 高         |
-| vLLM   | 92–104 t/s | 185–215 t/s | 360–480ms     | 20–22GB | 非常高     |
+| 堆疊   | 單一串流   | 8 串流      | 首個 token | VRAM    | GPU 飽和度 |
+| ------ | ---------- | ----------- | ---------- | ------- | ---------- |
+| Ollama | 62–74 t/s  | 95–108 t/s  | 720–980ms  | 14–17GB | 部分       |
+| TGI    | 78–88 t/s  | 150–176 t/s | 510–690ms  | 21–23GB | 高         |
+| vLLM   | 92–104 t/s | 185–215 t/s | 360–480ms  | 20–22GB | 非常高     |
 
-# 在去中心化 GPU 上的成本影響
+---
 
-在去中心化市集中，RTX 4090 的租用價格平均約為每小時 0.40–0.50 美元，視需求而定。詳細拆解請參考：
+# 對租用 GPU 成本的影響
 
-- [GPU Rental Pricing Comparison 2026](/zh_tw/gpu-rental-pricing-comparison-2026)
-- [Hidden Fees in GPU Rental](/zh_tw/hidden-fees-in-gpu-rental)
+在 GPU 租用市集上，2026 年 9 月 RTX 4090 的租金大約是每小時 0.30–0.46 美元，依平台和需求而定。詳細的價格分析請見：
+
+- [2026 GPU 租用價格比較](/zh_tw/gpu-rental-pricing-comparison-2026/)
+- [租用 GPU 的真實成本](/zh_tw/hidden-fees-in-gpu-rental/)
 
 假設：
 
-- 租金 $0.45/小時
-- 生成 500,000 個 tokens
-- 8 個並發串流
+- 租金每小時 0.45 美元
+- 生成 500,000 個 token
+- 8 個並行串流
 
-使用實測中位數吞吐量：
+以實測吞吐量的中位數計算：
 
-**vLLM（約 200 tokens/sec）**  
+**vLLM（約每秒 200 個 token）**  
 500,000 / 200 = 2,500 秒 ≈ 41–42 分鐘  
-成本 ≈ $0.31
+費用 ≈ 0.31 美元
 
-**Ollama（約 100 tokens/sec）**  
+**Ollama（約每秒 100 個 token）**  
 500,000 / 100 = 5,000 秒 ≈ 83–84 分鐘  
-成本 ≈ $0.63
+費用 ≈ 0.63 美元
 
-單次差異看似不大，但在規模化時會累積。
+單看一次，成本差距並不大，但規模一大就會累積。
 
-若每日處理 5,000 萬 tokens，吞吐效率將直接影響 GPU 規模與租用時長。
+每天 5,000 萬個 token 時，吞吐效率會直接影響需要的 GPU 數量和租用時間。
 
-## 自行執行此基準測試
+## 自己跑這個效能測試
 
-如果你希望在不購買硬體的情況下重現這些測量結果，通常可以透過 GPUFlow 市集取得 RTX 4090 節點。
+要重現這些數據，你需要一台自己能控制的機器，才能安裝和設定各個伺服器。提供 SSH 存取容器的租用市集，例如 Vast.ai 或 RunPod，都可以。
 
-機器按小時計費，連接錢包後即可立即存取。無需帳號審核、企業合約或長時間佈署排程。
+如果你只是想在 RTX 4090 上試用由 Ollama 提供服務的模型，不想做任何設定，[GPUFlow](https://gpuflow.app/zh-TW/marketplace) 的供應者都用 Ollama 執行模型，你透過相容 OpenAI 的 API 金鑰租用存取權，以秒計費。在那裡無法更換推論伺服器，所以它適合用來使用模型，不適合拿來測試伺服器效能。
 
-可於 [GPU Flow](https://gpuflow.app) 瀏覽可用 GPU。
-
-由於按小時計費，推理效率會直接影響成本。每秒 100 tokens 與 200 tokens 的差異，在持續負載下具有實質意義。
+因為是按小時租用，推論效率會直接影響成本。每秒 100 個 token 和每秒 200 個 token 的差距，在持續運作的工作中就變得很明顯。
 
 ---
 
 # 部署情境
 
-若你正在租用去中心化 GPU——如以下文章所述：
+如果你是按小時租用 GPU，推論效率就直接決定成本效率。我們在 [按小時租 GPU 還是按 token 付費的 API](/zh_tw/hourly-gpu-vs-per-token-api/) 一文中算過這筆帳。
 
-- [How to Rent a GPU Without KYC](/zh_tw/how-to-rent-gpu-without-kyc)
-- [Rent GPU with Crypto](/zh_tw/rent-gpu-with-crypto)
-- [Smart Contract Escrow Explained](/zh_tw/smart-contract-escrow)
+吞吐量會影響：
 
-——推理效率將直接決定資本效率。
+- 一項工作需要租用幾個小時
+- 你的流量需要幾張 GPU
+- 受主機不穩定影響的程度
+- 營運上的利潤空間
 
-吞吐量影響：
-
-- 託管（escrow）時間長度
-- 區塊鏈結算頻率
-- 主機不穩定風險暴露
-- 營運利潤空間
-
-在搭配高效率推理堆疊的情況下，消費級 GPU 對於 7B–8B 模型在經濟上仍具可行性。
+只要搭配有效率的推論堆疊，消費級 GPU 在經濟上仍然適合執行 7B–8B 的模型。
 
 ---
 
-# 何時使用各方案
+# 各自的適用時機
 
 **Ollama**
 
 - 內部工具
-- 低並發需求
-- 快速原型開發
+- 低並行量
+- 快速打造原型
 
 **TGI**
 
 - 容器化環境
 - 需要結構化日誌的團隊
-- 受控的生產部署
+- 受管理的正式環境部署
 
 **vLLM**
 
 - API 服務
-- 高並發需求
-- 最大化每美元 token 產出
+- 高並行量
+- 每一塊錢換到最多 token
 
 ---
 
@@ -279,27 +271,25 @@ TGI 提供生產控制與監控功能，但未能從單張 4090 中榨取最大�
 
 在單張 RTX 4090 上以 FP16 執行 Llama‑3.1‑8B：
 
-- vLLM 取得最高的持續吞吐量。
-- TGI 提供平衡效能與生產控制能力。
-- Ollama 偏重簡潔性，而非最大化 GPU 使用率。
+- vLLM 的持續吞吐量最高。
+- TGI 效能均衡，並提供正式環境需要的控制功能。
+- Ollama 以簡單為優先，而不是把 GPU 使用率拉到最高。
 
-推理堆疊的選擇並非表面差異。它決定成本結構與擴展行為。
+推論堆疊的選擇不是表面功夫，它決定了成本結構和擴展行為。
 
-對於部署於去中心化消費級 GPU 的工作負載而言，批次效率會實質影響經濟性。
+對部署在租用消費級 GPU 上的工作來說，批次處理效率會實質影響經濟效益。
 
-# 在生產環境中執行
+# 在哪裡跑正式環境
 
-本文所有基準測試均在租用的消費級硬體上完成，而非自有基礎設施。
+本文所有的效能測試，都是在租用的消費級硬體上進行，而不是自有的基礎架構。
 
-若你需要立即存取 RTX 4090、RTX 3090 或更高記憶體的 GPU 進行推理或 fine‑tuning，可於 [GPU Flow](https://gpuflow.app) 取得節點。
-
-## 按小時計費。以穩定幣支付。連接錢包後即可立即存取。
+如果要微調或執行自己的推論伺服器，請租一台可以登入的機器。如果只想透過 API 使用由 Ollama 提供服務的模型、什麼都不用設定，請參考 [GPUFlow](https://gpuflow.app/zh-TW/marketplace)：租用以秒計費，以信用卡購買的額度付款。
 
 ### 相關資源
 
-**深化你的部署堆疊知識：**
+**深入了解部署堆疊：**
 
-- [The Ultimate Guide to Private LLM Fine‑Tuning on Decentralized GPUs](/zh_tw/private-llm-fine-tuning-guide) — 安全訓練開放權重模型的完整流程
-- [GPU Rental Pricing Comparison 2026](/zh_tw/gpu-rental-pricing-comparison-2026) — 主流 GPU 租用平台的實測成本差異
-- [Hidden Fees in GPU Rental](/zh_tw/hidden-fees-in-gpu-rental) — 每小時計價頁面未揭露的費用
-- [RunPod vs Vast.ai Comparison](/zh_tw/runpod-vs-vastapi-comparison) — 集中式與市集型基礎設施差異
+- [在租用 GPU 上進行私有 LLM 微調的完整指南](/zh_tw/private-llm-fine-tuning-guide/)：安全訓練開放權重模型的完整教學
+- [2026 GPU 租用價格比較](/zh_tw/gpu-rental-pricing-comparison-2026/)：各大 GPU 租用平台的成本差異
+- [租用 GPU 的真實成本](/zh_tw/hidden-fees-in-gpu-rental/)：按小時計價的價目表沒告訴你的事
+- [RunPod vs Vast.ai 比較](/zh_tw/runpod-vs-vastapi-comparison/)：集中式與市集式基礎架構的差異

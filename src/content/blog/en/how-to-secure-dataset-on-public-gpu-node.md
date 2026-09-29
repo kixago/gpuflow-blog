@@ -3,7 +3,7 @@ title: "How to Secure Your Dataset on a Public GPU Node"
 description: "A comprehensive security guide for protecting proprietary datasets when training AI models on rented or decentralized GPU infrastructure. Covers encryption, virtualization boundaries, compliance considerations, and secure environment sanitization."
 excerpt: "Training on public GPUs does not require sacrificing data security. Learn how to protect sensitive datasets before, during, and after AI workloads on rented infrastructure."
 pubDate: 2026-02-26
-updatedDate: 2026-02-26
+updatedDate: 2026-09-29
 locale: "en"
 category: "guides"
 featured: false
@@ -33,7 +33,9 @@ For organizations handling proprietary research, source code, financial models, 
 
 The good news is this: rented infrastructure does not have to mean reduced security. When handled correctly, it can offer strong isolation, controlled exposure, and in some cases even greater privacy than hyperscaler platforms.
 
-This guide explains how to secure your dataset before, during, and after training workloads on a public GPU node. It assumes you are already familiar with the fine‑tuning workflow described in our [Private LLM Fine‑Tuning Guide](/en/private-llm-fine-tuning-guide).
+This guide explains how to secure your dataset before, during, and after training workloads on a public GPU node. It assumes you are already familiar with the fine‑tuning workflow described in our [Private LLM Fine‑Tuning Guide](/en/private-llm-fine-tuning-guide/).
+
+This guide is for rentals where you log into the machine, such as Vast.ai, RunPod or TensorDock. GPUFlow works differently: you get an API key for an AI model, and nothing is uploaded or stored on the provider's machine. Your prompts and answers do pass through it, though, so the rule there is simpler: don't send anything you wouldn't share with a stranger.
 
 Security in this context is not about paranoia. It is about discipline.
 
@@ -298,7 +300,7 @@ In reality:
 
 Decentralized marketplaces reduce institutional oversight. When combined with disciplined operational practice, they can offer meaningful privacy advantages.
 
-If you have not reviewed the economic differences, see our [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026).
+If you have not reviewed the economic differences, see our [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026/).
 
 Cost efficiency and operational privacy are not mutually exclusive.
 
@@ -357,10 +359,10 @@ That control remains in your hands.
 
 If this guide addressed your security concerns, the following resources expand on cost, privacy, and infrastructure considerations:
 
-- [The Ultimate Guide to Private LLM Fine‑Tuning on Decentralized GPUs](/en/private-llm-fine-tuning-guide)
-- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026)
-- [How to Rent a GPU Without KYC](/en/how-to-rent-gpu-without-kyc)
-- [Smart Contract Escrow Explained](/en/smart-contract-escrow)
-- [Stablecoins Are the Smartest Way to Pay for GPU Rental](/en/stable-coins-are-the-smartest-way-to-pay-for-gpu-rental)
+- [The Ultimate Guide to Private LLM Fine‑Tuning on Rented GPUs](/en/private-llm-fine-tuning-guide/)
+- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026/)
+- [The Real Cost of Renting a GPU](/en/hidden-fees-in-gpu-rental/)
+- [What You Need to Rent a GPU in 2026](/en/what-you-need-to-rent-a-gpu/)
+- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/en/gpuflow-vs-vast-ai-vs-runpod/)
 
 Together, these articles outline the economic, technical, and operational framework for running private AI workloads on rented GPU infrastructure.

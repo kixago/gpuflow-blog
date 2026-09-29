@@ -16,7 +16,7 @@ export const SITE_CONFIG = {
   url: "https://gpuflow.app",
   logo: "https://blog.gpuflow.app/logo.png",
   description:
-    "Your guide to the decentralized GPU marketplace. Rent GPUs for AI training, gaming, rendering, or any compute workload.",
+    "A marketplace where people rent GPUs by the hour from other people, through an OpenAI-compatible API, or earn money from their own GPU.",
   foundingDate: "2025",
   email: "hello@gpuflow.app",
 

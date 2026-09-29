@@ -1,129 +1,124 @@
 ---
-title: "Ollama vs vLLM vs TGI: RTX 4090 Inference बेंचमार्क (मापा गया, न कि मार्केटिंग)"
-description: "RTX 4090 पर Llama‑3.1‑8B के लिए Ollama, vLLM और Hugging Face TGI की तुलना करता नियंत्रित बेंचमार्क। Throughput, latency, VRAM उपयोग और प्रति token लागत का विश्लेषण।"
-excerpt: "एकल RTX 4090 पर Llama‑3.1‑8B के साथ Ollama, vLLM और TGI का मापा गया बेंचमार्क। वास्तविक throughput, वास्तविक latency, वास्तविक लागत प्रभाव।"
+title: "Ollama vs vLLM vs TGI: RTX 4090 पर inference बेंचमार्क (मापा हुआ, मार्केटिंग नहीं)"
+description: "RTX 4090 पर नियंत्रित बेंचमार्क, जिसमें Llama‑3.1‑8B inference के लिए Ollama, vLLM और Hugging Face TGI की तुलना की गई है। Throughput, latency, VRAM इस्तेमाल और प्रति token लागत का विश्लेषण।"
+excerpt: "एक RTX 4090 पर Llama‑3.1‑8B के साथ Ollama, vLLM और TGI का मापा हुआ बेंचमार्क। असली throughput, असली latency और लागत पर असली असर।"
 pubDate: 2026-02-25
-updatedDate: 2026-02-25
+updatedDate: 2026-09-29
 locale: "hi"
 category: "benchmarks"
 featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/rtx4090-inference-benchmark-hero.png"
-heroImageAlt: "RTX 4090 GPU inference बेंचमार्क टर्मिनल में प्रदर्शन मेट्रिक्स के साथ प्रदर्शित"
+heroImageAlt: "टर्मिनल पर परफ़ॉर्मेंस मेट्रिक्स के साथ RTX 4090 GPU का inference बेंचमार्क"
 faq:
-  - question: "RTX 4090 पर Llama-3.1-8B के लिए कौन सा Inference सर्वर सबसे तेज है?"
-    answer: "RTX 4090 पर किए गए FP16 परीक्षणों में, vLLM ने समवर्ती लोड के तहत सबसे अधिक स्थायी throughput हासिल किया, आठ streams पर लगभग 185 से 215 tokens प्रति सेकंड तक। TGI ने 150 से 176 tokens प्रति सेकंड दिए, जबकि Ollama ने समान परिस्थितियों में औसतन 95 से 108 tokens प्रति सेकंड हासिल किए।"
+  - question: "Llama-3.1-8B के लिए RTX 4090 पर कौन-सा inference सर्वर सबसे तेज़ है?"
+    answer: "RTX 4090 पर FP16 में मापे गए टेस्ट में concurrent लोड के दौरान vLLM ने सबसे ज़्यादा लगातार throughput दिया, आठ streams में लगभग 185 से 215 tokens प्रति सेकंड। इन्हीं हालात में TGI ने 150 से 176 tokens प्रति सेकंड दिए, जबकि Ollama का औसत 95 से 108 tokens प्रति सेकंड रहा।"
 
-  - question: "क्या vLLM, Ollama या TGI की तुलना में अधिक VRAM उपयोग करता है?"
-    answer: "FP16 में Llama-3.1-8B सर्व करते समय vLLM ने लगभग 20 से 22GB VRAM का उपयोग किया। TGI ने 21 से 23GB के समान दायरे का उपभोग किया। Ollama ने कुल मिलाकर कम VRAM उपयोग किया, सामान्यतः 14 से 17GB के बीच, लेकिन समवर्ती लोड के तहत समान throughput प्राप्त नहीं किया।"
+  - question: "क्या vLLM, Ollama या TGI से ज़्यादा VRAM इस्तेमाल करता है?"
+    answer: "Llama-3.1-8B को FP16 में serve करते समय vLLM ने लगभग 20 से 22GB VRAM इस्तेमाल की। TGI ने भी लगभग उतनी ही, 21 से 23GB, ली। Ollama ने कुल मिलाकर कम VRAM ली, आम तौर पर 14 से 17GB, लेकिन concurrent लोड में वह उतना throughput नहीं दे पाया।"
 
-  - question: "क्या Ollama production Inference workloads के लिए उपयुक्त है?"
-    answer: "Ollama विकास वातावरण और कम concurrency वाले आंतरिक टूल्स के लिए उपयुक्त है। परीक्षणों में, यह आठ समवर्ती request streams के तहत vLLM या TGI जितना कुशलतापूर्वक स्केल नहीं हुआ। निरंतर ट्रैफ़िक वाली production APIs के लिए, continuous batching के लिए अनुकूलित सर्वर सामान्यतः अधिक कुशल होता है।"
+  - question: "क्या Ollama प्रोडक्शन inference वर्कलोड के लिए ठीक है?"
+    answer: "Ollama डेवलपमेंट एनवायरनमेंट और कम concurrency वाले इंटरनल टूल्स के लिए ठीक है। टेस्ट में आठ concurrent request streams पर यह vLLM या TGI जितनी अच्छी तरह स्केल नहीं हुआ। लगातार ट्रैफ़िक वाले प्रोडक्शन API के लिए continuous batching के लिए ऑप्टिमाइज़ किया गया सर्वर आम तौर पर ज़्यादा कुशल रहता है।"
 
-  - question: "RTX 4090 पर Llama-3.1-8B Inference चलाने की लागत कितनी है?"
-    answer: "लगभग 0.45 USD प्रति घंटा की औसत किराया दर पर, vLLM का उपयोग करते हुए 500,000 tokens उत्पन्न करने में लगभग 41 से 42 मिनट लगे, जिसकी लागत लगभग 0.31 USD थी। समान workload के लिए Ollama का उपयोग करने पर लगभग 83 से 84 मिनट लगे, जिसकी लागत लगभग 0.63 USD थी। वास्तविक लागत workload और किराया मूल्य पर निर्भर करती है।"
+  - question: "RTX 4090 पर Llama-3.1-8B inference चलाने में कितना ख़र्च आता है?"
+    answer: "लगभग 0.45 USD प्रति घंटा की औसत किराया दर पर, vLLM से 500,000 tokens जनरेट करने में करीब 41 से 42 मिनट लगे, यानी लगभग 0.31 USD। इसी वर्कलोड पर Ollama को करीब 83 से 84 मिनट लगे, यानी लगभग 0.63 USD। असली लागत वर्कलोड और किराए की कीमत के हिसाब से बदलती है।"
 
-  - question: "इस बेंचमार्क में कौन से prompt और generation सेटिंग्स उपयोग किए गए थे?"
-    answer: "बेंचमार्क में 512-token input prompt और प्रति request 128 tokens generation का उपयोग किया गया, greedy decoding के साथ जहाँ temperature शून्य पर सेट था। सभी माप model warm‑up के बाद लिए गए, आठ समवर्ती request streams के साथ और बिना speculative decoding।"
+  - question: "इस बेंचमार्क में कौन-सी prompt और generation सेटिंग्स इस्तेमाल हुईं?"
+    answer: "बेंचमार्क में 512-token का input prompt इस्तेमाल हुआ और हर request पर greedy decoding से 128 tokens जनरेट किए गए, temperature शून्य पर रखा गया। सारे माप मॉडल के warm-up के बाद लिए गए, आठ concurrent request streams के साथ और बिना speculative decoding के।"
 
-  - question: "क्या मैं इस RTX 4090 Inference बेंचमार्क को स्वयं पुन: उत्पन्न कर सकता हूँ?"
-    answer: "हाँ। लेख में hardware specifications, CUDA version, driver version, decoding parameters और concurrency configuration शामिल हैं। एकल RTX 4090 पर FP16 में Llama-3.1-8B deploy करके और prompt लंबाई तथा concurrency सेटिंग्स मिलाकर, आप तुलनीय परिणाम प्राप्त कर सकते हैं।"
+  - question: "क्या मैं यह RTX 4090 inference बेंचमार्क ख़ुद दोहरा सकता हूं?"
+    answer: "हां। लेख में हार्डवेयर स्पेसिफ़िकेशन, CUDA वर्ज़न, ड्राइवर वर्ज़न, decoding पैरामीटर और concurrency कॉन्फ़िगरेशन दिए गए हैं। एक RTX 4090 पर Llama-3.1-8B को FP16 में चलाकर और prompt की लंबाई व concurrency सेटिंग्स मिलाकर आप मिलते-जुलते नतीजे पा सकते हैं।"
 ---
 
-````
+अपना मॉडल चलाना आधा ही काम है।
 
-अपना स्वयं का मॉडल चलाना केवल आधा समाधान है।
+fine‑tuning पूरी होने के बाद, जैसा हमारी [Private LLM Fine‑Tuning गाइड](/hi/private-llm-fine-tuning-guide/) में बताया गया है, अगला फ़ैसला ऑपरेशनल होता है: मॉडल को कुशलता से serve कैसे करें?
 
-fine‑tuning पूरा करने के बाद — जैसा कि हमारे [Private LLM Fine‑Tuning गाइड](/hi/private-llm-fine-tuning-guide) में विस्तार से बताया गया है — अगला निर्णय परिचालन संबंधी है: मॉडल को कुशलतापूर्वक कैसे serve किया जाए?
-
-Inference निर्धारित करता है:
+Inference से तय होता है:
 
 - प्रति token लागत
-- लोड के तहत latency
-- GPU उपयोग की दक्षता
-- क्या उपभोक्ता हार्डवेयर production में व्यवहार्य है
+- लोड के दौरान latency
+- GPU का कितना कुशल इस्तेमाल हो रहा है
+- क्या कंज्यूमर हार्डवेयर प्रोडक्शन में चल सकता है
 
-यह बेंचमार्क तीन व्यापक रूप से उपयोग किए जाने वाले Inference stacks की तुलना करता है:
+यह बेंचमार्क तीन लोकप्रिय inference stacks की तुलना करता है:
 
 - Ollama
 - vLLM
 - Hugging Face Text Generation Inference (TGI)
 
-उद्देश्य प्राथमिकता नहीं है।
-उद्देश्य मापन है।
+मकसद पसंद-नापसंद बताना नहीं, बल्कि मापना है।
 
 ---
 
-## परीक्षण वातावरण
+## टेस्ट एनवायरनमेंट
 
 **हार्डवेयर**
 
 - GPU: NVIDIA RTX 4090 (24GB VRAM)
-- CPU: 16‑core Ryzen‑class उपभोक्ता प्रोसेसर
+- CPU: 16‑core Ryzen‑श्रेणी का कंज्यूमर प्रोसेसर
 - RAM: 64GB DDR5
 - स्टोरेज: NVMe SSD
 - CUDA: 12.1
-- NVIDIA Driver: 550+
+- NVIDIA ड्राइवर: 550+
 
 **मॉडल**
 
 - `meta-llama/Llama-3.1-8B`
-- प्रिसिजन: FP16 (4‑bit quantization नहीं)
+- Precision: FP16 (कोई 4‑bit quantization नहीं)
 - Context window: 4096 tokens
 
-**बेंचमार्क शर्तें**
+**बेंचमार्क की शर्तें**
 
-- 512-token input prompt
-- 128-token output generation
+- 512‑token का input prompt
+- 128‑token का output generation
 - Greedy decoding (temperature = 0)
-- speculative decoding नहीं
-- tensor parallelism नहीं
-- केवल warm start (मापन से पहले मॉडल प्रीलोड)
-- 8 समवर्ती request streams (जहाँ समर्थित)
+- कोई speculative decoding नहीं
+- कोई tensor parallelism नहीं
+- सिर्फ़ warm start (माप से पहले मॉडल लोड किया गया)
+- 8 concurrent request streams (जहां सपोर्ट है)
 
-सभी परीक्षण एक साफ मशीन पर बिना बैकग्राउंड लोड के किए गए।
-प्रत्येक मापन पाँच रन के औसत को दर्शाता है।
-
----
-
-![RTX 4090 पर संरचित Inference बेंचमार्क मेट्रिक्स दिखाता हुआ टर्मिनल](../_images/rtx4090-inference-terminal-results.png)
+सारे टेस्ट एक साफ़ मशीन पर चलाए गए, बैकग्राउंड में कोई और वर्कलोड नहीं था। हर माप पांच रन का औसत है।
 
 ---
 
-# परिणाम
+![RTX 4090 पर व्यवस्थित inference बेंचमार्क मेट्रिक्स दिखाता टर्मिनल](../_images/rtx4090-inference-terminal-results.png)
+
+---
+
+# नतीजे
 
 ## 1. Ollama
 
-Ollama सरलता को प्राथमिकता देता है। इंस्टॉलेशन न्यूनतम है और मॉडल स्वतः डाउनलोड होते हैं।
+Ollama सादगी को प्राथमिकता देता है। इंस्टॉलेशन बहुत आसान है और मॉडल अपने आप डाउनलोड हो जाते हैं।
 
 ```bash
 ollama run llama3
-````
+```
 
-batching व्यवहार या scheduling रणनीति के लिए सीमित कॉन्फ़िगरेशन उपलब्ध है।
+Batching के व्यवहार या scheduling रणनीति के लिए कॉन्फ़िगरेशन के विकल्प सीमित हैं।
 
-### मापा गया प्रदर्शन (RTX 4090, FP16)
+### मापी गई परफ़ॉर्मेंस (RTX 4090, FP16)
 
 - **Single stream throughput:** 62–74 tokens/sec
 - **8-stream throughput:** 95–108 tokens/sec
-- **First token latency:** 720–980 ms
-- **देखा गया VRAM उपयोग:** 14–17GB
+- **पहले token की latency:** 720–980 ms
+- **देखा गया VRAM इस्तेमाल:** 14–17GB
 
-### अवलोकन
+### क्या देखा गया
 
-- concurrency के तहत GPU उपयोग में उतार‑चढ़ाव रहा।
-- 4 streams के बाद throughput scaling रैखिक नहीं था।
-- उन्नत batching optimization के लिए कोई स्पष्ट नियंत्रण उपलब्ध नहीं।
+- Concurrency में GPU utilization ऊपर-नीचे होता रहा।
+- 4 streams के बाद throughput रैखिक रूप से नहीं बढ़ा।
+- एडवांस्ड batching ऑप्टिमाइज़ेशन के लिए कोई कंट्रोल उपलब्ध नहीं।
 
-Ollama स्थानीय विकास और कम ट्रैफ़िक सेवाओं के लिए विश्वसनीय है।  
-सतत समवर्ती लोड के तहत यह GPU को पूरी तरह संतृप्त नहीं करता।
+लोकल डेवलपमेंट और कम ट्रैफ़िक वाली सर्विसेज़ के लिए Ollama भरोसेमंद है। लगातार concurrent लोड में यह GPU का पूरा इस्तेमाल नहीं कर पाता।
 
 ---
 
 ## 2. vLLM
 
-vLLM को throughput के लिए डिज़ाइन किया गया है। इसका PagedAttention implementation समवर्ती requests के तहत KV cache दक्षता सुधारता है।
+vLLM throughput के लिए बना है। इसका PagedAttention implementation concurrent requests के दौरान KV cache को ज़्यादा कुशल बनाता है।
 
 इंस्टॉलेशन:
 
@@ -139,26 +134,26 @@ python -m vllm.entrypoints.openai.api_server \
   --dtype float16
 ```
 
-### मापा गया प्रदर्शन (RTX 4090, FP16)
+### मापी गई परफ़ॉर्मेंस (RTX 4090, FP16)
 
 - **Single stream throughput:** 92–104 tokens/sec
 - **8-stream throughput:** 185–215 tokens/sec
-- **First token latency:** 360–480 ms
-- **देखा गया VRAM उपयोग:** 20–22GB
+- **पहले token की latency:** 360–480 ms
+- **देखा गया VRAM इस्तेमाल:** 20–22GB
 
-### अवलोकन
+### क्या देखा गया
 
-- लोड के तहत GPU उपयोग 95% से ऊपर बना रहा।
-- continuous batching ने scaling दक्षता में सुधार किया।
-- समवर्ती streams में latency स्थिर रही।
+- लोड में GPU utilization 95% से ऊपर रहा।
+- Continuous batching से स्केलिंग बेहतर हुई।
+- Concurrent streams में latency स्थिर रही।
 
-vLLM ने प्रति किराया घंटे उच्चतम स्थायी throughput हासिल किया।
+किराए के हर घंटे में vLLM ने सबसे ज़्यादा लगातार throughput दिया।
 
 ---
 
 ## 3. Hugging Face Text Generation Inference (TGI)
 
-TGI एक containerized production Inference सर्वर है।
+TGI कंटेनर में चलने वाला प्रोडक्शन inference सर्वर है।
 
 ```bash
 docker run --gpus all \
@@ -167,144 +162,134 @@ docker run --gpus all \
   --model-id meta-llama/Llama-3.1-8B
 ```
 
-### मापा गया प्रदर्शन (RTX 4090, FP16)
+### मापी गई परफ़ॉर्मेंस (RTX 4090, FP16)
 
 - **Single stream throughput:** 78–88 tokens/sec
 - **8-stream throughput:** 150–176 tokens/sec
-- **First token latency:** 510–690 ms
-- **देखा गया VRAM उपयोग:** 21–23GB
+- **पहले token की latency:** 510–690 ms
+- **देखा गया VRAM इस्तेमाल:** 21–23GB
 
-### अवलोकन
+### क्या देखा गया
 
-- प्रदर्शन सुसंगत और पूर्वानुमेय था।
-- throughput scaling Ollama से बेहतर लेकिन vLLM से कम।
-- container runtime के कारण परिचालन ओवरहेड अधिक।
+- परफ़ॉर्मेंस स्थिर और अनुमान के मुताबिक रही।
+- Throughput, Ollama से बेहतर स्केल हुआ लेकिन vLLM से कम।
+- कंटेनर runtime की वजह से ऑपरेशनल overhead ज़्यादा।
 
-TGI production controls और monitoring प्रदान करता है, लेकिन एकल 4090 से अधिकतम throughput नहीं निकालता।
-
----
-
-![समवर्ती Inference के दौरान GPU उपयोग दिखाता हुआ nvidia-smi आउटपुट](../_images/rtx4090-nvidia-smi-inference-load.png)
+TGI प्रोडक्शन के लिए कंट्रोल और मॉनिटरिंग देता है, लेकिन एक 4090 से अधिकतम throughput नहीं निकाल पाता।
 
 ---
 
-# प्रत्यक्ष तुलना
+![Concurrent inference के दौरान GPU utilization दिखाता nvidia-smi आउटपुट](../_images/rtx4090-nvidia-smi-inference-load.png)
 
-| Stack  | Single Stream | 8 Streams   | First Token | VRAM    | GPU Saturation |
+---
+
+# सीधी तुलना
+
+| Stack  | Single Stream | 8 Streams   | पहला Token  | VRAM    | GPU Saturation |
 | ------ | ------------- | ----------- | ----------- | ------- | -------------- |
 | Ollama | 62–74 t/s     | 95–108 t/s  | 720–980ms   | 14–17GB | आंशिक          |
-| TGI    | 78–88 t/s     | 150–176 t/s | 510–690ms   | 21–23GB | उच्च           |
-| vLLM   | 92–104 t/s    | 185–215 t/s | 360–480ms   | 20–22GB | बहुत उच्च      |
+| TGI    | 78–88 t/s     | 150–176 t/s | 510–690ms   | 21–23GB | ज़्यादा         |
+| vLLM   | 92–104 t/s    | 185–215 t/s | 360–480ms   | 20–22GB | बहुत ज़्यादा    |
 
-# विकेन्द्रीकृत GPUs पर लागत प्रभाव
+---
 
-विकेन्द्रीकृत मार्केटप्लेस में RTX 4090 का किराया औसतन लगभग 0.40–0.50 USD प्रति घंटा रहता है, मांग के अनुसार। विस्तृत विश्लेषण देखें:
+# किराए के GPU पर लागत का असर
 
-- [GPU किराया मूल्य तुलना 2026](/hi/gpu-rental-pricing-comparison-2026)
-- [GPU किराये में छिपी हुई फीस](/hi/hidden-fees-in-gpu-rental)
+GPU मार्केटप्लेस पर सितंबर 2026 में RTX 4090 का किराया प्लेटफ़ॉर्म और मांग के हिसाब से लगभग $0.30–$0.46 प्रति घंटा है। विस्तृत ब्योरा यहां देखें:
 
-मान लें:
+- [GPU रेंटल कीमतों की तुलना 2026](/hi/gpu-rental-pricing-comparison-2026/)
+- [GPU किराए पर लेने की असली लागत](/hi/hidden-fees-in-gpu-rental/)
 
-- 0.45 USD/घंटा
-- 500,000 tokens उत्पन्न
-- 8 समवर्ती streams
+मान लीजिए:
 
-मापा गया मध्य throughput उपयोग करते हुए:
+- $0.45/घंटा किराया
+- 500,000 tokens जनरेट करने हैं
+- 8 concurrent streams
+
+मापे गए median throughput के आधार पर:
 
 **vLLM (~200 tokens/sec)**  
 500,000 / 200 = 2,500 सेकंड ≈ 41–42 मिनट  
-लागत ≈ 0.31 USD
+लागत ≈ $0.31
 
 **Ollama (~100 tokens/sec)**  
 500,000 / 100 = 5,000 सेकंड ≈ 83–84 मिनट  
-लागत ≈ 0.63 USD
+लागत ≈ $0.63
 
-अलग से देखने पर लागत अंतर बड़ा नहीं है।  
-स्केल पर यह संचयी हो जाता है।
+अकेले देखें तो लागत का अंतर बहुत बड़ा नहीं है। बड़े पैमाने पर यह जुड़ता जाता है।
 
-यदि प्रतिदिन 50 मिलियन tokens संसाधित किए जाते हैं, तो throughput दक्षता सीधे GPU फ्लीट आकार और किराया अवधि को प्रभावित करती है।
+हर दिन 50 million tokens पर throughput की कुशलता सीधे तय करती है कि कितने GPU चाहिए और उन्हें कितनी देर किराए पर रखना है।
 
-## इस बेंचमार्क को स्वयं चलाएँ
+## यह बेंचमार्क ख़ुद कैसे चलाएं
 
-यदि आप बिना हार्डवेयर खरीदे इन मापों को पुन: उत्पन्न करना चाहते हैं, तो RTX 4090 नोड्स आमतौर पर GPUFlow मार्केटप्लेस पर उपलब्ध होते हैं।
+ये माप दोहराने के लिए आपको ऐसी मशीन चाहिए जिस पर आपका नियंत्रण हो, ताकि आप हर सर्वर इंस्टॉल और कॉन्फ़िगर कर सकें। Vast.ai या RunPod जैसे मार्केटप्लेस, जो SSH एक्सेस वाले कंटेनर किराए पर देते हैं, इसके लिए ठीक हैं।
 
-मशीनें प्रति घंटा किराये पर मिलती हैं और wallet कनेक्ट करते ही तुरंत एक्सेस की जा सकती हैं। कोई अकाउंट अप्रूवल देरी, एंटरप्राइज कॉन्ट्रैक्ट या लंबी provisioning कतार नहीं।
+अगर आप बिना कुछ सेटअप किए RTX 4090 पर Ollama से चलने वाले मॉडल बस आज़माना चाहते हैं, तो [GPUFlow](https://gpuflow.app/hi/marketplace) पर प्रोवाइडर Ollama चलाते हैं और आप OpenAI-compatible API key के ज़रिए एक्सेस किराए पर लेते हैं, प्रति सेकंड बिलिंग के साथ। वहां आप inference सर्वर नहीं बदल सकते, इसलिए यह मॉडल इस्तेमाल करने के लिए है, सर्वरों का बेंचमार्क करने के लिए नहीं।
 
-उपलब्ध GPUs ब्राउज़ करें: [GPU Flow](https://gpuflow.app)
-
-किराया प्रति घंटा होने के कारण Inference दक्षता सीधे लागत को प्रभावित करती है। 100 tokens/sec और 200 tokens/sec के बीच का अंतर सतत workloads में महत्वपूर्ण हो जाता है।
+किराया घंटे के हिसाब से लगता है, इसलिए inference की कुशलता का सीधा असर लागत पर पड़ता है। लगातार चलने वाले वर्कलोड में 100 tokens/sec और 200 tokens/sec का अंतर काफ़ी मायने रखता है।
 
 ---
 
-# डिप्लॉयमेंट संदर्भ
+# डिप्लॉयमेंट का संदर्भ
 
-यदि आप विकेन्द्रीकृत GPUs किराये पर ले रहे हैं — जैसा कि इन लेखों में वर्णित है:
+अगर आप घंटे के हिसाब से GPU किराए पर ले रहे हैं, तो inference की कुशलता ही सीधे लागत की कुशलता तय करती है। इसका पूरा हिसाब हमने [घंटे वाला GPU या प्रति token API](/hi/hourly-gpu-vs-per-token-api/) में लगाया है।
 
-- [KYC के बिना GPU कैसे किराये पर लें](/hi/how-to-rent-gpu-without-kyc)
-- [क्रिप्टो से GPU किराये पर लें](/hi/rent-gpu-with-crypto)
-- [स्मार्ट कॉन्ट्रैक्ट एस्क्रो समझाया गया](/hi/smart-contract-escrow)
+Throughput इन पर असर डालता है:
 
-— तो Inference दक्षता सीधे पूंजी दक्षता निर्धारित करती है।
+- किसी जॉब के लिए कितने घंटे का किराया चाहिए
+- आपके ट्रैफ़िक के लिए कितने GPU चाहिए
+- होस्ट की अस्थिरता का कितना जोखिम है
+- ऑपरेशनल मार्जिन
 
-Throughput प्रभावित करता है:
-
-- एस्क्रो अवधि
-- ब्लॉकचेन सेटलमेंट आवृत्ति
-- होस्ट अस्थिरता के प्रति जोखिम
-- परिचालन मार्जिन
-
-जब कुशल Inference stack के साथ जोड़ा जाए, तो उपभोक्ता GPUs 7B–8B मॉडलों के लिए आर्थिक रूप से व्यवहार्य बने रहते हैं।
+कुशल inference stacks के साथ 7B–8B मॉडल्स के लिए कंज्यूमर GPU आर्थिक रूप से अब भी फ़ायदेमंद हैं।
 
 ---
 
-# कब किसे उपयोग करें
+# कब कौन-सा इस्तेमाल करें
 
 **Ollama**
 
-- आंतरिक टूल्स
+- इंटरनल टूल्स
 - कम concurrency
-- त्वरित प्रोटोटाइपिंग
+- तेज़ी से प्रोटोटाइप बनाना
 
 **TGI**
 
-- कंटेनर-आधारित वातावरण
-- संरचित लॉगिंग की आवश्यकता वाली टीमें
-- प्रबंधित production डिप्लॉयमेंट
+- कंटेनर-आधारित एनवायरनमेंट
+- जिन टीमों को structured logging चाहिए
+- मैनेज्ड प्रोडक्शन डिप्लॉयमेंट
 
 **vLLM**
 
-- API सेवाएँ
-- उच्च concurrency
-- प्रति डॉलर अधिकतम tokens
+- API सर्विसेज़
+- ज़्यादा concurrency
+- हर डॉलर में ज़्यादा से ज़्यादा tokens
 
 ---
 
 # निष्कर्ष
 
-एकल RTX 4090 पर Llama‑3.1‑8B को FP16 में चलाते हुए:
+FP16 में Llama‑3.1‑8B चलाते एक RTX 4090 पर:
 
-- vLLM ने सबसे अधिक स्थायी throughput प्राप्त किया।
-- TGI ने production नियंत्रणों के साथ संतुलित प्रदर्शन प्रदान किया।
-- Ollama ने अधिकतम GPU उपयोग के बजाय सरलता को प्राथमिकता दी।
+- vLLM ने सबसे ज़्यादा लगातार throughput दिया।
+- TGI ने प्रोडक्शन कंट्रोल के साथ संतुलित परफ़ॉर्मेंस दी।
+- Ollama ने GPU के अधिकतम इस्तेमाल के बजाय सादगी को चुना।
 
-Inference stack का चयन सतही निर्णय नहीं है।  
-यह लागत संरचना और स्केलिंग व्यवहार को परिभाषित करता है।
+Inference stack का चुनाव दिखावे की बात नहीं है। यही लागत का ढांचा और स्केलिंग का व्यवहार तय करता है।
 
-विकेन्द्रीकृत उपभोक्ता GPUs पर तैनात workloads के लिए batching दक्षता का आर्थिक प्रभाव प्रत्यक्ष होता है।
+किराए के कंज्यूमर GPU पर चलने वाले वर्कलोड में batching की कुशलता का अर्थशास्त्र पर ठोस असर पड़ता है।
 
-# इसे production में कहाँ चलाएँ
+# इसे प्रोडक्शन में कहां चलाएं
 
-इस लेख के सभी बेंचमार्क स्वामित्व वाले इन्फ्रास्ट्रक्चर के बजाय किराये के उपभोक्ता हार्डवेयर पर किए गए थे।
+इस लेख के सारे बेंचमार्क अपने ख़ुद के इन्फ़्रास्ट्रक्चर पर नहीं, बल्कि किराए के कंज्यूमर हार्डवेयर पर किए गए।
 
-यदि आपको Inference या fine‑tuning के लिए RTX 4090, RTX 3090 या अधिक मेमोरी वाले GPUs की तत्काल आवश्यकता है, तो नोड्स [GPU Flow](https://gpuflow.app) पर उपलब्ध हैं।
-
-## प्रति घंटा किराया। Stablecoin के माध्यम से भुगतान। Wallet कनेक्शन के तुरंत बाद एक्सेस।
+Fine-tuning या अपना inference सर्वर चलाने के लिए ऐसी मशीन किराए पर लें जिसमें आप लॉग इन कर सकें। बिना कुछ सेटअप किए API के ज़रिए Ollama से चलने वाला मॉडल इस्तेमाल करना हो, तो [GPUFlow](https://gpuflow.app/hi/marketplace) देखें: रेंटल की बिलिंग प्रति सेकंड होती है और भुगतान कार्ड से ख़रीदे गए क्रेडिट से होता है।
 
 ### संबंधित संसाधन
 
-**अपने डिप्लॉयमेंट स्टैक की समझ गहरी करें:**
+**अपने डिप्लॉयमेंट stack की समझ और गहरी करें:**
 
-- [विकेन्द्रीकृत GPUs पर प्राइवेट LLM फाइन‑ट्यूनिंग की अंतिम मार्गदर्शिका](/hi/private-llm-fine-tuning-guide) — ओपन‑वेट्स मॉडलों को सुरक्षित रूप से प्रशिक्षित करने की पूर्ण प्रक्रिया
-- [GPU किराया मूल्य तुलना 2026](/hi/gpu-rental-pricing-comparison-2026) — प्रमुख GPU किराया प्लेटफॉर्म्स के बीच मापे गए लागत अंतर
-- [GPU किराये में छिपी हुई फीस](/hi/hidden-fees-in-gpu-rental) — प्रति घंटा मूल्य पृष्ठ क्या प्रकट नहीं करते
-- [RunPod बनाम Vast.ai तुलना](/hi/runpod-vs-vastapi-comparison) — केंद्रीकृत बनाम मार्केटप्लेस इन्फ्रास्ट्रक्चर अंतर
+- [किराए के GPU पर Private LLM Fine‑Tuning की पूरी गाइड](/hi/private-llm-fine-tuning-guide/) — open‑weights मॉडल्स को सुरक्षित तरीके से ट्रेन करने का पूरा तरीका
+- [GPU रेंटल कीमतों की तुलना 2026](/hi/gpu-rental-pricing-comparison-2026/) — बड़े GPU रेंटल प्लेटफ़ॉर्म के बीच लागत का अंतर
+- [GPU किराए पर लेने की असली लागत](/hi/hidden-fees-in-gpu-rental/) — प्रति घंटा कीमत वाले पेज क्या नहीं बताते
+- [RunPod vs Vast.ai तुलना](/hi/runpod-vs-vastapi-comparison/) — सेंट्रलाइज़्ड और मार्केटप्लेस इन्फ़्रास्ट्रक्चर का अंतर

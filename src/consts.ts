@@ -3,4 +3,4 @@
 
 export const SITE_TITLE = "GPUFlow Blog";
 export const SITE_DESCRIPTION =
-  "GPU rental guides, pricing comparisons, and tutorials for AI training and inference. Learn how to rent GPUs 60% cheaper than AWS.";
+  "Guides, price comparisons and tutorials for renting GPUs by the hour, running AI models through an OpenAI-compatible API, and earning money from your own GPU.";

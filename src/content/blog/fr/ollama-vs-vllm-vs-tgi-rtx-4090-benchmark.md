@@ -1,57 +1,54 @@
 ---
-title: "Ollama vs vLLM vs TGI : benchmark d’inférence sur RTX 4090 (mesuré, pas marketing)"
-description: "Benchmark contrôlé sur RTX 4090 comparant Ollama, vLLM et Hugging Face TGI pour l’inférence de Llama‑3.1‑8B. Débit, latence, utilisation de la VRAM et analyse du coût par token."
-excerpt: "Benchmark mesuré d’Ollama, vLLM et TGI sur une RTX 4090 unique avec Llama‑3.1‑8B. Débit réel, latence réelle, impact réel sur les coûts."
+title: "Ollama vs vLLM vs TGI : benchmark d'inférence sur RTX 4090 (mesuré, pas marketing)"
+description: "Un benchmark contrôlé sur RTX 4090 qui compare Ollama, vLLM et Hugging Face TGI pour l'inférence de Llama‑3.1‑8B : débit, latence, consommation de VRAM et coût par token."
+excerpt: "Benchmark mesuré d'Ollama, vLLM et TGI sur une seule RTX 4090 avec Llama‑3.1‑8B. Débit réel, latence réelle, conséquences réelles sur les coûts."
 pubDate: 2026-02-25
-updatedDate: 2026-02-25
+updatedDate: 2026-09-29
 locale: "fr"
 category: "benchmarks"
 featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/rtx4090-inference-benchmark-hero.png"
-heroImageAlt: "Benchmark d’inférence GPU RTX 4090 affiché dans un terminal avec métriques de performance"
+heroImageAlt: "Benchmark d'inférence sur GPU RTX 4090 affiché dans un terminal avec des indicateurs de performances"
 faq:
-  - question: "Quel serveur d’inférence est le plus rapide sur une RTX 4090 pour Llama-3.1-8B ?"
-    answer: "Lors de tests FP16 mesurés sur une RTX 4090, vLLM a atteint le débit soutenu le plus élevé sous charge concurrente, avec environ 185 à 215 tokens par seconde sur huit flux. TGI a délivré entre 150 et 176 tokens par seconde, tandis qu’Ollama a atteint en moyenne 95 à 108 tokens par seconde dans les mêmes conditions."
+  - question: "Quel serveur d'inférence est le plus rapide sur une RTX 4090 pour Llama-3.1-8B ?"
+    answer: "Lors de nos mesures en FP16 sur une RTX 4090, vLLM a obtenu le meilleur débit soutenu sous charge concurrente, avec environ 185 à 215 tokens par seconde sur huit flux. TGI a atteint 150 à 176 tokens par seconde, et Ollama 95 à 108 tokens par seconde en moyenne dans les mêmes conditions."
 
-  - question: "vLLM utilise‑t‑il plus de VRAM qu’Ollama ou TGI ?"
-    answer: "vLLM a utilisé environ 20 à 22GB de VRAM pour servir Llama-3.1-8B en FP16. TGI se situait dans une plage similaire de 21 à 23GB. Ollama utilisait moins de VRAM, généralement entre 14 et 17GB, mais n’atteignait pas le même débit sous charge concurrente."
+  - question: "vLLM consomme-t-il plus de VRAM qu'Ollama ou TGI ?"
+    answer: "vLLM a utilisé environ 20 à 22 Go de VRAM pour servir Llama-3.1-8B en FP16. TGI se situait dans une fourchette proche, de 21 à 23 Go. Ollama a consommé moins de VRAM au total, généralement entre 14 et 17 Go, mais n'a pas atteint le même débit sous charge concurrente."
 
-  - question: "Ollama est‑il adapté aux charges d’inférence en production ?"
-    answer: "Ollama convient aux environnements de développement et aux outils internes à faible concurrence. Lors des tests, il n’a pas évolué aussi efficacement que vLLM ou TGI sous huit flux de requêtes simultanés. Pour des API de production avec un trafic soutenu, un serveur optimisé pour le continuous batching est généralement plus efficace."
+  - question: "Ollama convient-il à l'inférence en production ?"
+    answer: "Ollama convient aux environnements de développement et aux outils internes avec peu de requêtes simultanées. Lors de nos tests, il a moins bien tenu la montée en charge que vLLM ou TGI avec huit flux de requêtes simultanés. Pour une API en production avec un trafic soutenu, un serveur optimisé pour le batching continu est généralement plus efficace."
 
-  - question: "Combien coûte l’exécution de l’inférence Llama-3.1-8B sur une RTX 4090 ?"
-    answer: "Avec un tarif de location moyen d’environ 0,45 USD par heure, générer 500 000 tokens avec vLLM a nécessité environ 41 à 42 minutes d’exécution, pour un coût d’environ 0,31 USD. Avec Ollama pour la même charge, il fallait environ 83 à 84 minutes, pour un coût d’environ 0,63 USD. Les coûts réels varient selon la charge et le prix de location."
+  - question: "Combien coûte l'inférence de Llama-3.1-8B sur une RTX 4090 ?"
+    answer: "À un tarif de location moyen d'environ 0,45 USD de l'heure, générer 500 000 tokens avec vLLM a demandé environ 41 à 42 minutes, soit un coût d'environ 0,31 USD. Avec Ollama, la même charge de travail a demandé environ 83 à 84 minutes, soit environ 0,63 USD. Les coûts réels varient selon la charge de travail et le prix de location."
 
-  - question: "Quels paramètres de prompt et de génération ont été utilisés dans ce benchmark ?"
-    answer: "Le benchmark utilisait un prompt d’entrée de 512 tokens et générait 128 tokens par requête en greedy decoding avec une température réglée à zéro. Toutes les mesures ont été prises après le warm‑up du modèle, avec huit flux concurrents et sans speculative decoding."
+  - question: "Quels réglages de prompt et de génération ont été utilisés pour ce benchmark ?"
+    answer: "Le benchmark a utilisé un prompt d'entrée de 512 tokens et généré 128 tokens par requête, en décodage glouton avec une température à zéro. Toutes les mesures ont été prises après la mise en chauffe du modèle, avec huit flux de requêtes simultanés et sans décodage spéculatif."
 
-  - question: "Puis‑je reproduire moi‑même ce benchmark d’inférence sur RTX 4090 ?"
-    answer: "Oui. L’article inclut les spécifications matérielles, la version de CUDA, la version du driver, les paramètres de décodage et la configuration de concurrence. En déployant Llama-3.1-8B en FP16 sur une RTX 4090 unique et en reproduisant la longueur du prompt et les paramètres de concurrence, vous pouvez obtenir des résultats comparables."
+  - question: "Puis-je reproduire moi-même ce benchmark d'inférence sur RTX 4090 ?"
+    answer: "Oui. L'article détaille la configuration matérielle, la version de CUDA, la version du pilote, les paramètres de décodage et la configuration de concurrence. En déployant Llama-3.1-8B en FP16 sur une seule RTX 4090, avec la même longueur de prompt et le même nombre de flux simultanés, vous obtiendrez des résultats comparables."
 ---
 
-````
+Faire tourner votre propre modèle ne règle que la moitié du problème.
 
-Exécuter son propre modèle n’est que la moitié de l’équation.
+Une fois le fine-tuning terminé, comme décrit dans notre [guide du fine-tuning privé de LLM](/fr/private-llm-fine-tuning-guide/), la décision suivante est opérationnelle : comment servir le modèle efficacement ?
 
-Après le fine‑tuning — comme détaillé dans notre [Guide du fine‑tuning privé des LLM](/fr/private-llm-fine-tuning-guide) — la décision suivante est opérationnelle : comment servir le modèle efficacement ?
-
-L’inférence détermine :
+L'inférence détermine :
 
 - Le coût par token
 - La latence sous charge
-- L’efficacité d’utilisation du GPU
+- L'efficacité d'utilisation du GPU
 - La viabilité du matériel grand public en production
 
-Ce benchmark compare trois stacks d’inférence largement utilisés :
+Ce benchmark compare trois piles d'inférence très utilisées :
 
 - Ollama
 - vLLM
 - Hugging Face Text Generation Inference (TGI)
 
-L’objectif n’est pas la préférence.
-L’objectif est la mesure.
+Le but n'est pas de donner une préférence. Le but est de mesurer.
 
 ---
 
@@ -59,35 +56,34 @@ L’objectif est la mesure.
 
 **Matériel**
 
-- GPU : NVIDIA RTX 4090 (24GB VRAM)
-- CPU : Processeur grand public 16 cœurs de classe Ryzen
-- RAM : 64GB DDR5
-- Stockage : NVMe SSD
-- CUDA : 12.1
-- Driver NVIDIA : 550+
+- GPU : NVIDIA RTX 4090 (24 Go de VRAM)
+- CPU : processeur grand public 16 cœurs de classe Ryzen
+- RAM : 64 Go DDR5
+- Stockage : SSD NVMe
+- CUDA : 12.1
+- Pilote NVIDIA : 550+
 
 **Modèle**
 
 - `meta-llama/Llama-3.1-8B`
-- Précision : FP16 (sans quantification 4‑bit)
-- Fenêtre de contexte : 4096 tokens
+- Précision : FP16 (pas de quantification 4 bits)
+- Fenêtre de contexte : 4096 tokens
 
 **Conditions du benchmark**
 
-- Prompt d’entrée de 512 tokens
+- Prompt d'entrée de 512 tokens
 - Génération de 128 tokens en sortie
-- Greedy decoding (temperature = 0)
-- Sans speculative decoding
-- Sans tensor parallelism
-- Warm start uniquement (modèle préchargé avant mesure)
-- 8 flux de requêtes concurrents (lorsque pris en charge)
+- Décodage glouton (température = 0)
+- Pas de décodage spéculatif
+- Pas de parallélisme de tenseurs
+- Démarrage à chaud uniquement (modèle préchargé avant la mesure)
+- 8 flux de requêtes simultanés (lorsque c'est pris en charge)
 
-Tous les tests ont été exécutés sur une machine propre sans charges en arrière‑plan.
-Chaque mesure correspond à la moyenne de cinq exécutions.
+Tous les tests ont été exécutés sur une machine propre, sans aucune charge en arrière-plan. Chaque mesure correspond à la moyenne de cinq exécutions.
 
 ---
 
-![Terminal affichant des métriques structurées de benchmark d’inférence sur RTX 4090](../_images/rtx4090-inference-terminal-results.png)
+![Terminal affichant les indicateurs structurés d'un benchmark d'inférence sur RTX 4090](../_images/rtx4090-inference-terminal-results.png)
 
 ---
 
@@ -95,42 +91,42 @@ Chaque mesure correspond à la moyenne de cinq exécutions.
 
 ## 1. Ollama
 
-Ollama privilégie la simplicité. L’installation est minimale et les modèles se téléchargent automatiquement.
+Ollama privilégie la simplicité. L'installation est minimale et les modèles se téléchargent automatiquement.
 
 ```bash
 ollama run llama3
-````
+```
 
-Les options de configuration pour le batching ou la stratégie d’ordonnancement sont limitées.
+Les options de configuration du batching et de la stratégie d'ordonnancement sont limitées.
 
 ### Performances mesurées (RTX 4090, FP16)
 
-- **Débit flux unique :** 62–74 tokens/sec
-- **Débit 8 flux :** 95–108 tokens/sec
-- **Latence premier token :** 720–980 ms
-- **Utilisation VRAM observée :** 14–17GB
+- **Débit sur un seul flux :** 62–74 tokens/s
+- **Débit sur 8 flux :** 95–108 tokens/s
+- **Latence du premier token :** 720–980 ms
+- **VRAM utilisée :** 14–17 Go
 
 ### Observations
 
-- L’utilisation du GPU fluctuait sous charge concurrente.
-- Le scaling du débit n’était pas linéaire au‑delà de quatre flux.
-- Aucun contrôle avancé exposé pour l’optimisation du batching.
+- L'utilisation du GPU fluctuait sous charge concurrente.
+- Le débit ne progressait plus de façon linéaire au-delà de 4 flux.
+- Aucun réglage n'est exposé pour optimiser finement le batching.
 
-Ollama fonctionne de manière fiable pour le développement local et les services à faible trafic. Sous charge concurrente soutenue, il ne sature pas complètement le GPU.
+Ollama est fiable pour le développement local et les services à faible trafic. Sous une charge concurrente soutenue, il n'exploite pas pleinement le GPU.
 
 ---
 
 ## 2. vLLM
 
-vLLM est conçu pour maximiser le débit. Son implémentation PagedAttention améliore l’efficacité du KV cache sous requêtes concurrentes.
+vLLM est conçu pour le débit. Son implémentation de PagedAttention améliore l'efficacité du cache KV quand les requêtes sont simultanées.
 
-Installation :
+Installation :
 
 ```bash
 pip install vllm
 ```
 
-Lancement :
+Lancement :
 
 ```bash
 python -m vllm.entrypoints.openai.api_server \
@@ -140,24 +136,24 @@ python -m vllm.entrypoints.openai.api_server \
 
 ### Performances mesurées (RTX 4090, FP16)
 
-- **Débit flux unique :** 92–104 tokens/sec
-- **Débit 8 flux :** 185–215 tokens/sec
-- **Latence premier token :** 360–480 ms
-- **Utilisation VRAM observée :** 20–22GB
+- **Débit sur un seul flux :** 92–104 tokens/s
+- **Débit sur 8 flux :** 185–215 tokens/s
+- **Latence du premier token :** 360–480 ms
+- **VRAM utilisée :** 20–22 Go
 
 ### Observations
 
-- L’utilisation du GPU est restée au‑dessus de 95 % sous charge.
-- Le continuous batching a amélioré l’efficacité du scaling.
-- La latence est restée stable entre flux concurrents.
+- L'utilisation du GPU est restée au-dessus de 95 % sous charge.
+- Le batching continu a amélioré la montée en charge.
+- La latence est restée stable sur l'ensemble des flux simultanés.
 
-vLLM a atteint le débit soutenu le plus élevé par heure de location.
+vLLM a obtenu le meilleur débit soutenu par heure de location.
 
 ---
 
 ## 3. Hugging Face Text Generation Inference (TGI)
 
-TGI est un serveur d’inférence conteneurisé orienté production.
+TGI est un serveur d'inférence de production conteneurisé.
 
 ```bash
 docker run --gpus all \
@@ -168,142 +164,132 @@ docker run --gpus all \
 
 ### Performances mesurées (RTX 4090, FP16)
 
-- **Débit flux unique :** 78–88 tokens/sec
-- **Débit 8 flux :** 150–176 tokens/sec
-- **Latence premier token :** 510–690 ms
-- **Utilisation VRAM observée :** 21–23GB
+- **Débit sur un seul flux :** 78–88 tokens/s
+- **Débit sur 8 flux :** 150–176 tokens/s
+- **Latence du premier token :** 510–690 ms
+- **VRAM utilisée :** 21–23 Go
 
 ### Observations
 
-- Performance constante et prévisible.
-- Meilleur scaling qu’Ollama, mais inférieur à vLLM.
-- Overhead opérationnel plus élevé dû à l’environnement conteneurisé.
+- Les performances étaient régulières et prévisibles.
+- Le débit a mieux tenu la montée en charge qu'avec Ollama, mais moins bien qu'avec vLLM.
+- La surcharge opérationnelle est plus élevée à cause du runtime de conteneurs.
 
-TGI offre des contrôles et un monitoring adaptés à la production, mais n’extrait pas le débit maximal d’une seule RTX 4090.
+TGI offre des outils de pilotage et de supervision pour la production, mais n'exploite pas le débit maximal d'une seule 4090.
 
 ---
 
-![Sortie nvidia-smi montrant l’utilisation du GPU pendant une inférence concurrente](../_images/rtx4090-nvidia-smi-inference-load.png)
+![Sortie de nvidia-smi montrant l'utilisation du GPU pendant une inférence avec requêtes simultanées](../_images/rtx4090-nvidia-smi-inference-load.png)
 
 ---
 
 # Comparaison directe
 
-| Stack  | Flux unique | 8 flux      | Premier token | VRAM    | Saturation GPU |
-| ------ | ----------- | ----------- | ------------- | ------- | -------------- |
-| Ollama | 62–74 t/s   | 95–108 t/s  | 720–980ms     | 14–17GB | Partielle      |
-| TGI    | 78–88 t/s   | 150–176 t/s | 510–690ms     | 21–23GB | Élevée         |
-| vLLM   | 92–104 t/s  | 185–215 t/s | 360–480ms     | 20–22GB | Très élevée    |
-
-# Impact sur les coûts avec des GPU décentralisés
-
-Sur les marketplaces décentralisées, la location d’une RTX 4090 se situe en moyenne autour de 0,40–0,50 USD par heure, selon la demande. Voir l’analyse détaillée :
-
-- [Comparatif des prix de location de GPU 2026](/fr/gpu-rental-pricing-comparison-2026)
-- [Frais cachés dans la location de GPU](/fr/hidden-fees-in-gpu-rental)
-
-Hypothèses :
-
-- 0,45 USD/heure
-- 500 000 tokens générés
-- 8 flux concurrents
-
-En utilisant le débit médian mesuré :
-
-**vLLM (~200 tokens/sec)**  
-500 000 / 200 = 2 500 secondes ≈ 41–42 minutes  
-Coût ≈ 0,31 USD
-
-**Ollama (~100 tokens/sec)**  
-500 000 / 100 = 5 000 secondes ≈ 83–84 minutes  
-Coût ≈ 0,63 USD
-
-La différence est limitée à petite échelle.  
-Elle devient significative avec le volume.
-
-À 50 millions de tokens par jour, l’efficacité du débit influence directement la taille du parc de GPU et la durée de location.
-
-## Reproduire ce benchmark
-
-Si vous souhaitez reproduire ces mesures sans acheter de matériel, des nœuds RTX 4090 sont généralement disponibles sur la marketplace GPUFlow.
-
-Les machines sont louées à l’heure et accessibles immédiatement après connexion d’un wallet. Aucun délai d’approbation de compte, aucun contrat entreprise, aucune file d’attente de provisioning.
-
-Vous pouvez consulter les GPU disponibles sur [GPU Flow](https://gpuflow.app)
-
-La facturation étant horaire, l’efficacité de l’inférence impacte directement le coût. La différence entre 100 tokens/sec et 200 tokens/sec devient significative sous charge soutenue.
+| Pile   | Un seul flux  | 8 flux      | Premier token | VRAM     | Saturation du GPU |
+| ------ | ------------- | ----------- | ------------- | -------- | ----------------- |
+| Ollama | 62–74 t/s     | 95–108 t/s  | 720–980 ms    | 14–17 Go | Partielle         |
+| TGI    | 78–88 t/s     | 150–176 t/s | 510–690 ms    | 21–23 Go | Élevée            |
+| vLLM   | 92–104 t/s    | 185–215 t/s | 360–480 ms    | 20–22 Go | Très élevée       |
 
 ---
 
-# Contexte de déploiement
+# Ce que cela coûte sur des GPU loués
 
-Si vous louez des GPU décentralisés — comme décrit dans :
+Sur les places de marché de GPU, une RTX 4090 se louait environ 0,30 à 0,46 $ de l'heure en septembre 2026, selon la plateforme et la demande. Pour le détail, consultez :
 
-- [Comment louer un GPU sans KYC](/fr/how-to-rent-gpu-without-kyc)
-- [Louer un GPU avec des cryptomonnaies](/fr/rent-gpu-with-crypto)
-- [Explication de l’escrow via smart contract](/fr/smart-contract-escrow)
+- [Comparaison des prix de location de GPU en 2026](/fr/gpu-rental-pricing-comparison-2026/)
+- [Le vrai coût de la location d'un GPU](/fr/hidden-fees-in-gpu-rental/)
 
-— l’efficacité de l’inférence détermine directement l’efficacité du capital.
+Hypothèses :
 
-Le débit influence :
+- Location à 0,45 $/heure
+- 500 000 tokens générés
+- 8 flux simultanés
 
-- La durée d’immobilisation en escrow
-- La fréquence des règlements blockchain
-- L’exposition à l’instabilité de l’hôte
+Avec le débit médian mesuré :
+
+**vLLM (~200 tokens/s)**  
+500 000 / 200 = 2 500 secondes ≈ 41–42 minutes  
+Coût ≈ 0,31 $
+
+**Ollama (~100 tokens/s)**  
+500 000 / 100 = 5 000 secondes ≈ 83–84 minutes  
+Coût ≈ 0,63 $
+
+Prise isolément, la différence de coût n'a rien de spectaculaire. Mais elle se cumule à grande échelle.
+
+À 50 millions de tokens par jour, l'efficacité du débit détermine directement la taille du parc de GPU et la durée de location.
+
+## Reproduire ce benchmark vous-même
+
+Pour reproduire ces mesures, il vous faut une machine que vous contrôlez, afin d'installer et de configurer chaque serveur. Les places de marché qui louent des conteneurs avec accès SSH, comme Vast.ai ou RunPod, font l'affaire.
+
+Si vous voulez simplement essayer des modèles servis par Ollama sur une RTX 4090 sans rien installer, les fournisseurs de [GPUFlow](https://gpuflow.app/fr/marketplace) font tourner Ollama et vous louez l'accès via une clé API compatible OpenAI, facturée à la seconde. Vous ne pouvez pas y changer de serveur d'inférence : c'est fait pour utiliser les modèles, pas pour comparer les serveurs.
+
+Comme la location se paie à l'heure, l'efficacité de l'inférence a un impact direct sur le coût. La différence entre 100 et 200 tokens/s devient significative sur des charges de travail soutenues.
+
+---
+
+# Le contexte de déploiement
+
+Si vous louez des GPU à l'heure, l'efficacité de l'inférence détermine directement votre rentabilité. Nous faisons le calcul dans [GPU à l'heure ou API au token](/fr/hourly-gpu-vs-per-token-api/).
+
+Le débit influe sur :
+
+- Le nombre d'heures de location nécessaires pour un job
+- Le nombre de GPU nécessaires pour absorber votre trafic
+- L'exposition à l'instabilité des hôtes
 - La marge opérationnelle
 
-Les GPU grand public restent économiquement viables pour des modèles 7B–8B lorsqu’ils sont associés à des stacks d’inférence efficaces.
+Les GPU grand public restent économiquement viables pour les modèles de 7B à 8B, à condition de les associer à une pile d'inférence efficace.
 
 ---
 
-# Quand utiliser chaque solution
+# Quand utiliser chacun
 
 **Ollama**
 
 - Outils internes
-- Faible concurrence
+- Peu de requêtes simultanées
 - Prototypage rapide
 
 **TGI**
 
 - Environnements conteneurisés
-- Équipes nécessitant un logging structuré
-- Déploiements de production gérés
+- Équipes qui ont besoin de logs structurés
+- Déploiements en production gérés
 
 **vLLM**
 
-- Services API
-- Forte concurrence
-- Maximum de tokens par dollar
+- Services d'API
+- Beaucoup de requêtes simultanées
+- Un maximum de tokens par dollar
 
 ---
 
 # Conclusion
 
-Sur une RTX 4090 unique exécutant Llama‑3.1‑8B en FP16 :
+Sur une seule RTX 4090 qui fait tourner Llama‑3.1‑8B en FP16 :
 
-- vLLM a atteint le débit soutenu le plus élevé.
-- TGI a offert des performances équilibrées avec des contrôles adaptés à la production.
-- Ollama a privilégié la simplicité plutôt que l’utilisation maximale du GPU.
+- vLLM a obtenu le meilleur débit soutenu.
+- TGI a offert des performances équilibrées, avec des outils de pilotage pour la production.
+- Ollama a privilégié la simplicité plutôt que l'utilisation maximale du GPU.
 
-Le choix du stack d’inférence n’est pas superficiel.  
-Il définit la structure de coûts et le comportement de montée en charge.
+Le choix de la pile d'inférence n'a rien de cosmétique. Il définit la structure des coûts et le comportement à la montée en charge.
 
-Pour des workloads déployés sur des GPU grand public décentralisés, l’efficacité du batching a un impact direct sur l’économie.
+Pour les charges de travail déployées sur des GPU grand public loués, l'efficacité du batching pèse concrètement sur la rentabilité.
 
-# Où exécuter cela en production
+# Où faire tourner cela en production
 
-Tous les benchmarks présentés dans cet article ont été réalisés sur du matériel grand public loué, et non sur une infrastructure propriétaire.
+Tous les benchmarks de cet article ont été réalisés sur du matériel grand public loué, et non sur une infrastructure en propre.
 
-Si vous avez besoin d’un accès immédiat à des RTX 4090, RTX 3090 ou à des GPU disposant de plus de mémoire pour l’inférence ou le fine‑tuning, des nœuds sont disponibles sur [GPU Flow](https://gpuflow.app)
-
-## Location à l’heure. Paiement en stablecoin. Accès immédiat après connexion du wallet.
+Pour faire du fine-tuning ou faire tourner votre propre serveur d'inférence, louez une machine sur laquelle vous pouvez vous connecter. Pour utiliser un modèle servi par Ollama via une API, sans rien installer, découvrez [GPUFlow](https://gpuflow.app/fr/marketplace) : les locations sont facturées à la seconde et se paient avec des crédits achetés par carte.
 
 ### Ressources associées
 
-**Approfondissez votre stack de déploiement :**
+**Pour approfondir votre pile de déploiement :**
 
-- [Guide complet du fine‑tuning privé des LLM sur GPU décentralisés](/fr/private-llm-fine-tuning-guide) — Guide détaillé pour entraîner des modèles open‑weights en toute sécurité
-- [Comparatif des prix de location de GPU 2026](/fr/gpu-rental-pricing-comparison-2026) — Différences de coûts mesurées entre les principales plateformes de location GPU
-- [Frais cachés dans la location de GPU](/fr/hidden-fees-in-gpu-rental) — Ce que les pages de tarification horaire ne révèlent pas
-- [Comparaison RunPod vs Vast.ai](/fr/runpod-vs-vastapi-comparison) — Différences entre infrastructure centralisée et marketplaces
+- [Le guide complet du fine-tuning privé de LLM sur des GPU loués](/fr/private-llm-fine-tuning-guide/) : le pas-à-pas complet pour entraîner des modèles open-weights en toute sécurité
+- [Comparaison des prix de location de GPU en 2026](/fr/gpu-rental-pricing-comparison-2026/) : les écarts de coût entre les principales plateformes de location de GPU
+- [Le vrai coût de la location d'un GPU](/fr/hidden-fees-in-gpu-rental/) : ce que les pages de tarifs horaires ne disent pas
+- [Comparatif RunPod vs Vast.ai](/fr/runpod-vs-vastapi-comparison/) : les différences entre une infrastructure centralisée et une place de marché

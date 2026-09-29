@@ -1,0 +1,46 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { languages, htmlLang, getTextDirection, type LanguageCode } from '../i18n/locales';
+import { ui } from '../i18n/utils';
+
+const t = ui.en;
+// The same 404.html answers every language. The script below switches the
+// text to the language in the URL the visitor asked for.
+const strings = Object.fromEntries(
+  (Object.keys(languages) as LanguageCode[]).map((code) => [
+    code,
+    { lang: htmlLang(code), dir: getTextDirection(code), title: ui[code]['notFound.title'], text: ui[code]['notFound.text'], back: ui[code]['notFound.back'] },
+  ]),
+);
+---
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <BaseHead title={t['notFound.title']} description={t['notFound.text']} lang="en" noindex />
+  </head>
+  <body>
+    <Header lang="en" />
+    <main class="container empty">
+      <h1 id="nf-title">{t['notFound.title']}</h1>
+      <p id="nf-text">{t['notFound.text']}</p>
+      <p><a id="nf-back" href="/en/">{t['notFound.back']}</a></p>
+    </main>
+    <Footer lang="en" />
+    <script is:inline define:vars={{ strings }}>
+      const code = location.pathname.split('/')[1];
+      const s = strings[code];
+      if (s) {
+        document.documentElement.lang = s.lang;
+        document.documentElement.dir = s.dir;
+        document.getElementById('nf-title').textContent = s.title;
+        document.getElementById('nf-text').textContent = s.text;
+        const back = document.getElementById('nf-back');
+        back.textContent = s.back;
+        back.href = '/' + code + '/';
+      }
+    </script>
+  </body>
+</html>

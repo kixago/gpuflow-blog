@@ -1,6 +1,5 @@
-import { languages, defaultLang, type LanguageCode } from "./locales";
+import { defaultLang, type LanguageCode } from "./locales";
 
-// Import all UI strings
 import en from "./ui-strings/en.json";
 import es from "./ui-strings/es.json";
 import fr from "./ui-strings/fr.json";
@@ -15,7 +14,7 @@ import he from "./ui-strings/he.json";
 import ar from "./ui-strings/ar.json";
 import hi from "./ui-strings/hi.json";
 
-const ui = {
+export const ui: Record<LanguageCode, Record<string, string>> = {
   en,
   es,
   fr,
@@ -29,48 +28,10 @@ const ui = {
   he,
   ar,
   hi,
-} as const;
+};
 
-// Get translation for a key
+export type UiKey = keyof typeof en;
+
 export function useTranslations(lang: LanguageCode = defaultLang) {
-  return function t(key: keyof (typeof ui)[typeof defaultLang]): string {
-    const translation = ui[lang]?.[key] || ui[defaultLang][key];
-    return translation || key;
-  };
-}
-
-// Get language from URL path
-export function getLangFromUrl(url: URL): LanguageCode {
-  const [, lang] = url.pathname.split("/");
-  if (lang && lang in languages) {
-    return lang as LanguageCode;
-  }
-  return defaultLang;
-}
-
-// Build alternate language URLs for hreflang
-export function getAlternateLanguageUrls(
-  baseUrl: string,
-  pathname: string,
-): Array<{ lang: string; url: string }> {
-  // Remove any existing language prefix
-  const cleanPath = pathname.replace(
-    /^\/(en|es|fr|de|ja|ko|zh_cn|zh_tw|pt_br|ru|he|ar|hi)\//,
-    "/",
-  );
-
-  const hreflangMap: Record<string, string> = {
-    zh_cn: "zh-CN",
-    zh_tw: "zh-TW",
-    pt_br: "pt-BR",
-  };
-
-  return Object.keys(languages).map((lang) => {
-    const langCode = lang as LanguageCode;
-    const langPath = langCode === defaultLang ? "" : `/${langCode}`;
-    return {
-      lang: hreflangMap[langCode] || langCode,
-      url: `${baseUrl}${langPath}${cleanPath}`,
-    };
-  });
+  return (key: UiKey): string => ui[lang]?.[key] || ui[defaultLang][key] || key;
 }

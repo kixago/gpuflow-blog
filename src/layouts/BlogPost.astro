@@ -1,16 +1,13 @@
 ---
 import { Image, getImage } from 'astro:assets';
-import { getCollection } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
-import '../styles/global.css';
-
-import { useTranslations } from '../i18n/utils';
-import { getTextDirection } from '../i18n/locales';
+import { useTranslations, type UiKey } from '../i18n/utils';
+import { getTextDirection, htmlLang, appUrl, docsUrl, type LanguageCode } from '../i18n/locales';
+import { publishedPosts, translationsOf, slugOf, postPath, newestFirst, jsonLd, type Post } from '../lib/posts';
 import {
-  SITE_CONFIG,
   organizationSchema,
   webSiteSchema,
   createWebPageSchema,
@@ -21,177 +18,75 @@ import {
   createBlogBreadcrumbs,
 } from '../schemas/reference';
 
-type Props = CollectionEntry<'blog'>['data'];
-
-const {
-  title,
-  description,
-  pubDate,
-  updatedDate,
-  heroImage,
-  heroImageAlt,
-  locale,
-  author = 'GPUFlow Team',
-  category = 'guides',
-  faq,
-} = Astro.props;
-
-const rybbitSiteId = "45ee90ef902f";
-const lang = locale;
-const t = useTranslations(lang);
-const dir = getTextDirection(lang);
-const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
-
-let ogImageURL = `${SITE_CONFIG.url}/og-default.jpg`;
-if (heroImage) {
-  const ogImage = await getImage({
-    src: heroImage,
-    width: 1200,
-    height: 630,
-    format: 'jpg',
-  });
-  ogImageURL = new URL(ogImage.src, Astro.site).toString();
+interface Props {
+  post: Post;
 }
 
-const breadcrumbItems = createBlogBreadcrumbs(title, canonicalURL, lang, {
-  home: t('nav.home'),
-  blog: t('nav.blog'),
-});
+const { post } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, heroImageAlt, author, category, faq } = post.data;
+const lang = post.data.locale as LanguageCode;
+const t = useTranslations(lang);
+const canonicalURL = new URL(postPath(post), Astro.site).toString();
 
-const schemas = [
+let ogImage: string | undefined;
+if (heroImage) {
+  const img = await getImage({ src: heroImage, width: 1200, height: 630, format: 'jpg' });
+  ogImage = new URL(img.src, Astro.site).toString();
+}
+
+const all = await publishedPosts();
+const alternates = translationsOf(all, slugOf(post), Astro.site!);
+const more = all.filter((p) => p.data.locale === lang && p.id !== post.id).sort(newestFirst);
+
+const schemas: object[] = [
   organizationSchema,
   webSiteSchema,
-  createWebPageSchema({
-    url: canonicalURL,
-    title,
-    description,
-    datePublished: pubDate,
-    dateModified: updatedDate,
-    locale: lang,
-  }),
-  createBreadcrumbSchema(canonicalURL, breadcrumbItems),
+  createWebPageSchema({ url: canonicalURL, title, description, datePublished: pubDate, dateModified: updatedDate, locale: lang }),
+  createBreadcrumbSchema(canonicalURL, createBlogBreadcrumbs(title, canonicalURL, lang, { home: 'GPUFlow', blog: t('nav.blog') })),
   createArticleSchema({
     url: canonicalURL,
     title,
     description,
-    image: ogImageURL,
+    image: ogImage ?? new URL('/og-default.jpg', Astro.site).toString(),
     datePublished: pubDate,
     dateModified: updatedDate,
     locale: lang,
     authorName: author,
   }),
 ];
-
-if (faq) {
-  schemas.push(createFAQSchema(canonicalURL, faq));
-}
-
-const schemaGraph = createSchemaGraph(schemas);
-// hreflang: the other languages this post really exists in, on this site.
-// Post ids are "<lang>/<slug>".
-const HREFLANG: Record<string, string> = { zh_cn: 'zh-CN', zh_tw: 'zh-TW', pt_br: 'pt-BR' };
-const slugOf = (id: string) => id.split('/').slice(1).join('/');
-const thisSlug = Astro.url.pathname.split('/').filter(Boolean).slice(1).join('/');
-const alternateUrls = (await getCollection('blog', ({ data }) => !data.draft))
-  .filter((p) => slugOf(p.id) === thisSlug)
-  .map((p) => ({
-    code: p.data.locale,
-    lang: HREFLANG[p.data.locale] ?? p.data.locale,
-    url: new URL(`/${p.id}/`, Astro.site).toString(),
-  }));
-const xDefault = alternateUrls.find((u) => u.code === 'en')?.url;
+if (faq) schemas.push(createFAQSchema(canonicalURL, faq));
 ---
 
-<!DOCTYPE html>
-<html lang={lang} dir={dir}>
+<!doctype html>
+<html lang={htmlLang(lang)} dir={getTextDirection(lang)}>
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="generator" content={Astro.generator} />
-
-    <link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin />
-    <link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin />
-
-    <link rel="canonical" href={canonicalURL} />
-
-    {alternateUrls.length > 1 && alternateUrls.map(({ lang: altLang, url }) => (
-      <link rel="alternate" hreflang={altLang} href={url} />
-    ))}
-    {alternateUrls.length > 1 && xDefault && (
-      <link rel="alternate" hreflang="x-default" href={xDefault} />
-    )}
-
-    <title>{title}</title>
-    <meta name="title" content={title} />
-    <meta name="description" content={description} />
-
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content={canonicalURL} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImageURL} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:locale" content={lang} />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content={canonicalURL} />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImageURL} />
-
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title={`${SITE_CONFIG.name} RSS Feed`}
-      href="/rss.xml"
-    />
-
-    <script type="application/ld+json" set:html={JSON.stringify(schemaGraph)} />
-    <script
-        src="https://anal.gpuflow.app/api/script.js"
-        data-site-id={rybbitSiteId}
-        defer
-    ></script>
+    <BaseHead title={title} description={description} lang={lang} ogType="article" ogImage={ogImage} alternates={alternates}>
+      {ogImage && <meta property="og:image:width" content="1200" />}
+      {ogImage && <meta property="og:image:height" content="630" />}
+      <meta property="article:published_time" content={pubDate.toISOString()} />
+      {updatedDate && <meta property="article:modified_time" content={updatedDate.toISOString()} />}
+      <script type="application/ld+json" set:html={jsonLd(createSchemaGraph(schemas))} />
+    </BaseHead>
   </head>
-
   <body>
     <div class="reading-progress" id="reading-progress"></div>
-    
-    <Header lang={lang} />
-
+    <Header lang={lang} alternates={alternates} />
     <main>
       <article>
         {heroImage && (
           <div class="article-hero">
-            <Image
-              src={heroImage}
-              alt={heroImageAlt || title}
-              width={1200}
-              height={500}
-              quality={85}
-              loading="eager"
-              fetchpriority="high"
-            />
+            <Image src={heroImage} alt={heroImageAlt || title} width={1200} height={500} quality={85} loading="eager" fetchpriority="high" />
           </div>
         )}
 
         <div class="article-header">
           <div class="article-meta">
-            <span class="article-category">{category}</span>
-            <time class="article-date" datetime={pubDate.toISOString()}>
-              <FormattedDate date={pubDate} />
-            </time>
-            {updatedDate && (
-              <time class="article-date" datetime={updatedDate.toISOString()}>
-                Updated <FormattedDate date={updatedDate} />
-              </time>
+            <span class="article-category">{t(`cat.${category}` as UiKey)}</span>
+            <span class="article-date"><FormattedDate date={pubDate} lang={lang} /></span>
+            {updatedDate && updatedDate.valueOf() !== pubDate.valueOf() && (
+              <span class="article-date">{t('post.updated')} <FormattedDate date={updatedDate} lang={lang} /></span>
             )}
           </div>
-          
           <h1 class="article-title">{title}</h1>
           <p class="article-description">{description}</p>
         </div>
@@ -202,7 +97,7 @@ const xDefault = alternateUrls.find((u) => u.code === 'en')?.url;
 
         {faq && faq.length > 0 && (
           <div class="faq-section">
-            <h2>Frequently Asked Questions</h2>
+            <h2>{t('post.faq')}</h2>
             {faq.map((item) => (
               <div class="faq-item">
                 <h3 class="faq-question">{item.question}</h3>
@@ -212,38 +107,45 @@ const xDefault = alternateUrls.find((u) => u.code === 'en')?.url;
           </div>
         )}
       </article>
+
+      <aside class="container post-footer">
+        <div class="cta-box">
+          <h2>{t('post.ctaTitle')}</h2>
+          <p>{t('post.ctaText')}</p>
+          <div class="cta-actions">
+            <a class="cta-primary" href={appUrl(lang, '/marketplace')}>{t('post.ctaRent')}</a>
+            <a class="cta-secondary" href={docsUrl(lang)}>{t('post.ctaDocs')}</a>
+          </div>
+        </div>
+
+        {more.length > 0 && (
+          <section>
+            <h2 class="section-title">{t('post.more')}</h2>
+            <ul class="more-list">
+              {more.map((p) => (
+                <li>
+                  <a href={postPath(p)}>{p.data.title}</a>
+                  <span class="more-meta">{t(`cat.${p.data.category}` as UiKey)} · <FormattedDate date={p.data.pubDate} lang={lang} /></span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </aside>
     </main>
-
-    <Footer />
-
+    <Footer lang={lang} />
     <script>
-      function updateReadingProgress() {
-        const article = document.querySelector('article');
-        const progressBar = document.getElementById('reading-progress');
-        
-        if (!article || !progressBar) return;
-
-        const articleTop = article.offsetTop;
-        const articleHeight = article.offsetHeight;
-        const windowHeight = window.innerHeight;
-        const scrollTop = window.scrollY;
-
-        const scrollableDistance = articleHeight - windowHeight;
-        const scrolled = scrollTop - articleTop;
-        
-        if (scrolled <= 0) {
-          progressBar.style.width = '0%';
-        } else if (scrolled >= scrollableDistance) {
-          progressBar.style.width = '100%';
-        } else {
-          const progress = (scrolled / scrollableDistance) * 100;
-          progressBar.style.width = `${progress}%`;
-        }
+      const bar = document.getElementById('reading-progress');
+      const article = document.querySelector('article');
+      function update() {
+        if (!bar || !article) return;
+        const span = article.offsetHeight - window.innerHeight;
+        const done = span > 0 ? (window.scrollY - article.offsetTop) / span : 1;
+        bar.style.width = `${Math.min(100, Math.max(0, done * 100))}%`;
       }
-
-      window.addEventListener('scroll', updateReadingProgress);
-      window.addEventListener('resize', updateReadingProgress);
-      updateReadingProgress();
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+      update();
     </script>
   </body>
 </html>

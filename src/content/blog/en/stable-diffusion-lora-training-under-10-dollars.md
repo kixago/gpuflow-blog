@@ -3,7 +3,7 @@ title: "How to Train Stable Diffusion LoRA Models for Under $10"
 description: "Step-by-step guide to training custom LoRA models for Stable Diffusion using rented GPUs. Complete tutorial covering GPU selection, dataset preparation, training configuration, and cost optimization."
 excerpt: "A practical tutorial for training high-quality LoRA models using GPU rentals. Covers provider selection, configuration, and techniques to keep total costs under $10."
 pubDate: 2026-02-11
-updatedDate: 2026-02-11
+updatedDate: 2026-09-29
 locale: "en"
 category: "tutorials"
 featured: false
@@ -19,7 +19,7 @@ faq:
   - question: "What is the minimum number of images required for LoRA training?"
     answer: "You can produce reasonable results with as few as fifteen to twenty images. However, datasets containing thirty to one hundred well-captioned images typically yield better quality. Image quality and caption accuracy matter more than raw quantity."
   - question: "Which GPU rental provider offers the best value for LoRA training?"
-    answer: "Vast.ai typically offers the lowest hourly rates for RTX 4090 GPUs. GPUFlow provides competitive pricing with cryptocurrency payment options and no identity verification requirements. RunPod offers the most straightforward interface for users new to GPU rentals."
+    answer: "Vast.ai typically offers the lowest hourly rates for RTX 4090 GPUs. RunPod offers the most straightforward interface for users new to GPU rentals, with ready-made templates."
   - question: "Is it more cost-effective to train multiple LoRA models in a single session?"
     answer: "Yes. Batch training multiple LoRAs in one extended session eliminates repeated setup time and minimizes idle GPU charges. Training three to five LoRA models in a four-hour session typically costs less than half what you would spend training them individually."
 ---
@@ -36,7 +36,7 @@ This guide walks through the complete process: selecting appropriate hardware, p
 
 - Twenty to one hundred training images (more on selection criteria below)
 - Basic familiarity with command-line interfaces
-- A cryptocurrency wallet or credit card for GPU rental payment
+- A payment card to add credit on a GPU rental platform
 - Approximately two to four hours of focused time
 - A budget of five to fifteen dollars for your first training run
 
@@ -107,13 +107,13 @@ For SDXL LoRA training, the calculations shift slightly because the larger model
 
 For a comprehensive analysis of GPU rental pricing across all major providers, including enterprise cloud options and marketplace platforms, see our [complete GPU rental pricing comparison for 2026](/en/gpu-rental-pricing-comparison-2026/).
 
-![NVIDIA RTX 4090 graphics card with triple-fan cooling system commonly used for AI model training](../_images/nvidia-4090.jpg)
+![NVIDIA RTX 4090 graphics card with triple-fan cooling system commonly used for AI model training](../_images/test-hero.jpg)
 
 ---
 
 ## GPU Rental Provider Comparison
 
-Three providers warrant consideration for LoRA training workloads. Each has distinct characteristics that matter depending on your payment preferences, technical comfort level, and cost sensitivity.
+Two providers warrant consideration for LoRA training workloads. Each has distinct characteristics that matter depending on your technical comfort level and cost sensitivity.
 
 ### Vast.ai
 
@@ -131,21 +131,18 @@ Pricing runs slightly higher than Vast.ai, typically $0.59 per hour for RTX 4090
 
 For users new to GPU rentals or those who value straightforward interfaces over minimal cost optimization, RunPod represents a reasonable middle ground.
 
-### GPUFlow
+### A note on GPUFlow
 
-GPUFlow operates a peer-to-peer marketplace built on blockchain infrastructure, using smart contract escrow for payment processing. The platform accepts cryptocurrency payments and requires no identity verification.
-
-Pricing typically falls between Vast.ai and RunPod, with RTX 4090 access at $0.50 to $0.80 per hour. The distinguishing features are payment privacy, instant setup (typically under thirty seconds to a running instance), and lower platform fees than competing marketplaces.
-
-For users who prefer cryptocurrency payments, value transaction privacy, or want to avoid the account verification processes common with traditional providers, GPUFlow provides a streamlined alternative.
+GPUFlow isn't suitable for LoRA training. It rents access to AI chat models through an OpenAI-compatible API, not a machine where you can run training scripts. For training, use a platform that gives you the machine, like the two above. See [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/en/gpuflow-vs-vast-ai-vs-runpod/) for how the approaches differ.
 
 ### Provider Summary
 
 | Provider | RTX 4090 Price Range    | Setup Time   | Payment Options     | Best For             |
 | -------- | ----------------------- | ------------ | ------------------- | -------------------- |
-| Vast.ai  | $0.35-0.60/hr           | 5-15 minutes | Credit card         | Maximum cost savings |
-| RunPod   | $0.59/hr (Secure Cloud) | 2-5 minutes  | Credit card, crypto | Ease of use          |
-| GPUFlow  | $0.50-0.80/hr           | 30 seconds   | Crypto only         | Privacy, speed       |
+| Vast.ai  | $0.35-0.60/hr           | 5-15 minutes | Card, crypto        | Maximum cost savings |
+| RunPod   | $0.59/hr (Secure Cloud) | 2-5 minutes  | Card, crypto        | Ease of use          |
+
+Prices as of February 2026. In September 2026 we saw RTX 4090s from about $0.37 per hour on Vast.ai and $0.74 on RunPod Secure Cloud; see [our current comparison](/en/gpuflow-vs-vast-ai-vs-runpod/).
 
 ---
 
@@ -262,19 +259,9 @@ scp -r ./training_data user@gpu-instance-ip:~/sd-scripts/
 
 Alternatively, if your dataset is stored in cloud storage, you can download it directly to the instance using wget or rclone.
 
-### GPUFlow-Specific Setup
+### Save setup time with a template
 
-If using GPUFlow, the platform provides pre-configured environments that eliminate most manual setup. After connecting through the web-based terminal:
-
-```bash
-# GPUFlow instances include a pre-installed training environment
-cd /workspace/sd-scripts
-
-# Upload your dataset using the web interface or SCP
-# The training scripts are pre-configured and ready to use
-```
-
-This pre-configuration typically saves fifteen to twenty minutes compared to setting up a bare instance from scratch. For occasional training runs, this time savings can represent a meaningful percentage of your total GPU rental.
+RunPod and Vast.ai both offer ready-made images with Stable Diffusion training tools installed. Starting from one typically saves fifteen to twenty minutes compared to setting up a bare instance from scratch, and setup time is billed time. For occasional training runs, that can be a meaningful share of your total GPU rental.
 
 ---
 
@@ -583,7 +570,7 @@ You can produce reasonable results with as few as fifteen to twenty images. Howe
 
 ### Which GPU rental provider offers the best value for LoRA training?
 
-Vast.ai typically offers the lowest hourly rates for RTX 4090 GPUs, often $0.35 to $0.50 per hour. GPUFlow provides competitive pricing with cryptocurrency payment options and no identity verification requirements. RunPod offers the most straightforward interface for users new to GPU rentals. For a detailed comparison of all providers and current pricing, see our [comprehensive GPU rental pricing comparison](/en/gpu-rental-pricing-comparison-2026/).
+Vast.ai typically offers the lowest hourly rates for RTX 4090 GPUs, often $0.35 to $0.50 per hour in February 2026. RunPod offers the most straightforward interface for users new to GPU rentals. For a detailed comparison of all providers and current pricing, see our [comprehensive GPU rental pricing comparison](/en/gpu-rental-pricing-comparison-2026/).
 
 ### Is it more cost-effective to train multiple LoRA models in a single session?
 
@@ -601,7 +588,7 @@ Training custom LoRA models has become remarkably accessible. The computational 
 
 The critical success factors remain unchanged from more expensive training approaches: quality training data, appropriate parameter selection, and careful validation of results. No amount of computational power compensates for poor source images or misconfigured training runs.
 
-Start with a modest dataset of twenty to thirty images. Train at conservative settings. Test your results thoroughly before expanding to larger projects. The per-attempt cost is low enough that iteration is practical—treating your first few training runs as learning experiences rather than production outputs. This same workflow applies to other model types. If you are working with text instead of images, see our guide on [fine-tuning large language models](/en/private-llm-fine-tuning-guide) using the same decentralized GPU infrastructure.
+Start with a modest dataset of twenty to thirty images. Train at conservative settings. Test your results thoroughly before expanding to larger projects. The per-attempt cost is low enough that iteration is practical—treating your first few training runs as learning experiences rather than production outputs. This same workflow applies to other model types. If you are working with text instead of images, see our guide on [fine-tuning large language models](/en/private-llm-fine-tuning-guide/) on the same kind of rented GPU.
 
 For those comparing GPU rental options across all provider types and price points, our [GPU rental pricing comparison](/en/gpu-rental-pricing-comparison-2026/) provides current rates for consumer GPUs, datacenter hardware, and enterprise cloud options.
 

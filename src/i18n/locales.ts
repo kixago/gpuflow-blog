@@ -1,7 +1,5 @@
-// ============================================
-// LANGUAGE CONFIGURATION
-// ============================================
-// Based on your main app's i18n setup
+// Blog languages. The code is the URL prefix and the folder name under
+// src/content/blog/.
 
 export const languages = {
 	en: 'English',
@@ -21,13 +19,11 @@ export const languages = {
 
 export type LanguageCode = keyof typeof languages;
 
-// Default language (fallback)
 export const defaultLang: LanguageCode = 'en';
 
-// Languages that use Right-to-Left text direction
 export const rtlLanguages: LanguageCode[] = ['he', 'ar'];
 
-// Map language codes to locale codes (for schema.org)
+// Region locale, for schema.org inLanguage and og:locale.
 export const languageToLocale: Record<LanguageCode, string> = {
 	en: 'en-US',
 	es: 'es-ES',
@@ -44,17 +40,21 @@ export const languageToLocale: Record<LanguageCode, string> = {
 	hi: 'hi-IN',
 };
 
-// URL path prefixes (empty string for default language)
-export function getLanguagePath(lang: LanguageCode): string {
-	return lang === defaultLang ? '' : `/${lang}`;
+// BCP 47 tag for <html lang> and hreflang. Also the app's URL prefix.
+export function htmlLang(lang: LanguageCode): string {
+	return { zh_cn: 'zh-CN', zh_tw: 'zh-TW', pt_br: 'pt-BR' }[lang as string] ?? lang;
 }
 
-// Check if a language code is valid
-export function isValidLanguage(lang: string): lang is LanguageCode {
-	return lang in languages;
+export function ogLocale(lang: LanguageCode): string {
+	return languageToLocale[lang].replace('-', '_');
 }
 
-// Get text direction for a language
 export function getTextDirection(lang: LanguageCode): 'ltr' | 'rtl' {
 	return rtlLanguages.includes(lang) ? 'rtl' : 'ltr';
 }
+
+export const appUrl = (lang: LanguageCode, path = '') => `https://gpuflow.app/${htmlLang(lang)}${path}`;
+
+// Docs: English lives at the root, other languages under a lowercase prefix.
+export const docsUrl = (lang: LanguageCode, path = '/') =>
+	`https://docs.gpuflow.app${lang === defaultLang ? '' : `/${htmlLang(lang).toLowerCase()}`}${path}`;

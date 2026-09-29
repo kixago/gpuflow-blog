@@ -1,9 +1,9 @@
 ---
-title: "Cómo asegurar tu dataset en un nodo GPU público"
-description: "Guía completa de seguridad para proteger datasets propietarios al entrenar modelos de IA en infraestructura GPU alquilada o descentralizada. Cubre cifrado, límites de virtualización, consideraciones de cumplimiento y saneamiento seguro del entorno."
-excerpt: "Entrenar en GPUs públicas no implica sacrificar la seguridad de los datos. Aprende a proteger datasets sensibles antes, durante y después de ejecutar cargas de trabajo de IA en infraestructura alquilada."
+title: "Cómo proteger tu dataset en un nodo GPU público"
+description: "Guía completa de seguridad para proteger datasets propietarios al entrenar modelos de IA en GPU alquiladas o en infraestructura descentralizada. Cifrado, límites de la virtualización, cumplimiento normativo y limpieza segura del entorno."
+excerpt: "Entrenar en GPU públicas no obliga a sacrificar la seguridad de los datos. Aprende a proteger datasets sensibles antes, durante y después de ejecutar cargas de trabajo de IA en infraestructura alquilada."
 pubDate: 2026-02-26
-updatedDate: 2026-02-26
+updatedDate: 2026-09-29
 locale: "es"
 category: "guides"
 featured: false
@@ -11,153 +11,154 @@ draft: false
 author: "GPUFlow Team"
 authorUrl: "https://gpuflow.app"
 heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "Entorno de servidores seguro abstracto que representa procesamiento protegido de datos de IA"
+heroImageAlt: "Entorno de servidores seguro y abstracto que representa el procesamiento protegido de datos de IA"
 faq:
   - question: "¿Es seguro subir datos propietarios a una GPU alquilada?"
-    answer: "Sí, siempre que se sigan prácticas disciplinadas de seguridad operativa. Utiliza transferencia cifrada, evita almacenar credenciales en el nodo, elimina los datasets de forma segura tras el entrenamiento y finaliza correctamente la sesión de alquiler."
+    answer: "Sí, siempre que sigas unas prácticas de seguridad operativa rigurosas. Usa transferencias cifradas, no guardes credenciales en el nodo, borra los datasets de forma segura después del entrenamiento y termina el alquiler correctamente."
   - question: "¿Cuál es la forma más segura de transferir un dataset a un nodo GPU público?"
-    answer: "Utiliza protocolos cifrados como SCP o SFTP sobre SSH. Para datasets altamente sensibles, cifra el archivo localmente con herramientas como age o GPG antes de transferirlo."
-  - question: "¿Puede un host recuperar archivos eliminados de un nodo alquilado?"
-    answer: "La eliminación estándar no garantiza la destrucción. Aunque la recuperación en entornos virtualizados es poco común, herramientas de borrado seguro como shred y la eliminación completa de directorios reducen significativamente el riesgo residual."
-  - question: "¿Debo almacenar claves API o claves privadas en infraestructura alquilada?"
-    answer: "No. Los nodos de cómputo temporales nunca deben contener credenciales permanentes, frases semilla de wallets ni tokens de acceso de producción."
-  - question: "¿Es menos segura la infraestructura GPU descentralizada que AWS?"
-    answer: "No necesariamente. La seguridad depende de la configuración y la disciplina operativa. Las nubes centralizadas registran extensamente y vinculan la actividad a identidades verificadas, mientras que los alquileres descentralizados reducen la visibilidad institucional pero requieren buenas prácticas."
+    answer: "Usa protocolos cifrados como SCP o SFTP sobre SSH. Si el dataset es muy sensible, cífralo en local con herramientas como age o GPG antes de transferirlo."
+  - question: "¿Puede el host recuperar archivos borrados de un nodo alquilado?"
+    answer: "El borrado normal no garantiza que los datos se destruyan. Aunque la recuperación en entornos virtualizados es poco habitual, las herramientas de borrado seguro como shred y la eliminación completa de los directorios reducen mucho el riesgo residual."
+  - question: "¿Debo guardar claves de API o claves privadas en infraestructura alquilada?"
+    answer: "No. Un nodo de cómputo temporal nunca debe contener credenciales permanentes, frases semilla de monederos ni tokens de acceso a producción."
+  - question: "¿La infraestructura GPU descentralizada es menos segura que AWS?"
+    answer: "No necesariamente. La seguridad depende de la configuración y de la disciplina operativa. Las nubes centralizadas registran muchísima información y vinculan la actividad a identidades verificadas, mientras que los alquileres descentralizados reducen la visibilidad institucional, pero exigen buenas prácticas."
 ---
 
-Si estás entrenando en hardware que no controlas físicamente, la seguridad deja de ser teórica. Se vuelve procedimental.
+Si entrenas en hardware que no controlas físicamente, la seguridad deja de ser teórica. Se convierte en un procedimiento.
 
-Los marketplaces de GPU públicas — ya sean proveedores centralizados o redes descentralizadas — te dan acceso a cómputo de alto rendimiento sin inversión de capital. Esa ventaja es considerable. Pero el intercambio es claro: tu dataset ahora reside en la máquina de otra persona.
+Los marketplaces de GPU públicos, ya sean proveedores centralizados o redes descentralizadas, te dan acceso a cómputo de alto rendimiento sin invertir en equipos. Es una ventaja considerable. Pero la contrapartida es sencilla: tu dataset pasa a estar en la máquina de otra persona.
 
-Para organizaciones que manejan investigación propietaria, código fuente, modelos financieros, historiales médicos o datos de clientes regulados, esta realidad exige rigor.
+Para las organizaciones que manejan investigación propietaria, código fuente, modelos financieros, historiales médicos o datos de clientes sujetos a regulación, esa realidad exige rigor.
 
-La buena noticia es la siguiente: la infraestructura alquilada no implica necesariamente menor seguridad. Si se gestiona correctamente, puede ofrecer aislamiento sólido, exposición controlada y, en algunos casos, incluso mayor privacidad que las plataformas hyperscaler.
+La buena noticia es esta: infraestructura alquilada no tiene por qué significar menos seguridad. Bien gestionada, puede ofrecer un aislamiento sólido, una exposición controlada e incluso, en algunos casos, más privacidad que las plataformas de los hiperescaladores.
 
-Esta guía explica cómo asegurar tu dataset antes, durante y después de ejecutar cargas de entrenamiento en un nodo GPU público. Asume que ya estás familiarizado con el flujo de fine‑tuning descrito en nuestra [Guía de Fine‑Tuning Privado de LLM](/es/private-llm-fine-tuning-guide).
+Esta guía explica cómo proteger tu dataset antes, durante y después de entrenar en un nodo GPU público. Da por hecho que ya conoces el flujo de fine-tuning que describimos en nuestra [guía de fine-tuning privado de LLM](/es/private-llm-fine-tuning-guide/).
 
-La seguridad en este contexto no es paranoia. Es disciplina.
+Está pensada para alquileres en los que te conectas a la máquina, como Vast.ai, RunPod o TensorDock. GPUFlow funciona de otra manera: obtienes una clave de API para un modelo de IA y no se sube ni se guarda nada en la máquina del proveedor. Eso sí, tus prompts y las respuestas pasan por ella, así que allí la regla es más sencilla: no envíes nada que no compartirías con un desconocido.
+
+En este contexto, la seguridad no es cuestión de paranoia. Es cuestión de disciplina.
 
 ---
 
 ## Define primero el modelo de amenazas
 
-Antes de implementar salvaguardas, define contra qué te estás protegiendo.
+Antes de poner medidas de protección, define de qué te estás protegiendo.
 
-Al alquilar un nodo GPU, normalmente interactúas con:
+Cuando alquilas un nodo GPU, normalmente interactúas con:
 
-- Una capa de virtualización o aislamiento por contenedores
-- Un operador host que posee el hardware físico
-- Una plataforma marketplace que programa y gestiona el pago
+- Una capa de aislamiento por virtualización o contenedores
+- Un operador (el host) que es dueño del hardware físico
+- Una plataforma de marketplace que asigna los recursos y gestiona el pago
 
 Los riesgos más realistas son:
 
-1. Datos residuales que permanecen en disco tras tu sesión
-2. Manejo inadecuado de credenciales que conduce a comprometer otros sistemas
-3. Transferencia de archivos sin cifrado que expone datos en tránsito
-4. Configuración de red incorrecta que expone servicios públicamente
+1. Datos residuales que quedan en el disco después de tu sesión
+2. Una mala gestión de credenciales que acaba comprometiendo otros sistemas
+3. Transferencias de archivos sin cifrar que exponen los datos en tránsito
+4. Una configuración de red incorrecta que deja servicios expuestos públicamente
 
-Riesgos menos realistas — aunque frecuentemente dramatizados — incluyen:
+Entre los riesgos menos realistas, aunque se dramatizan a menudo, están:
 
-- Monitoreo en tiempo real de tus datos de entrenamiento por parte del host
-- Extracción de memoria GPU durante cargas activas
-- Intercepción sofisticada de tráfico SSH correctamente configurado
+- Que el host vigile en tiempo real tus datos de entrenamiento
+- Que se extraiga la memoria de la GPU durante el trabajo
+- Que se intercepte de forma sofisticada un tráfico SSH bien configurado
 
-Las fallas de seguridad en entornos de cómputo alquilado casi siempre son operativas, no arquitectónicas.
+Los fallos de seguridad en entornos de cómputo alquilado casi siempre son operativos, no de arquitectura.
 
-Comienza con ese entendimiento.
+Parte de esa idea.
 
 ---
 
-## Minimiza lo que subes
+## Sube lo mínimo imprescindible
 
 El dataset más seguro es el que nunca sale de tu máquina local.
 
-Antes de transferir cualquier cosa a una GPU alquilada:
+Antes de transferir nada a una GPU alquilada:
 
-- Elimina columnas no utilizadas
-- Quita identificadores internos
-- Aplica hash o tokeniza información personal no esencial
-- Elimina logs de producción sin procesar
-- Reduce al corpus mínimo viable de entrenamiento
+- Elimina las columnas que no uses
+- Quita los identificadores internos
+- Aplica hash o tokeniza la información personal que no sea esencial
+- Descarta los logs de producción en bruto
+- Reduce el corpus de entrenamiento al mínimo viable
 
-Si utilizas QLoRA u otros métodos de fine‑tuning eficientes en parámetros, no estás reentrenando un modelo base desde cero. Estás ajustando deltas. Eso rara vez requiere bases de datos operativas completas.
+Si usas QLoRA u otros métodos de fine-tuning eficientes en parámetros, no estás reentrenando un modelo base desde cero. Estás ajustando deltas. Para eso rara vez hacen falta bases de datos operativas completas.
 
-Datasets más pequeños reducen:
+Un dataset más pequeño reduce:
 
-- Superficie de exposición
-- Tiempo de transferencia
-- Huella de almacenamiento
-- Coste de entrenamiento
+- La superficie de exposición
+- El tiempo de transferencia
+- El espacio de almacenamiento
+- El coste del entrenamiento
 
-La seguridad y la eficiencia suelen alinearse más de lo que se supone.
+La seguridad y la eficiencia van de la mano más a menudo de lo que se cree.
 
 ---
 
-## La transferencia cifrada no es opcional
+## La transferencia cifrada no es negociable
 
-Nunca subas datasets sensibles mediante portales web de carga, FTP sin cifrar o enlaces temporales de compartición.
+No subas nunca datasets sensibles a través de portales de archivos en el navegador, FTP sin cifrar o enlaces temporales para compartir.
 
-Utiliza transferencia basada en SSH:
+Usa transferencias basadas en SSH:
 
 ```bash
 scp -P 22345 dataset.jsonl user@203.0.113.42:~/workspace/
 ```
 
-SCP y SFTP cifran los datos en tránsito utilizando estándares criptográficos modernos. Si están correctamente configurados, el riesgo de interceptación es insignificante.
+SCP y SFTP cifran los datos en tránsito con estándares criptográficos modernos. Bien configurados, el riesgo de interceptación es insignificante.
 
-Para material altamente sensible, cifra el archivo localmente antes de transferirlo:
+Si el material es muy sensible, cifra el archivo en local antes de transferirlo:
 
 ```bash
 age -p dataset.jsonl > dataset.jsonl.age
 scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/workspace/
 ```
 
-Descifra solo cuando sea necesario en el nodo remoto.
+Descífralo en el nodo remoto solo cuando sea necesario.
 
-Evita almacenar datasets temporalmente en sistemas de terceros salvo que sea obligatorio por cumplimiento normativo. Cada sistema adicional que almacena tus datos aumenta la visibilidad institucional y el riesgo de retención.
+No uses sistemas de almacenamiento de terceros como paso intermedio salvo que lo exija el cumplimiento normativo. Cada sistema adicional que guarda tus datos aumenta la visibilidad institucional y el riesgo de que se conserven.
 
-Si la privacidad es tu objetivo, mueve los datos de forma directa y deliberada.
+Si tu objetivo es la privacidad, mueve los datos de forma directa y deliberada.
 
 ---
 
-## Nunca almacenes credenciales permanentes en nodos temporales
+## No guardes nunca credenciales permanentes en nodos temporales
 
 Aquí es donde muchos profesionales cometen errores evitables.
 
-No almacenes:
+No guardes:
 
-- Frases semilla de wallets
-- Claves privadas SSH usadas en otros sistemas
-- Tokens API de producción
-- Credenciales root de proveedores cloud
+- Frases semilla de monederos
+- Claves privadas SSH que uses en otros sitios
+- Tokens de API de producción
+- Credenciales root de tu proveedor de nube
 - Contraseñas de bases de datos
 
-La infraestructura de cómputo temporal debe contener únicamente lo necesario para la carga de trabajo.
+Una infraestructura de cómputo temporal solo debe contener lo imprescindible para el trabajo.
 
-Si te autenticas en Hugging Face para descargar modelos restringidos, utiliza un token con alcance limitado. Después del entrenamiento, elimina las credenciales en caché:
+Si te autenticas en Hugging Face para descargar modelos con acceso restringido, usa un token con permisos limitados. Después del entrenamiento, borra las credenciales en caché:
 
 ```bash
 rm -rf ~/.cache/huggingface
 ```
 
-Considera rotar los tokens tras finalizar.
+Plantéate rotar los tokens al terminar.
 
-Los incidentes de seguridad rara vez comienzan con la explotación de una GPU. Comienzan con credenciales expuestas.
+Los incidentes de seguridad rara vez empiezan con un ataque a la GPU. Empiezan con credenciales expuestas.
 
 ---
 
+## Da por hecho que el sistema de archivos es recuperable
 
-## Trata el sistema de archivos como recuperable
-
-Un comando estándar de eliminación:
+Un comando de borrado normal:
 
 ```bash
 rm dataset.jsonl
 ```
 
-elimina referencias en el directorio. No garantiza la destrucción de los bloques subyacentes en disco.
+elimina las referencias en el directorio. No garantiza que se destruyan los bloques del disco que hay debajo.
 
-En entornos virtualizados de alquiler, el riesgo real de recuperación es bajo, pero no cero. El enfoque responsable es asumir recuperabilidad.
+En los entornos de alquiler virtualizados, el riesgo real de recuperación es bajo, pero no nulo. Lo responsable es suponer que los datos se pueden recuperar.
 
 Para archivos sensibles:
 
@@ -165,204 +166,203 @@ Para archivos sensibles:
 shred -u dataset.jsonl
 ```
 
-Luego elimina todo tu directorio de trabajo:
+Después, elimina todo tu directorio de trabajo:
 
 ```bash
 rm -rf ~/workspace
 ```
 
-Limpia cachés:
+Vacía las cachés:
 
 ```bash
 rm -rf ~/.cache/pip
 rm -rf ~/.cache/huggingface
 ```
 
-Limpia el historial de la shell:
+Borra el historial de la shell:
 
 ```bash
 history -c
 cat /dev/null > ~/.bash_history
 ```
 
-Finaliza la sesión de alquiler formalmente desde el panel del marketplace para asegurar la desasignación.
+Termina formalmente el alquiler desde el panel del marketplace para asegurarte de que la máquina se desaprovisiona.
 
-Estos pasos toman minutos. Reducen materialmente la exposición residual.
+Son pasos de unos minutos. Y reducen de forma real la exposición residual.
 
 ---
 
-## Supervisa la exposición de red
+## Vigila la exposición de red
 
-Después de conectarte al nodo, inspecciona los puertos abiertos:
+Después de conectarte a un nodo, revisa los puertos abiertos:
 
 ```bash
 ss -tulnp
 ```
 
-Tu carga de entrenamiento no requiere puertos entrantes expuestos públicamente.
+Tu entrenamiento no necesita puertos de entrada expuestos públicamente.
 
-Si experimentas con endpoints de inferencia, enlázalos a localhost salvo que el acceso remoto sea necesario.
+Si experimentas con endpoints de inferencia, enlázalos a localhost salvo que necesites acceso remoto.
 
-Las configuraciones de red incorrectas siguen siendo una de las causas más comunes de exposición de datos tanto en entornos descentralizados como en hyperscalers.
+Una configuración de red incorrecta sigue siendo una de las causas más habituales de exposición de datos, tanto en entornos descentralizados como en los de los hiperescaladores.
 
 ---
 
-## Bare metal vs nodos GPU virtualizados
+## Nodos GPU bare metal frente a virtualizados
 
-Muchos asumen que alquilar hardware bare metal es inherentemente menos seguro que operar dentro de una VM de hyperscaler. La realidad es más matizada.
+Mucha gente da por hecho que alquilar hardware bare metal es, por naturaleza, menos seguro que trabajar dentro de una VM de un hiperescalador. La realidad tiene más matices.
 
-La mayoría de los marketplaces GPU proporcionan aislamiento mediante:
+La mayoría de los marketplaces de GPU ofrecen aislamiento mediante alguna de estas opciones:
 
-- Máquinas virtuales (KVM, Xen u otros hipervisores similares)
+- Máquinas virtuales (KVM, Xen e hipervisores similares)
 - Aislamiento basado en contenedores
 - Instancias dedicadas de un solo inquilino
 
-Con hipervisores correctamente configurados, el aislamiento de memoria entre inquilinos se impone a nivel de hardware. Tu proceso no puede leer el espacio de memoria de otro inquilino.
+Con un hipervisor bien configurado, el aislamiento de memoria entre inquilinos se aplica a nivel de hardware. Tu proceso no puede leer el espacio de memoria de otro inquilino.
 
-Los riesgos difieren según el entorno:
+Los riesgos varían según el entorno:
 
 **Entornos virtualizados:**
 
-- Aislamiento fuerte de procesos
-- Disco físico compartido a nivel host
-- Menor riesgo de acceso cruzado de hardware
-- Mayor dependencia de la integridad del hipervisor
+- Aislamiento de procesos sólido
+- Disco físico compartido a nivel del host
+- Menor riesgo de acceso cruzado al hardware
+- Más dependencia de la integridad del hipervisor
 
-**Alquiler bare metal:**
+**Alquileres bare metal:**
 
-- Sin exposición de memoria entre inquilinos
+- Sin exposición de memoria a otros inquilinos
 - Acceso directo al hardware
-- Posible persistencia en disco si no se limpia entre sesiones
+- Posible persistencia de datos en disco si no se borra entre sesiones
 
-Desde la perspectiva de seguridad del dataset, el riesgo dominante no es el acceso cruzado de memoria. Es la persistencia en disco y la higiene de credenciales.
+Desde el punto de vista de la seguridad del dataset, el riesgo principal no es el acceso a la memoria entre inquilinos. Son los datos residuales en disco y la higiene de las credenciales.
 
-En la práctica, un nodo GPU virtualizado bien gestionado con procedimientos de borrado seguro es completamente adecuado para cargas de fine‑tuning.
+En la práctica, un nodo GPU virtualizado bien gestionado, con procedimientos de borrado seguro, es perfectamente adecuado para cargas de fine-tuning.
 
-Los resultados de seguridad dependen mucho más de la disciplina operativa que de etiquetas comerciales como “bare metal”.
+El nivel de seguridad depende mucho más de la disciplina operativa que de etiquetas comerciales como "bare metal".
 
 ---
 
-## Consideraciones de cumplimiento: HIPAA, GDPR y riesgo contractual
+## Cumplimiento normativo: HIPAA, RGPD y riesgo contractual
 
-Si operas en un entorno regulado, se aplican consideraciones adicionales.
+Si trabajas en un entorno regulado, hay más aspectos a tener en cuenta.
 
 ### HIPAA
 
-La Información de Salud Protegida (PHI) requiere:
+La información sanitaria protegida (PHI) exige:
 
 - Acceso controlado
 - Cifrado en tránsito
-- Eliminación adecuada de datos
+- Eliminación adecuada de los datos
 
-Antes de usar infraestructura alquilada para PHI, verifica:
+Antes de usar infraestructura alquilada con PHI, comprueba que:
 
-- Que los estándares de cifrado cumplan requisitos regulatorios
-- Que los datos estén desidentificados cuando sea posible
-- Si se requieren Business Associate Agreements según la arquitectura
+- Los estándares de cifrado cumplen los requisitos normativos
+- Los datos están desidentificados siempre que sea posible
+- Sabes si necesitas o no un Business Associate Agreement según tu arquitectura
 
-En muchos escenarios de fine‑tuning, los corpus de entrenamiento desidentificados eliminan las restricciones más estrictas.
+En muchos casos de fine-tuning, trabajar con un corpus desidentificado elimina las restricciones más duras.
 
-### GDPR
+### RGPD
 
-Para sujetos de datos de la UE:
+Para los datos de personas de la UE:
 
-- Comprende dónde se encuentra físicamente el nodo
-- Evita transferencias transfronterizas innecesarias
-- Minimiza la información personal identificable
+- Averigua dónde está físicamente el nodo
+- Evita transferencias internacionales innecesarias
+- Reduce al mínimo la información de identificación personal
 
-La minimización de datos no es solo buena práctica de seguridad. Es alineación regulatoria.
+Minimizar el dataset no es solo una buena práctica de seguridad. También te alinea con la normativa.
 
 ### Obligaciones contractuales
 
 Muchos contratos empresariales incluyen cláusulas que restringen:
 
-- Subprocesamiento
-- Transferencia geográfica de datos
-- Uso de cómputo de terceros
+- La subcontratación del tratamiento
+- La transferencia geográfica de datos
+- El uso de cómputo de terceros
 
-Antes de entrenar en GPUs alquiladas, revisa los acuerdos con clientes. El riesgo legal a menudo supera al técnico.
+Antes de entrenar en GPU alquiladas, revisa los contratos con tus clientes. A menudo el riesgo legal supera al técnico.
 
-La seguridad operativa debe alinearse con la responsabilidad contractual.
+La seguridad operativa debe estar alineada con las responsabilidades contractuales.
 
 ---
 
-## Privacidad descentralizada vs hyperscaler
+## Privacidad: descentralizado frente a hiperescalador
 
-Existe la suposición persistente de que la infraestructura hyperscaler es automáticamente más segura.
+Persiste la idea de que la infraestructura de un hiperescalador es automáticamente más segura.
 
 En realidad:
 
-- Los hyperscalers registran extensamente.
-- Las cuentas están vinculadas a identidades verificadas.
+- Los hiperescaladores registran muchísima información.
+- Las cuentas están vinculadas a una identidad.
 - Los registros de facturación son permanentes.
-- La actividad puede ser revisable bajo los términos de servicio.
+- La actividad puede revisarse según las condiciones de servicio del proveedor.
 
-Los marketplaces descentralizados reducen la supervisión institucional. Combinados con prácticas operativas disciplinadas, pueden ofrecer ventajas reales de privacidad.
+Los marketplaces descentralizados reducen la supervisión institucional. Combinados con una práctica operativa disciplinada, pueden ofrecer ventajas reales de privacidad.
 
-Si no has revisado las diferencias económicas, consulta nuestra [Comparativa de precios de alquiler de GPU 2026](/es/gpu-rental-pricing-comparison-2026).
+Si no has repasado las diferencias económicas, consulta nuestra [comparativa de precios de alquiler de GPU en 2026](/es/gpu-rental-pricing-comparison-2026/).
 
-La eficiencia de costes y la privacidad operativa no son excluyentes.
+La eficiencia de costes y la privacidad operativa no son incompatibles.
 
 ---
 
-
-## Lista práctica de verificación operativa
+## Lista de comprobación práctica
 
 Antes del entrenamiento:
 
-- Dataset minimizado y saneado
+- Dataset minimizado y depurado
 - Identificadores sensibles eliminados
-- Método de transferencia cifrada seleccionado
+- Método de transferencia cifrada elegido
 - Hardware verificado con `nvidia-smi`
 
 Durante el entrenamiento:
 
-- Utilización de GPU monitorizada
-- Ningún servicio de red innecesario expuesto
-- Sin credenciales escritas en disco
+- Uso de la GPU vigilado
+- Ningún servicio de red expuesto sin necesidad
+- Ninguna credencial escrita en disco
 
 Después del entrenamiento:
 
-- Adapter descargado localmente
-- Dataset eliminado de forma segura
-- Cachés limpiadas
+- Adaptador descargado en local
+- Dataset borrado de forma segura
+- Cachés vaciadas
 - Tokens rotados
-- Historial de shell eliminado
-- Alquiler finalizado formalmente
+- Historial de la shell borrado
+- Alquiler terminado formalmente
 
-La seguridad no es una característica. Es una secuencia de hábitos.
+La seguridad no es una función. Es una serie de hábitos.
 
 ---
 
-## El riesgo real es la negligencia
+## El verdadero riesgo es el descuido
 
-La mayoría de las filtraciones de datos no ocurren porque alguien eligió el marketplace GPU equivocado.
+La mayoría de las fugas de datos no ocurren porque alguien eligiera el marketplace de GPU equivocado.
 
 Ocurren porque:
 
 - Se reutilizaron credenciales
-- Se dejaron archivos atrás
-- Buckets fueron mal configurados
-- Tokens de acceso nunca se revocaron
+- Se dejaron archivos olvidados
+- Se configuraron mal los buckets
+- Nunca se revocaron los tokens de acceso
 
-El cómputo público es una herramienta. Refleja la disciplina de quien lo opera.
+El cómputo público es una herramienta. Refleja la disciplina de quien lo usa.
 
-Si sigues prácticas de seguridad estructuradas y repetibles, puedes hacer fine‑tuning en infraestructura alquilada sin exponer datos propietarios, violar requisitos regulatorios o incrementar el riesgo operativo.
+Si sigues prácticas de seguridad estructuradas y repetibles, puedes hacer fine-tuning de modelos en infraestructura alquilada sin exponer datos propietarios, sin incumplir la normativa y sin aumentar el riesgo operativo.
 
-La IA privada no se logra solo mediante aislamiento, sino mediante control — control sobre transferencia, duración de almacenamiento, exposición de credenciales y procedimientos de terminación.
+La IA privada no se consigue solo con aislamiento, sino con control: control sobre la transferencia, el tiempo que se guardan los datos, la exposición de las credenciales y el procedimiento de terminación.
 
-Ese control sigue estando en tus manos.
+Ese control sigue en tus manos.
 
 ---
 
 ## Qué leer a continuación
 
-Si esta guía resolvió tus inquietudes de seguridad, los siguientes recursos amplían aspectos económicos, de privacidad e infraestructura:
+Si esta guía ha resuelto tus dudas de seguridad, estos recursos profundizan en el coste, la privacidad y la infraestructura:
 
-- [La Guía Definitiva de Fine‑Tuning Privado de LLM en GPUs Descentralizadas](/es/private-llm-fine-tuning-guide)
-- [Comparativa de precios de alquiler de GPU 2026](/es/gpu-rental-pricing-comparison-2026)
-- [Cómo alquilar una GPU sin KYC](/es/how-to-rent-gpu-without-kyc)
-- [Explicación del escrow con smart contracts](/es/smart-contract-escrow)
-- [Las stablecoins son la forma más inteligente de pagar el alquiler de GPU](/es/stable-coins-are-the-smartest-way-to-pay-for-gpu-rental)
+- [La guía definitiva de fine-tuning privado de LLM en GPU alquiladas](/es/private-llm-fine-tuning-guide/)
+- [Comparativa de precios de alquiler de GPU en 2026](/es/gpu-rental-pricing-comparison-2026/)
+- [Lo que cuesta de verdad alquilar una GPU](/es/hidden-fees-in-gpu-rental/)
+- [Qué necesitas para alquilar una GPU en 2026](/es/what-you-need-to-rent-a-gpu/)
+- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/es/gpuflow-vs-vast-ai-vs-runpod/)
 
-En conjunto, estos artículos describen el marco económico, técnico y operativo para ejecutar cargas de IA privada en infraestructura GPU alquilada.
+En conjunto, estos artículos describen el marco económico, técnico y operativo para ejecutar cargas de trabajo de IA privadas en infraestructura GPU alquilada.

@@ -1,137 +1,149 @@
 ---
-title: "Der ultimative Leitfaden zur privaten LLM-Feinabstimmung auf dezentralen GPUs"
-description: "Eine umfassende Anleitung zur Feinabstimmung von Open-Weights-Sprachmodellen mit Ihrem eigenen Datensatz unter Verwendung dezentraler GPU-Mietressourcen. Sichern Sie Ihre Daten, senken Sie Rechenkosten und wahren Sie vollständige Privatsphäre ohne KYC oder Anbieterbindung."
-excerpt: "Erfahren Sie, wie Sie Open-Weights-LLMs auf dezentralen GPUs mit vollständiger Privatsphäre feinabstimmen. Schritt-für-Schritt-Anleitung zu sicherer Datenübertragung, QLoRA-Training und Bereinigung der Trainingsumgebung."
+title: "LLM-Fine-Tuning auf gemieteten GPUs: der vollständige Leitfaden für private Daten"
+description: "Ausführliche Anleitung: Open-Weights-Sprachmodelle mit eigenem Datensatz auf einer gemieteten GPU feinabstimmen. Daten schützen, Rechenkosten senken, keine Abhängigkeit von einem Anbieter."
+excerpt: "So stimmen Sie Open-Weights-LLMs auf gemieteten GPUs fein, ohne die Kontrolle über Ihre Daten abzugeben. Schritt für Schritt: sichere Datenübertragung, QLoRA-Training und das Aufräumen der Umgebung."
 pubDate: 2025-02-23
-updatedDate: 2025-02-23
+updatedDate: 2026-09-29
 locale: "de"
 category: "tutorials"
-featured: true
+featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "Abstrakte Darstellung eines sicheren dezentralen Serverraums, der KI-Daten unter blauer Beleuchtung verarbeitet"
+heroImageAlt: "Abstrakte Darstellung eines gesicherten Serverraums in blauem Licht, in dem KI-Daten verarbeitet werden"
 faq:
-  - question: "Can I fine-tune large language models on a single RTX 4090?"
-    answer: "Yes. Using QLoRA (Quantized Low-Rank Adaptation), models up to 8B parameters fit comfortably within 24GB of VRAM. This tutorial demonstrates exactly how to configure the training script for consumer hardware with specific parameters for batch size, sequence length, and LoRA rank."
-  - question: "Is my dataset secure on a decentralized GPU rental?"
-    answer: "Your dataset is as secure as your operational practices. This guide covers encrypted transfer via SCP, avoiding cloud storage intermediaries like S3 or Google Drive, and sanitizing the remote machine after training completes. The decentralized model means no single corporation has access to your data or training logs."
-  - question: "How much does it cost to fine-tune an 8B model on decentralized GPUs?"
-    answer: "A typical fine-tuning run on an 8B parameter model using an RTX 4090 rental costs between three and eight dollars depending on dataset size and training epochs. This compares to approximately 150 to 300 dollars for equivalent compute on AWS or Lambda Labs including setup time and idle charges."
-  - question: "Do I need to complete KYC to rent GPU compute for training?"
-    answer: "No. Decentralized GPU marketplaces like GPUFlow allow you to connect a crypto wallet and begin renting immediately. There is no identity verification, no credit card required, and no enterprise contract. Payments occur through stablecoins on networks like Polygon."
-  - question: "What dataset format does the training script expect?"
-    answer: "The script expects a JSONL file where each line contains a JSON object with a text field. The text field should contain your instruction, input, and response formatted as a single string with newline characters. An example with proper formatting is provided in Step 4 of this guide."
-  - question: "Does this tutorial work for models other than Llama?"
-    answer: "Yes. The workflow applies to any open-weights model including Mistral, Qwen, Falcon, and others. The code example uses Llama-3.1-8B but you only need to change the model identifier to fine-tune a different base model."
-  - question: "How long does fine-tuning an 8B parameter model take?"
-    answer: "Training time depends on dataset size. A typical run with 1,000 examples completes in 30 to 60 minutes on an RTX 4090. Larger datasets scale approximately linearly. A 10,000 example dataset requires 5 to 10 hours of compute time."
-  - question: "What should I do with the remote machine after training completes?"
-    answer: "You must sanitize the environment by deleting your dataset, training code, Hugging Face cache, and bash history. This guide provides specific commands for secure deletion including optional use of shred for thorough file destruction before ending your rental contract."
+  - question: "Kann ich große Sprachmodelle auf einer einzelnen RTX 4090 feinabstimmen?"
+    answer: "Ja. Mit QLoRA (Quantized Low-Rank Adaptation) passen Modelle bis 8B Parameter problemlos in 24GB VRAM. Dieser Leitfaden zeigt, wie Sie das Trainingsskript für Consumer-Hardware konfigurieren, mit konkreten Werten für Batch-Größe, Sequenzlänge und LoRA-Rang."
+  - question: "Ist mein Datensatz auf einer gemieteten GPU sicher?"
+    answer: "Ihr Datensatz ist so sicher wie Ihre Arbeitsweise. Dieser Leitfaden behandelt die verschlüsselte Übertragung per SCP, den Verzicht auf Cloud-Speicher wie S3 oder Google Drive als Zwischenstation und das Aufräumen des entfernten Rechners nach dem Training. Denken Sie daran: Der Rechner gehört jemand anderem. Löschen Sie also alles, bevor Sie die Miete beenden."
+  - question: "Was kostet das Fine-Tuning eines 8B-Modells auf einer gemieteten GPU?"
+    answer: "Ein typischer Fine-Tuning-Lauf für ein 8B-Modell auf einer gemieteten RTX 4090 kostet je nach Datensatzgröße und Anzahl der Epochen zwischen drei und acht Dollar."
+  - question: "Muss ich mich ausweisen, um GPU-Rechenleistung für das Training zu mieten?"
+    answer: "In der Regel nicht. Marktplätze wie Vast.ai und RunPod verlangen eine E-Mail-Adresse und Guthaben im Voraus, aber keine Ausweisdokumente. RunPod verlangt eine KYC-Prüfung nur vor der ersten Zahlung mit Krypto. Bei AWS beginnen neue Konten mit einem GPU-Kontingent von null, das Sie erst beantragen müssen."
+  - question: "Welches Datensatzformat erwartet das Trainingsskript?"
+    answer: "Das Skript erwartet eine JSONL-Datei, in der jede Zeile ein JSON-Objekt mit einem Feld text enthält. Dieses Feld enthält Anweisung, Eingabe und Antwort als einen einzigen String mit Zeilenumbrüchen. Ein korrekt formatiertes Beispiel finden Sie in Schritt 4 dieses Leitfadens."
+  - question: "Funktioniert diese Anleitung auch für andere Modelle als Llama?"
+    answer: "Ja. Der Ablauf gilt für jedes Open-Weights-Modell, etwa Mistral, Qwen, Falcon und andere. Das Codebeispiel verwendet Llama-3.1-8B, aber für ein anderes Basismodell müssen Sie nur die Modellkennung ändern."
+  - question: "Wie lange dauert das Fine-Tuning eines Modells mit 8B Parametern?"
+    answer: "Die Trainingsdauer hängt von der Größe des Datensatzes ab. Ein typischer Lauf mit 1.000 Beispielen dauert auf einer RTX 4090 30 bis 60 Minuten. Größere Datensätze skalieren ungefähr linear: 10.000 Beispiele brauchen 5 bis 10 Stunden Rechenzeit."
+  - question: "Was mache ich nach dem Training mit dem entfernten Rechner?"
+    answer: "Sie müssen die Umgebung aufräumen: Datensatz, Trainingscode, Hugging-Face-Cache und Bash-Verlauf löschen. Dieser Leitfaden enthält die konkreten Befehle für das sichere Löschen, optional mit shred für eine gründliche Vernichtung der Dateien, bevor Sie die Miete beenden."
 ---
 
-Wenn Sie dies lesen, verfügen Sie wahrscheinlich über einen Datensatz, den Sie nicht – oder nicht guten Gewissens – zu OpenAI hochladen können.
+Wenn Sie diesen Artikel lesen, haben Sie vermutlich einen Datensatz, den Sie nicht zu OpenAI hochladen können – oder nicht wollen.
 
-Damit sind Sie nicht allein. Für viele Unternehmen und unabhängige Entwickler wird die Bequemlichkeit von ChatGPT durch ein nicht vertretbares Risiko von Datenabfluss aufgewogen. Ob es sich um medizinische Unterlagen handelt, die dem HIPAA unterliegen, um proprietäre Codebasen, in denen jahrelange Entwicklungsarbeit steckt, oder um sensible Finanzmodelle mit Marktrelevanz – die Nutzung von Cloud‑KI bedeutet in der Praxis, einem Dritten Ihr wertvollstes geistiges Eigentum anzuvertrauen.
+Damit sind Sie nicht allein. Für viele Unternehmen und unabhängige Entwickler wiegt das Risiko eines Datenabflusses schwerer als der Komfort von ChatGPT. Ob Patientenakten, die unter HIPAA fallen, eigener Quellcode, in dem Jahre an Entwicklungsarbeit stecken, oder sensible Finanzmodelle, die Märkte bewegen könnten: Wer Cloud-KI nutzt, vertraut sein wertvollstes geistiges Eigentum meist einem Dritten an.
 
-Wenn dieser Dritte ein Technologiekonzern ist, der in der Vergangenheit Kundendaten zum Training zukünftiger Modelle verwendet hat, wird das Wort „Vertrauen“ problematisch.
+Wenn dieser Dritte ein Technologiekonzern ist, der Kundendaten schon früher zum Training künftiger Modelle genutzt hat, wird „Vertrauen“ zu einem unbequemen Wort.
 
-Die Lösung besteht nicht darin, auf KI zu verzichten. Die Lösung besteht darin, die Infrastruktur selbst zu kontrollieren.
+Die Lösung ist nicht, auf KI zu verzichten. Die Lösung ist, die Infrastruktur selbst in der Hand zu haben.
 
-Die Feinabstimmung von Open‑Weights‑Modellen auf Hardware unter eigener Kontrolle ist längst kein akademisches Nischenthema mehr. Für datenschutzbewusste Organisationen ist sie eine betriebliche Notwendigkeit. Modelle wie Llama, Mistral, Qwen und zahlreiche weitere stehen für die kommerzielle Nutzung ohne API‑Gebühren und ohne Verpflichtung zur Datenweitergabe zur Verfügung. Die eigentliche Hürde war stets der Zugang zu Rechenleistung. Der Erwerb von NVIDIA‑H100‑Clustern erfordert Investitionen in Millionenhöhe. Die Anmietung über AWS setzt Identitätsprüfung, Unternehmensverträge und Stundensätze voraus, die längere Trainingsläufe wirtschaftlich unattraktiv machen.
+Open-Weights-Modelle auf Hardware feinabzustimmen, die Sie kontrollieren, ist längst keine akademische Nische mehr. Für datenschutzbewusste Organisationen ist es eine geschäftliche Notwendigkeit. Modelle wie Llama, Mistral, Qwen und Dutzende weitere dürfen kommerziell genutzt werden, ohne API-Gebühren und ohne Pflicht zur Datenweitergabe. Das Problem war immer der Zugang zu Rechenleistung. Ein eigener NVIDIA-H100-Cluster kostet Millionen an Investitionen. Bei AWS brauchen Sie eine Identitätsprüfung, Unternehmensverträge und Stundenpreise, die längere Trainingsläufe unerschwinglich machen.
 
-Dieser Leitfaden zeigt einen dritten Weg. Sie lernen, wie Sie ein Open‑Weights‑Sprachmodell über dezentrale GPU‑Mietplattformen feinabstimmen – Hardware im Besitz privater Betreiber weltweit, zugänglich über einen Peer‑to‑Peer‑Marktplatz. Wir behandeln die Einrichtung der Umgebung, Sicherheitsprotokolle für den Betrieb auf öffentlichen Nodes und die vollständige Durchführung des Trainings.
+Dieser Leitfaden zeigt einen dritten Weg. Sie lernen, wie Sie ein Open-Weights-Sprachmodell auf einer GPU feinabstimmen, die Sie auf einem Marktplatz mieten – oft Hardware, die Privatleuten irgendwo auf der Welt gehört. Wir behandeln die Einrichtung der Umgebung, Sicherheitsregeln für die Arbeit auf öffentlichen Knoten und den kompletten Trainingslauf.
 
-Die Codebeispiele verwenden Llama‑3.1‑8B als konkrete Referenz, doch der Ablauf gilt identisch für jedes mit Hugging Face kompatible Modell. Tauschen Sie einfach die Modellkennung aus, und Sie können Mistral‑7B, Qwen2‑7B oder jede andere Open‑Weights‑Version feinabstimmen, die zu Ihrem Anwendungsfall passt.
+Die Codebeispiele verwenden Llama-3.1-8B als konkretes, lauffähiges Beispiel. Der Ablauf gilt aber genauso für jedes Modell, das mit Hugging Face kompatibel ist. Tauschen Sie die Modellkennung aus, und Sie können Mistral-7B, Qwen2-7B oder jedes andere Open-Weights-Modell feinabstimmen, das zu Ihrem Anwendungsfall passt.
 
-All dies erfolgt ohne KYC‑Verifizierung, ohne langfristige Verträge und zu einem Bruchteil der Kosten klassischer Cloud‑Anbieter.
+Das alles gelingt ohne langfristige Verträge und zu einem Bruchteil dessen, was klassische Cloud-Anbieter verlangen.
 
-![Terminalfenster mit aktiver SSH-Verbindung zu einem entfernten GPU-Server](../_images/terminal-ssh-connection.png)
+![Terminalfenster mit einer aktiven SSH-Verbindung zu einem entfernten GPU-Server](../_images/terminal-ssh-connection.png)
 
-## Die Wirtschaftlichkeit privater Feinabstimmung
+## Die Kosten des privaten Fine-Tunings
 
-Bevor wir uns der technischen Umsetzung widmen, ist der finanzielle Rahmen zu klären.
+Bevor wir zur technischen Umsetzung kommen, klären wir den finanziellen Rahmen.
 
-Das Training eines Modells auf AWS erfordert zunächst den Zugang zu knappen Instanzen. Die Instanz p4d.24xlarge (8× A100 GPUs) kostet 32,77 US‑Dollar pro Stunde – sofern sie überhaupt verfügbar ist. Lambda Labs bietet günstigere Preise, arbeitet jedoch häufig mit Wartelisten über mehrere Wochen. Beide Anbieter verlangen Kreditkarten, Identitätsprüfung und erzeugen detaillierte Abrechnungsdaten, die Ihre KI‑Aktivitäten Ihrer rechtlichen Identität zuordnen.
+Wer ein Modell auf AWS trainiert, braucht große Instanzen und muss Kontingente beantragen. Die Instanz p4d.24xlarge (8x A100-GPUs) kostet 32,77 $ pro Stunde, und neue AWS-Konten starten mit einem GPU-Kontingent von null.
 
-In einem dezentralen Marktplatz mieten Sie Rechenleistung direkt von Hardware‑Besitzern. Es handelt sich um Peer‑to‑Peer‑Infrastruktur auf Blockchain‑basierten Zahlungswegen. Die Konsequenzen sind erheblich:
+Auf einem GPU-Marktplatz mieten Sie Rechenleistung direkt von den Besitzern der Hardware. Das hat spürbare Folgen:
 
-**Kostenreduktion:** Eine RTX 4090 kostet auf den meisten dezentralen Plattformen zwischen 0,40 und 0,60 US‑Dollar pro Stunde. Für 8B‑Parameter‑Modelle mit QLoRA genügt eine einzelne 4090 mit 24GB VRAM, um ein Fine‑Tuning in zwei bis sechs Stunden – abhängig von Datensatzgröße – abzuschließen. Die Gesamtkosten liegen somit zwischen drei und acht US‑Dollar.
+**Niedrigere Kosten:** Eine RTX 4090 kostet auf Marktplätzen etwa 0,30 $ bis 0,46 $ pro Stunde (September 2026). Für Modelle mit 8B Parametern und QLoRA schafft eine einzelne 4090 mit 24GB VRAM einen Fine-Tuning-Lauf je nach Datensatzgröße in zwei bis sechs Stunden. Die gesamten Rechenkosten liegen zwischen drei und acht Dollar.
 
-**Privatsphäre durch Architektur:** Zahlungen erfolgen über [Stablecoin‑Transaktionen](/de/stable-coins-are-the-smartest-way-to-pay-for-gpu-rental) in Netzwerken wie Polygon. Es gibt keine Kreditkarte, die Ihre Identität mit der Anmietung verknüpft. Der Marktplatz‑Smart‑Contract übernimmt die treuhänderische Abwicklung, wie in unserer [Escrow‑Dokumentation](/de/smart-contract-escrow) erläutert, sodass keine Partei die andere benachteiligen kann.
+**Ihre Daten bleiben auf einem Rechner:** Sie kopieren den Datensatz per SSH direkt auf den gemieteten Rechner, trainieren, laden das Ergebnis herunter und löschen alles. Kein Speicher-Bucket, keine dritte Kopie.
 
-**Keine Gatekeeper:** Sie benötigen keine Genehmigung eines Enterprise‑Vertriebsteams. Sie unterzeichnen keine Nutzungsbedingungen, die dem Anbieter Inspektionsrechte über Ihre Workloads einräumen. Sie verbinden Ihre Wallet und mieten Hardware.
+**Keine Hürden:** Sie brauchen weder die Zustimmung des Enterprise-Vertriebs eines Cloud-Anbieters noch eine Kontingenterhöhung. Sie laden Guthaben auf und mieten Hardware.
 
-Zum Vergleich: Der gleiche Fine‑Tuning‑Prozess auf AWS mit einer einzelnen A10G‑Instanz (die günstigste Option mit ausreichendem VRAM) kostet rund 1,50 US‑Dollar pro Stunde. Rechnet man Einrichtungszeit, Leerlaufzeiten während der Konfiguration und den Verzicht auf anonyme Zahlung hinzu, liegen die tatsächlichen Kosten bei 150 bis 300 US‑Dollar für einen Vorgang, der auf dezentraler Infrastruktur weniger als zehn US‑Dollar kostet.
+Zum Vergleich: Eine einzelne A10G auf AWS (g5.xlarge, die günstigste Option mit 24GB VRAM) kostet in us-east-1 etwa 1,01 $ pro Stunde. Rechnet man den Kontingentantrag, die Einrichtungszeit und die ungenutzte Rechenzeit während der Konfiguration hinzu, kostet der erste Lauf dort in Wahrheit weit mehr als die paar Dollar auf einem Marktplatz.
 
-Eine detaillierte Gegenüberstellung finden Sie in unserem [GPU‑Mietpreisvergleich 2026](/de/gpu-rental-pricing-comparison-2026).
+Die Zahlen im Detail finden Sie in unserem [Preisvergleich für GPU-Miete](/de/gpu-rental-pricing-comparison-2026/) und im Artikel über [die tatsächlichen Kosten einer GPU-Miete](/de/hidden-fees-in-gpu-rental/).
 
 ## Voraussetzungen
 
-Dieses Tutorial setzt Vertrautheit mit der Linux‑Kommandozeile voraus. Ein akademischer Abschluss im Bereich Machine Learning ist nicht erforderlich, wohl aber ein sicherer Umgang mit dem Dateisystem, dem Bearbeiten von Textdateien und der Interpretation von Fehlermeldungen.
+Diese Anleitung setzt voraus, dass Sie mit der Linux-Kommandozeile vertraut sind. Sie brauchen keinen Hochschulabschluss in maschinellem Lernen, sollten sich aber sicher im Dateisystem bewegen, Textdateien bearbeiten und Fehlermeldungen deuten können.
 
-**Hardware‑Anforderungen:**
+**Hardware-Anforderungen:**
 
-- **GPU:** Mindestens 24GB VRAM. Geeignet sind RTX 3090, RTX 4090 oder A10G. Für das 70B‑Modell sind 48GB oder mehr erforderlich (A6000, duale A100 oder H100).
-- **Arbeitsspeicher:** 32GB oder mehr. Beim Laden des Modells werden Gewichte zunächst im Hauptspeicher zwischengespeichert, bevor sie auf die GPU übertragen werden.
-- **Speicherplatz:** 100GB oder mehr NVMe‑SSD. Die Basisgewichte von Llama‑3 8B belegen etwa 16GB. Datensatz, Checkpoints und Adapter erhöhen den Bedarf zusätzlich.
+- **GPU:** Mindestens 24GB VRAM. RTX 3090, RTX 4090 und A10G erfüllen das alle. Für das Modell mit 70B Parametern brauchen Sie 48GB oder mehr (A6000, zwei A100 oder H100).
+- **Arbeitsspeicher:** 32GB oder mehr. Beim Laden des Modells landen die Gewichte zuerst im Arbeitsspeicher, bevor sie auf die GPU übertragen werden.
+- **Speicherplatz:** 100GB oder mehr auf einer NVMe-SSD. Die Basisgewichte von Llama-3 8B belegen etwa 16GB. Datensatz, Checkpoints und der fertige Adapter kommen noch dazu.
 
-**Hinweis zur Modellauswahl:** Dieses Tutorial verwendet Meta Llama‑3.1‑8B als Referenz, da es die größte Modellklasse darstellt, die mit QLoRA‑Quantisierung auf einer einzelnen 24GB‑GPU betrieben werden kann. Die Llama‑Familie umfasst inzwischen auch Llama 4 Scout und Maverick, die jedoch eine Mixture‑of‑Experts‑Architektur mit 109B bzw. 400B Parametern nutzen und Multi‑GPU‑Konfigurationen erfordern, die über den Rahmen einer Einzel‑Node‑Miete hinausgehen. Der hier beschriebene Workflow gilt gleichermaßen für Mistral‑7B, Qwen2‑7B, Gemma‑2‑9B und jedes andere mit Hugging Face kompatible Modell, das in den VRAM‑Grenzen Ihrer gemieteten Hardware betrieben werden kann.
+**Zur Modellwahl:** Diese Anleitung verwendet Metas Llama-3.1-8B als Beispiel,
+weil es zur größten Modellklasse gehört, die mit QLoRA-Quantisierung auf eine einzelne
+GPU mit 24GB passt. Zur Llama-Familie gehören inzwischen auch Llama 4 Scout und Maverick.
+Diese nutzen aber eine Mixture-of-Experts-Architektur mit insgesamt 109B bzw. 400B
+Parametern und brauchen Konfigurationen mit mehreren GPUs, die über die Miete eines
+einzelnen Knotens hinausgehen. Der hier beschriebene Ablauf gilt genauso für Mistral-7B,
+Qwen2-7B, Gemma-2-9B und jedes andere mit Hugging Face kompatible Modell, das in den
+VRAM Ihrer gemieteten Hardware passt.
 
-**Software‑Voraussetzungen:**
+**Software-Voraussetzungen:**
 
-- Python 3.10 oder höher
+- Python 3.10 oder neuer
 - Grundkenntnisse in PyTorch
-- Ein Hugging‑Face‑Konto (erforderlich zum Herunterladen lizenzgebundener Modelle wie Llama, die eine Lizenzakzeptanz voraussetzen)
-- Eine Kryptowallet (MetaMask oder vergleichbar) mit USDC oder MATIC im Polygon‑Netzwerk
+- Ein Hugging-Face-Konto (nötig für den Download zugangsbeschränkter Modelle wie Llama, deren Lizenz Sie akzeptieren müssen)
+- Ein Konto mit Guthaben bei einem GPU-Marktplatz, der ganze Rechner mit SSH-Zugang vermietet, etwa Vast.ai, RunPod oder TensorDock
 
-Falls Sie noch keine Wallet für dezentrale GPU‑Miete eingerichtet haben, folgen Sie zunächst unserer [MetaMask‑ und Polygon‑Einrichtungsanleitung](/de/setting-up-metamask-polygon-gpu-rental). Der Vorgang dauert etwa fünfzehn Minuten.
+Sie sind unsicher, welcher passt? Lesen Sie [was Sie brauchen, um eine GPU zu mieten](/de/what-you-need-to-rent-a-gpu/) und [GPUFlow vs. Vast.ai vs. RunPod vs. SaladCloud](/de/gpuflow-vs-vast-ai-vs-runpod/). GPUFlow selbst eignet sich für diese Anleitung nicht: Es vermietet Zugang zu KI-Modellen über eine API, keinen Rechner, auf dem Sie sich anmelden können.
 
-## Schritt 1: Absicherung Ihres Compute‑Nodes
+## Schritt 1: Den Rechenknoten sichern
 
-Der erste Schritt besteht darin, Hardware zu mieten. Bei zentralisierten Cloud‑Anbietern bedeutet dies Kontoerstellung, Identitätsprüfung, Genehmigungsprozesse und Hinterlegung einer Zahlungsmethode. Hier verläuft der Prozess deutlich direkter.
+Im ersten Schritt besorgen Sie sich die Hardware. Bei den großen Cloud-Plattformen heißt das: Konto anlegen, GPU-Kontingent beantragen und auf die Freigabe warten. Auf einem Marktplatz geht es deutlich direkter.
 
-Navigieren Sie zum GPUFlow‑Marktplatz. Verbinden Sie Ihre Wallet über die Schaltfläche oben rechts. Die Oberfläche zeigt verfügbare Maschinen mit Spezifikationen, Stundenpreisen und Zuverlässigkeitswerten.
+Öffnen Sie den Marktplatz Ihrer Wahl und laden Sie etwas Guthaben auf. Die Oberfläche zeigt die verfügbaren Rechner mit technischen Daten, Stundenpreisen und Zuverlässigkeitswerten.
 
-Filtern Sie nach folgenden Eigenschaften:
+Filtern Sie nach Rechnern mit diesen Eigenschaften:
 
 - **GPU:** RTX 4090 (24GB VRAM) oder RTX 6000 Ada (48GB VRAM)
-- **RAM:** mindestens 32GB
-- **Speicher:** 100GB+ verfügbar
-- **Zuverlässigkeit:** 95 % oder höherer Uptime‑Wert
+- **Arbeitsspeicher:** mindestens 32GB
+- **Speicherplatz:** 100GB+ frei
+- **Zuverlässigkeit:** Uptime-Wert von 95 % oder höher
 
-Wählen Sie einen Node aus und starten Sie die Miete. Der Smart Contract verlangt eine Kaution entsprechend Ihrer geschätzten Nutzungsdauer. Wie dieser Escrow‑Mechanismus beide Parteien schützt, erläutern wir in unserer [Erklärung zum Smart‑Contract‑Escrow](/de/smart-contract-escrow).
+Wählen Sie einen Rechner aus und starten Sie die Miete. Nehmen Sie ein Image, auf dem CUDA und PyTorch bereits installiert sind. Das spart Einrichtungszeit, und auch die wird berechnet.
 
-**Sicherheitsüberlegungen bei öffentlichen Nodes:**
+**Sicherheitshinweise für öffentliche Knoten:**
 
-Wenn Sie eine Maschine in einem fremden Netzwerk mieten, greifen Sie auf Hardware zu, die physisch von einer unbekannten Person kontrolliert wird. Die Virtualisierung bietet eine sinnvolle Isolation, dennoch ist umsichtiges Vorgehen erforderlich:
+Wenn Sie in einem fremden Netzwerk einen Rechner mieten, arbeiten Sie auf Hardware, die einem Unbekannten gehört und die er physisch kontrolliert. Die Virtualisierungsschicht bietet eine wirksame Isolation, trotzdem ist Vorsicht angebracht:
 
-1. **Speichern Sie keine privaten Schlüssel auf dem Remote‑System.** Ihre Wallet, SSH‑Schlüssel anderer Systeme und API‑Tokens für Produktionsumgebungen dürfen niemals auf einem Miet‑Node abgelegt werden.
-2. **Behandeln Sie das Dateisystem als potenziell kompromittiert.** Gehen Sie davon aus, dass geschriebene Daten theoretisch wiederhergestellt werden könnten. Sichere Löschverfahren behandeln wir in Schritt 6.
-3. **Verschlüsseln Sie sensible Daten bei der Übertragung.** Details folgen in Schritt 3.
-4. **Verwenden Sie keine wiederverwendeten Passwörter.** Ändern Sie Standardzugangsdaten sofort oder erstellen Sie ein neues SSH‑Schlüsselpaar.
+1. **Speichern Sie keine privaten Schlüssel auf dem entfernten Rechner.** SSH-Schlüssel für andere Systeme, Cloud-Zugangsdaten und API-Tokens für Produktivdienste haben auf einem Mietknoten nichts verloren.
 
-Nach Bestätigung der Miete erhalten Sie die Verbindungsdaten. Der SSH‑Befehl sieht typischerweise folgendermaßen aus:
+2. **Betrachten Sie das Dateisystem als feindlich.** Gehen Sie davon aus, dass der Host alles, was Sie auf die Festplatte schreiben, nach Ihrer Trennung theoretisch wiederherstellen könnte. Das sichere Löschen behandeln wir in Schritt 6.
+
+3. **Verschlüsseln Sie sensible Daten bei der Übertragung.** Darum geht es in Schritt 3.
+
+4. **Verwenden Sie keine Passwörter mehrfach.** Wenn die Mietoberfläche Standard-Zugangsdaten vorgibt, ändern Sie sie sofort oder erzeugen Sie ein neues SSH-Schlüsselpaar.
+
+Sobald die Miete bestätigt ist, zeigt das Dashboard die Verbindungsdaten an. Sie erhalten einen SSH-Befehl, der etwa so aussieht:
 
 ```bash
 ssh -p 22345 user@203.0.113.42
 ```
 
-Öffnen Sie Ihr lokales Terminal und führen Sie den Befehl aus. Bestätigen Sie den Host‑Key‑Fingerprint. Sie sind nun mit Ihrem gemieteten GPU‑Node verbunden.
+Öffnen Sie ein Terminal auf Ihrem Rechner und führen Sie diesen Befehl aus. Bestätigen Sie den Fingerabdruck des Host-Schlüssels, wenn Sie danach gefragt werden. Sie sind jetzt mit Ihrem gemieteten GPU-Knoten verbunden.
 
-Überprüfen Sie die Hardware:
+Prüfen Sie, ob die Hardware Ihrer Bestellung entspricht:
 
 ```bash
 nvidia-smi
 ```
 
-Die Ausgabe sollte Ihre gemietete GPU, deren Speichergröße und die installierte Treiberversion anzeigen. Falls die Angaben nicht mit Ihrer Bestellung übereinstimmen, trennen Sie die Verbindung sofort und melden Sie den Vorfall über das Marktplatz‑System.
+Die Ausgabe sollte Ihre gemietete GPU, ihren Speicher und die installierte Treiberversion zeigen. Erscheint die GPU nicht oder weichen die Daten von Ihrer Bestellung ab, trennen Sie die Verbindung sofort und melden Sie die Abweichung beim Support des Marktplatzes.
 
-## Schritt 2: Einrichtung der Umgebung
+## Schritt 2: Die Umgebung einrichten
 
-Mit einer verifizierten SSH‑Verbindung ist die nächste Priorität eine saubere Python‑Umgebung. Die meisten Nodes verfügen über vorinstallierte NVIDIA‑Treiber und CUDA‑Toolkits. Die Verwendung systemweiter Python‑Pakete führt jedoch häufig zu Versionskonflikten.
+Steht die SSH-Verbindung, bauen Sie als Nächstes eine saubere Python-Umgebung auf. Die meisten Mietknoten bringen NVIDIA-Treiber und CUDA-Toolkit bereits mit. Wer sich aber auf die systemweiten Python-Pakete des Hosts verlässt, handelt sich Abhängigkeitskonflikte ein, deren Fehlersuche Stunden kostet.
 
-Wir erstellen daher eine isolierte virtuelle Umgebung.
+Wir legen deshalb eine isolierte virtuelle Umgebung an, damit alles reproduzierbar und stabil bleibt.
+
+Mit diesen Befehlen erstellen Sie Ihren Arbeitsbereich:
 
 ```bash
 mkdir ~/llama3-finetune
@@ -140,233 +152,444 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-Ihr Prompt sollte nun `(venv)` anzeigen. Alle Installationen erfolgen innerhalb dieses Verzeichnisses.
+Die Eingabeaufforderung zeigt jetzt `(venv)` an: Die virtuelle Umgebung ist aktiv. Alle weiteren Pakete landen in diesem Verzeichnis, das System des Hosts bleibt unberührt.
 
-Überprüfen Sie zunächst die CUDA‑Version:
+Prüfen Sie vor der Installation der Python-Pakete, ob das CUDA-Toolkit erreichbar ist:
 
 ```bash
 nvcc --version
 ```
 
-Notieren Sie die Versionsnummer. Üblich sind CUDA 11.8 oder 12.1. Falls `nvcc` nicht gefunden wird:
+Notieren Sie sich die CUDA-Version. Sie brauchen sie, damit PyTorch kompatibel ist. Die meisten Mietknoten laufen mit CUDA 11.8 oder 12.1. Wird `nvcc` nicht gefunden, liegt das CUDA-Toolkit womöglich nicht in Ihrem PATH. Meist hilft es, die passende Umgebungsdatei einzulesen:
 
 ```bash
 source /etc/profile.d/cuda.sh
 ```
 
-Installieren Sie anschließend PyTorch passend zu Ihrer CUDA‑Version. Beispiel für CUDA 12.1:
+Gibt es diese Datei nicht, sehen Sie in der Dokumentation des Marktplatzes nach, wie Ihr Knoten konfiguriert ist.
+
+Installieren Sie jetzt das PyTorch-Ökosystem. Der folgende Befehl installiert PyTorch mit Unterstützung für CUDA 12.1. Läuft Ihr Knoten mit einer anderen Version, passen Sie das CUDA-Suffix an:
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-Nun installieren wir die erforderlichen Bibliotheken:
+Installieren Sie danach die Bibliotheken für effizientes Fine-Tuning. Wir nutzen das Hugging-Face-Ökosystem, dazu bitsandbytes für die Quantisierung und PEFT für parametereffizientes Training:
 
 ```bash
 pip install transformers==4.40.0 datasets==2.19.0 peft==0.10.0 bitsandbytes==0.43.1 trl==0.8.6 accelerate==0.29.0
 ```
 
-**Versionsbindung ist entscheidend.** Ungepinnt installierte Pakete führen häufig zu Inkompatibilitäten.
+**Feste Versionen sind wichtig.** Die oben genannten Versionen sind zum Zeitpunkt des Schreibens getestet und miteinander kompatibel. Das Hugging-Face-Ökosystem entwickelt sich schnell, und Installationen ohne feste Versionen bringen häufig inkompatible Änderungen mit. Treten Importfehler oder unerwartetes Verhalten auf, sind abweichende Versionen die wahrscheinlichste Ursache.
 
-Authentifizieren Sie sich anschließend bei Hugging Face. Akzeptieren Sie zunächst die Lizenzbedingungen im entsprechenden Modell‑Repository auf [Hugging Face](https://huggingface.co) und generieren Sie einen Access‑Token.
+Zum Schluss melden Sie sich bei Hugging Face an. Die Gewichte von Llama-3 sind durch eine Lizenzvereinbarung geschützt, für die Sie ein Hugging-Face-Konto brauchen. Öffnen Sie das [Meta-Llama-3-Repository](https://huggingface.co) und akzeptieren Sie die Lizenzbedingungen. Erzeugen Sie dann in den Einstellungen Ihres Hugging-Face-Kontos ein Access-Token.
+
+Führen Sie den Anmeldebefehl aus:
 
 ```bash
 huggingface-cli login
 ```
 
-Fügen Sie Ihren Token ein. Dieser wird unter `~/.cache/huggingface/token` gespeichert.
+Fügen Sie Ihr Access-Token ein, wenn Sie dazu aufgefordert werden. Es wird unter `~/.cache/huggingface/token` gespeichert. Damit dürfen Sie zugangsbeschränkte Modellgewichte direkt auf den Mietknoten herunterladen.
 
-![Python-Code in einem Terminal mit Konfigurationsparametern für das Llama-3-Modell](../_images/python-llama3-config.png)
+![Python-Code in einem Terminal mit Konfigurationsparametern für das Modell Llama-3](../_images/python-llama3-config.png)
 
-## Schritt 3: Sichere Datenübertragung
+## Schritt 3: Daten sicher übertragen
 
-Der Hauptgrund für dezentrale Rechenleistung ist Datensouveränität.
+In diesem Abschnitt geht es um den Hauptgrund, warum Sie einen Rechner mieten, statt eine API aufzurufen: die Hoheit über Ihre Daten.
 
-In klassischen Cloud‑Workflows laden Sie Ihren Datensatz in S3, Google Cloud Storage oder Azure Blob hoch und anschließend auf Ihre Compute‑Instanz herunter. Dadurch entstehen mehrere Kopien sensibler Daten.
+Der übliche Cloud-Ablauf sieht so aus: Sie laden den Datensatz in einen Speicher-Bucket hoch – S3, Google Cloud Storage, Azure Blob – und von dort auf Ihre Recheninstanz. Dabei entstehen mehrere Kopien Ihrer sensiblen Daten auf Systemen, die Sie nicht kontrollieren. Der Speicheranbieter hat Zugriff. Der Rechenanbieter hat Zugriff. Beide protokollieren Ihre Aktivität.
 
-Wir umgehen dies vollständig über verschlüsselte Direktübertragung.
+Wir umgehen das vollständig und übertragen die Daten direkt und verschlüsselt.
 
-Öffnen Sie ein **neues Terminalfenster** auf Ihrem **lokalen Rechner** und führen Sie aus:
+Zum SSH-Protokoll gehört `scp` (Secure Copy Protocol). Es überträgt Dateien über denselben verschlüsselten Kanal, den Sie auch für das Terminal nutzen. Ihre Daten gehen direkt von Ihrem Rechner zum Mietknoten, ohne einen Zwischenspeicher zu berühren.
+
+Öffnen Sie auf Ihrem **eigenen Rechner** ein **neues Terminalfenster**. Lassen Sie die bestehende SSH-Sitzung zum Mietknoten offen. Führen Sie den folgenden Befehl aus und setzen Sie dabei Ihren tatsächlichen Dateipfad und Ihre Verbindungsdaten ein:
 
 ```bash
 scp -P 22345 /path/to/your/dataset.jsonl user@203.0.113.42:~/llama3-finetune/
 ```
 
-Für große Datensätze:
+Die Option `-P` gibt die Portnummer an (beachten Sie das große P, anders als das kleine `-p` bei ssh). Bei großen Datensätzen kann die Übertragung einige Minuten dauern. Eine Fortschrittsanzeige zeigt die übertragenen Bytes.
+
+**Datensätze über 1GB** sollten Sie vor der Übertragung komprimieren:
 
 ```bash
-# Lokal
+# On your local machine
 gzip -k dataset.jsonl
 scp -P 22345 dataset.jsonl.gz user@203.0.113.42:~/llama3-finetune/
 
-# Remote
+# Then on the remote node
+cd ~/llama3-finetune
 gunzip dataset.jsonl.gz
 ```
 
-Für erhöhte Sicherheitsanforderungen kann zusätzliche Verschlüsselung mit `age` erfolgen:
+**Zusätzliche Schutzmaßnahmen:**
+
+Wenn Ihr Bedrohungsmodell auch versierte Angreifer umfasst, können Sie den Datensatz vor der Übertragung mit GPG oder age verschlüsseln. Das ist eine zusätzliche Schutzschicht: Selbst wenn die Übertragung irgendwie abgefangen würde, bliebe der Inhalt unlesbar.
 
 ```bash
+# On your local machine (using age encryption)
 age -p dataset.jsonl > dataset.jsonl.age
 scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/llama3-finetune/
 
-# Remote
+# On the remote node
 age -d dataset.jsonl.age > dataset.jsonl
 rm dataset.jsonl.age
 ```
 
-SSH verwendet AES‑256‑Verschlüsselung. Für die meisten Anwendungsfälle ist dies ausreichend.
+Für die meisten Nutzer bietet die normale SCP-Übertragung ausreichend Schutz. Das SSH-Protokoll verschlüsselt mit AES-256. Die Prüfung des Host-Schlüssels verhindert Man-in-the-Middle-Angriffe. Ihre Daten laufen über keinen fremden Speicherdienst.
 
-## Schritt 4: Das Fine‑Tuning‑Skript
+## Schritt 4: Das Fine-Tuning-Skript
 
-Wir verwenden `SFTTrainer` aus der TRL‑Bibliothek für überwachte Feinabstimmung.
+Für das überwachte Fine-Tuning nutzen wir die Klasse `SFTTrainer` aus der Bibliothek TRL (Transformer Reinforcement Learning). Sie nimmt Ihnen viel Komplexität ab und bleibt trotzdem für produktive Workloads konfigurierbar.
 
-**Datensatzformat:**
+Bevor Sie das Trainingsskript schreiben, müssen Sie wissen, welches Datensatzformat erwartet wird.
 
-JSONL‑Datei mit einem `text`‑Feld pro Zeile.
+**Anforderungen an das Datensatzformat:**
 
-Wichtige Anforderungen:
+Das Skript erwartet eine JSONL-Datei (JSON Lines), in der jede Zeile ein gültiges JSON-Objekt mit einem Feld `text` enthält. Dieses Feld enthält das komplette Trainingsbeispiel als einen einzigen String.
 
-1. Jede JSON‑Struktur muss exakt eine Zeile belegen.
-2. Zeilenumbrüche innerhalb des Textes als `\n` escapen.
-3. Anführungszeichen mit `\"` escapen.
-4. UTF‑8‑Kodierung verwenden.
+Hier drei korrekt formatierte Zeilen als Beispiel:
 
-Erstellen Sie das Trainingsskript:
+```json
+{"text": "### Instruction: Summarize the following legal clause in plain English.\n\n### Input: Party A shall indemnify, defend, and hold harmless Party B from any claims, damages, or expenses arising from Party A's negligence or willful misconduct.\n\n### Response: Party A agrees to protect Party B from any legal claims or costs that result from Party A's mistakes or intentional wrongdoing."}
+{"text": "### Instruction: Extract the key financial metrics from this earnings report.\n\n### Input: Q3 revenue reached $4.2B, up 12% YoY. Operating margin improved to 23.5% from 21.2%. Free cash flow was $890M.\n\n### Response: Revenue: $4.2 billion (12% year-over-year growth). Operating margin: 23.5% (up from 21.2%). Free cash flow: $890 million."}
+{"text": "### Instruction: Identify potential HIPAA violations in this process description.\n\n### Input: Patient records are emailed to the billing department as PDF attachments. The billing staff prints these for manual review and shreds them after processing.\n\n### Response: Potential violations include: unencrypted email transmission of PHI, physical documents that may be visible to unauthorized personnel during processing, and lack of documented chain of custody. Recommend encrypted file transfer and on-screen review only."}
+```
+
+**Wichtige Hinweise zur Formatierung:**
+
+1. Jedes JSON-Objekt steht in genau einer Zeile. Kein mehrzeiliges JSON.
+2. Zeilenumbrüche im Feld `text` müssen als `\n` maskiert sein.
+3. Anführungszeichen im Text müssen als `\"` maskiert sein.
+4. Die Datei muss UTF-8-kodiert sein.
+
+Liegen Ihre Ausgangsdaten in einem anderen Format vor (CSV, Parquet, getrennte Spalten für Anweisung und Antwort), müssen Sie sie vor der Übertragung in diese Struktur bringen. Die Python-Bibliothek `json` übernimmt das Maskieren automatisch:
+
+```python
+import json
+
+with open('dataset.jsonl', 'w') as f:
+    for example in your_data:
+        text = f"### Instruction: {example['instruction']}\n\n### Input: {example['input']}\n\n### Response: {example['output']}"
+        f.write(json.dumps({"text": text}) + '\n')
+```
+
+Wenn der Datensatz bereitliegt, legen Sie auf dem entfernten Knoten das Trainingsskript an:
 
 ```bash
 cd ~/llama3-finetune
 nano train.py
 ```
 
-(Fügen Sie den vollständigen Python‑Code aus Teil 1 unverändert ein.)
+Fügen Sie die folgende Konfiguration ein. Das Skript nutzt QLoRA, um ein Modell mit 8B Parametern innerhalb der Speichergrenzen einer 24GB-GPU feinabzustimmen. Das Beispiel verwendet Llama-3.1-8B, Sie können aber jedes kompatible Modell einsetzen, indem Sie die Variable MODEL_NAME ändern:
 
-Speichern Sie die Datei.
+```python
+import torch
+from datasets import load_dataset
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    TrainingArguments,
+)
+from peft import LoraConfig
+from trl import SFTTrainer
 
-Wichtige Parameter:
+# ============================================
+# CONFIGURATION - Modify these values as needed
+# ============================================
 
-- **LORA_RANK:** Steuert Anpassungskapazität.
-- **MAX_SEQ_LENGTH:** Reduzieren bei OOM‑Fehlern.
-- **BATCH_SIZE:** Ebenfalls reduzieren bei Speicherengpässen.
+# Base model identifier on Hugging Face
+# Change this to fine-tune a different model (e.g., "mistralai/Mistral-7B-v0.1")
+MODEL_NAME = "meta-llama/Llama-3.1-8B"
 
-Training starten:
+# Name for your fine-tuned adapter
+OUTPUT_NAME = "llama-3-8b-custom"
+
+# Path to your dataset
+DATASET_PATH = "dataset.jsonl"
+
+# Training hyperparameters
+NUM_EPOCHS = 1
+BATCH_SIZE = 4
+LEARNING_RATE = 2e-4
+MAX_SEQ_LENGTH = 512
+
+# LoRA hyperparameters
+LORA_RANK = 16
+LORA_ALPHA = 16
+LORA_DROPOUT = 0.05
+
+# ============================================
+# QUANTIZATION CONFIGURATION
+# ============================================
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+)
+
+# ============================================
+# MODEL LOADING
+# ============================================
+
+print("Loading base model...")
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    quantization_config=bnb_config,
+    device_map="auto",
+    trust_remote_code=True,
+)
+model.config.use_cache = False
+
+print("Loading tokenizer...")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.padding_side = "right"
+
+# ============================================
+# DATASET LOADING
+# ============================================
+
+print(f"Loading dataset from {DATASET_PATH}...")
+dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
+print(f"Dataset contains {len(dataset)} examples")
+
+# ============================================
+# LORA CONFIGURATION
+# ============================================
+
+peft_config = LoraConfig(
+    r=LORA_RANK,
+    lora_alpha=LORA_ALPHA,
+    lora_dropout=LORA_DROPOUT,
+    bias="none",
+    task_type="CAUSAL_LM",
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+)
+
+# ============================================
+# TRAINING ARGUMENTS
+# ============================================
+
+training_args = TrainingArguments(
+    output_dir="./results",
+    num_train_epochs=NUM_EPOCHS,
+    per_device_train_batch_size=BATCH_SIZE,
+    gradient_accumulation_steps=1,
+    learning_rate=LEARNING_RATE,
+    weight_decay=0.001,
+    fp16=True,
+    logging_steps=10,
+    save_steps=100,
+    save_total_limit=3,
+    optim="paged_adamw_32bit",
+    lr_scheduler_type="cosine",
+    warmup_ratio=0.03,
+    report_to="none",
+)
+
+# ============================================
+# TRAINER INITIALIZATION AND EXECUTION
+# ============================================
+
+print("Initializing trainer...")
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=dataset,
+    peft_config=peft_config,
+    dataset_text_field="text",
+    max_seq_length=MAX_SEQ_LENGTH,
+    tokenizer=tokenizer,
+    args=training_args,
+)
+
+print("Starting training...")
+trainer.train()
+
+print(f"Saving adapter to {OUTPUT_NAME}...")
+trainer.model.save_pretrained(OUTPUT_NAME)
+tokenizer.save_pretrained(OUTPUT_NAME)
+
+print("Training complete.")
+```
+
+Speichern Sie die Datei mit `Ctrl+O` und beenden Sie den Editor mit `Ctrl+X`.
+
+**Die wichtigsten Parameter:**
+
+- **LORA_RANK (r=16):** Bestimmt, wie ausdrucksstark der Adapter ist. Höhere Werte lernen mehr, brauchen aber mehr Speicher. Üblich sind Werte zwischen 8 und 64.
+
+- **LORA_ALPHA (16):** Skalierungsfaktor für die LoRA-Gewichte. Eine gängige Faustregel setzt ihn gleich dem Rang.
+
+- **MAX_SEQ_LENGTH (512):** Maximale Länge der Trainingsbeispiele in Tokens. Längere Sequenzen brauchen mehr Speicher. Bei OOM-Fehlern senken Sie zuerst diesen Wert.
+
+- **BATCH_SIZE (4):** Anzahl der Beispiele, die gleichzeitig verarbeitet werden. Reicht der Speicher nicht, senken Sie den Wert auf 2 oder 1.
+
+- **target_modules:** Die Schichten, in die die LoRA-Adapter eingefügt werden. Bei Llama-3 liefern die Projektionsschichten der Attention (q, k, v, o) die besten Ergebnisse.
+
+Starten Sie das Training mit:
 
 ```bash
 python train.py
 ```
 
-Das Modell (ca. 16GB) wird einmalig heruntergeladen. Anschließend beginnt das Training mit periodischer Verlustausgabe.
+Das Skript lädt zuerst die Gewichte des Basismodells herunter (bei einem 8B-Modell etwa 16GB). Das passiert nur einmal, spätere Läufe nutzen die zwischengespeicherten Gewichte. Nach dem Laden sehen Sie den Trainingsfortschritt, alle 10 Schritte mit dem aktuellen Loss-Wert.
 
-## Schritt 5: Überwachung des Trainingslaufs
+## Schritt 5: Den Trainingslauf überwachen
 
-Während das Training läuft, müssen Sie den Zustand der GPU überwachen. Wenn der VRAM vollständig ausgelastet ist oder die Temperaturen kritische Werte erreichen, kann der Prozess abbrechen – im ungünstigsten Fall mit beschädigten Checkpoints und verlorener Mietzeit.
+Während das Skript läuft, sollten Sie den Zustand der GPU im Blick behalten. Läuft der VRAM voll oder überschreitet die Temperatur sichere Grenzwerte, stürzt der Prozess ab. Im schlimmsten Fall ist dann Ihr Checkpoint beschädigt und die bezahlte Mietzeit verloren.
 
-Öffnen Sie ein zweites Terminalfenster auf Ihrem lokalen Rechner und stellen Sie eine weitere SSH‑Verbindung her:
+Öffnen Sie auf Ihrem Rechner ein zweites Terminalfenster und bauen Sie eine weitere SSH-Verbindung zum Mietknoten auf:
 
 ```bash
 ssh -p 22345 user@203.0.113.42
 ```
 
-Führen Sie anschließend aus:
+Mit diesem Befehl sehen Sie die GPU-Werte in Echtzeit:
 
 ```bash
 watch -n 1 nvidia-smi
 ```
 
-![Terminal mit nvidia-smi-Ausgabe, die GPU-Speichernutzung und Temperaturstatistiken anzeigt](../_images/nvidia-smi-monitoring.png)
+![Terminal mit der Ausgabe von nvidia-smi, die Speicherauslastung und Temperatur der GPU zeigt](../_images/nvidia-smi-monitoring.png)
 
-Die Anzeige aktualisiert sich im Sekundentakt und zeigt Speicherauslastung, GPU‑Nutzung und Temperatur.
+Die Anzeige aktualisiert sich jede Sekunde und zeigt Speicherbelegung, GPU-Auslastung in Prozent und Temperatur. Auf einer RTX 4090 mit der Konfiguration aus diesem Leitfaden sollten Sie etwa Folgendes sehen:
 
-Auf einer RTX 4090 mit der in diesem Leitfaden beschriebenen Konfiguration sollten Sie typischerweise beobachten:
+- **Speicherbelegung:** 18GB bis 22GB der verfügbaren 24GB
+- **GPU-Auslastung:** 90 % bis 100 % während aktiver Trainingsschritte
+- **Temperatur:** 60 °C bis 80 °C, je nach Kühlung beim Host
 
-- **Speichernutzung:** 18GB bis 22GB von 24GB
-- **GPU‑Auslastung:** 90 % bis 100 % während aktiver Trainingsschritte
-- **Temperatur:** 60 °C bis 80 °C abhängig von der Kühlung des Hosts
+**Häufige Probleme und ihre Lösung:**
 
-**Typische Probleme und Lösungen:**
+**Speicher nahe 24GB:** Stößt die Speicherbelegung ständig an die Obergrenze, senken Sie `BATCH_SIZE` im Trainingsskript auf 2 oder 1. Alternativ reduzieren Sie `MAX_SEQ_LENGTH` auf 256. In beiden Fällen müssen Sie den Trainingslauf neu starten.
 
-**Speichergrenze erreicht:** Reduzieren Sie `BATCH_SIZE` auf 2 oder 1. Alternativ senken Sie `MAX_SEQ_LENGTH` auf 256.
+**GPU-Auslastung nahe 0 %:** Das deutet meist auf einen Engpass beim Laden der Daten hin. Die CPU liefert der GPU die Beispiele nicht schnell genug. Auf Knoten mit NVMe ist das seltener, kann bei sehr großen Datensätzen aber vorkommen. Bereiten Sie den Datensatz in diesem Fall vor der Übertragung in ein effizienteres Format (Arrow/Parquet) auf.
 
-**GPU‑Auslastung nahe 0 %:** Hinweis auf einen Daten‑Engpass. In seltenen Fällen hilft Vorverarbeitung in ein effizienteres Format (Arrow/Parquet).
+**Temperatur über 85 °C:** Manche Hosts betreiben ihre GPUs in schlecht belüfteten Gehäusen. Dauerhaft hohe Temperaturen können thermisches Drosseln auslösen und Ihr Training verlangsamen. Liegt die Temperatur ständig über 85 °C, beenden Sie die Miete und wählen einen anderen Knoten. Schäden an der Hardware sind das Problem des Hosts, verlorene Zeit und beschädigte Checkpoints aber Ihres.
 
-**Temperatur über 85 °C:** Beenden Sie im Zweifel die Miete und wählen Sie einen anderen Node.
+**Die Loss-Kurve richtig lesen:**
 
-**Interpretation des Loss‑Werts:**
+Ihr Trainingsskript gibt alle 10 Schritte einen Loss-Wert aus. Er gibt an, wie „falsch“ die Vorhersagen des Modells sind – niedriger ist besser. Erwarten können Sie:
 
-- **Anfangs‑Loss:** 1,5 bis 3,0
-- **Trend:** gleichmäßiger Abfall
-- **Finaler Loss:** 0,5 bis 1,5 bei sauberer Konfiguration
+- **Anfangs-Loss:** je nach Datensatz meist zwischen 1,5 und 3,0
+- **Verlauf:** stetig fallend über die ersten paar hundert Schritte
+- **End-Loss:** bei einem gut konfigurierten Lauf meist zwischen 0,5 und 1,5
 
-Bleibt der Loss konstant, ist die Lernrate möglicherweise zu niedrig. Steigt er stark an, ist sie zu hoch. Der Standardwert `2e-4` ist in der Regel geeignet.
+Stagniert der Loss von Anfang an (kein Rückgang nach 100 Schritten), ist die Lernrate womöglich zu niedrig. Schwankt der Loss stark oder steigt er, ist sie zu hoch. Der Standardwert `2e-4` funktioniert für die meisten Datensätze gut, gelegentlich ist aber eine Anpassung nötig.
 
-Ein Training mit 1.000 Beispielen dauert auf einer RTX 4090 etwa 30 bis 60 Minuten. 10.000 Beispiele benötigen typischerweise 5 bis 10 Stunden.
+Sinkt der Loss gleichmäßig und springt dann plötzlich auf sehr hohe Werte (10+), enthält Ihr Datensatz wahrscheinlich fehlerhafte Beispiele. Stoppen Sie das Training, prüfen Sie Ihre JSONL-Datei auf Kodierungsfehler oder falsch maskierte Zeichen und starten Sie neu.
 
-## Schritt 6: Modell herunterladen und Umgebung bereinigen
+Ein typischer Fine-Tuning-Lauf mit 1.000 Beispielen dauert auf einer RTX 4090 30 bis 60 Minuten. Größere Datensätze skalieren ungefähr linear: 10.000 Beispiele brauchen 5 bis 10 Stunden.
 
-Nach Abschluss befindet sich Ihr LoRA‑Adapter im angegebenen Ausgabeverzeichnis.
+## Schritt 6: Das Modell abholen und die Umgebung bereinigen
+
+Nach dem Training liegen Ihre feinabgestimmten Gewichte als LoRA-Adapter in dem Verzeichnis, das Sie mit `OUTPUT_NAME` festgelegt haben. Der Adapter ist kompakt – meist 100MB bis 500MB, verglichen mit den 16GB des vollständigen Basismodells.
+
+Prüfen Sie zuerst, ob die Adapterdateien vorhanden sind:
 
 ```bash
 ls -la ~/llama3-finetune/llama-3-8b-custom/
 ```
 
-Sie sollten Dateien wie `adapter_config.json` und `adapter_model.safetensors` sehen.
+Sie sollten unter anderem `adapter_config.json`, `adapter_model.safetensors` und die Tokenizer-Dateien sehen.
 
-Laden Sie den Adapter auf Ihren lokalen Rechner herunter:
+**Führen Sie den Adapter nicht auf dem Mietknoten mit dem Basismodell zusammen.** Beim Merge werden die LoRA-Gewichte mit dem Basismodell zu einem eigenständigen, feinabgestimmten Modell kombiniert. Dafür muss das vollständige 16-Bit-Basismodell in den Speicher geladen werden, was den VRAM einer 24GB-Karte übersteigen kann. Führen Sie den Merge auf Ihrer eigenen Infrastruktur durch oder laden Sie den Adapter bei der Inferenz einfach zusammen mit dem Basismodell. Die PEFT-Bibliothek erledigt das problemlos:
+
+```python
+from peft import PeftModel
+from transformers import AutoModelForCausalLM
+
+base_model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3.1-8B",
+    device_map="auto",
+)
+model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
+```
+
+Um den Adapter herunterzuladen, wechseln Sie zurück in Ihr **lokales Terminal** (nicht in die SSH-Sitzung) und führen Folgendes aus:
 
 ```bash
 scp -r -P 22345 user@203.0.113.42:~/llama3-finetune/llama-3-8b-custom ./
 ```
 
-**Wichtig:** Bereinigen Sie anschließend die Remote‑Umgebung.
+Die Option `-r` kopiert das gesamte Verzeichnis rekursiv. Prüfen Sie, ob die Übertragung vollständig war, indem Sie die lokalen Dateigrößen mit denen auf dem entfernten Rechner vergleichen.
+
+**Die entfernte Umgebung bereinigen:**
+
+An diesem Schritt erkennt man Profis. Auf Ihrem Mietknoten liegen jetzt Ihr vertraulicher Datensatz, Ihr Trainingscode und zwischengespeicherte Modellgewichte. Dieses Material auf einem Rechner zu lassen, den Sie nicht kontrollieren, verstößt gegen die Grundregeln der operativen Sicherheit.
+
+Wechseln Sie zurück in Ihre SSH-Sitzung auf dem Mietknoten und führen Sie die folgenden Befehle aus:
 
 ```bash
+# Remove your working directory and all contents
 rm -rf ~/llama3-finetune
+
+# Clear the Hugging Face cache (contains downloaded model weights)
 rm -rf ~/.cache/huggingface
+
+# Clear Python package cache
 rm -rf ~/.cache/pip
+
+# Clear bash history
 history -c
 cat /dev/null > ~/.bash_history
+
+# Clear any potential swap residue (may require sudo depending on node config)
 sync
 ```
 
-Optional mit `shred` für gründlichere Löschung:
+Wenn der Knoten `shred` bereitstellt und Sie zusätzlich sicherstellen möchten, dass gelöschte Dateien nicht wiederhergestellt werden können:
 
 ```bash
+# Secure deletion (slower but more thorough)
 find ~/llama3-finetune -type f -exec shred -u {} \;
 rm -rf ~/llama3-finetune
 ```
 
-SSH‑Sitzung beenden:
+Trennen Sie die SSH-Sitzung:
 
 ```bash
 exit
 ```
 
-Beenden Sie die Miete im GPUFlow‑Dashboard. Nicht verbrauchte Kaution wird automatisch zurückerstattet.
+Gehen Sie zurück ins Dashboard des Marktplatzes und beenden Sie die Miete samt eventuellem Speicher-Volume, damit keine weiteren Kosten anfallen.
 
-## Inferenz mit Ihrem feinabgestimmten Modell
+## Inferenz mit dem feinabgestimmten Modell
 
-Minimalbeispiel:
+Sobald der Adapter auf Ihrem Rechner liegt, können Sie Inferenz ganz ohne Cloud betreiben. Ein minimales Beispiel:
 
 ```python
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import PeftModel
 
+# Quantization config (same as training)
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_quant_type="nf4",
     bnb_4bit_compute_dtype=torch.float16,
 )
 
+# Load base model
 base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Meta-Llama-3-8B",
+    "meta-llama/Llama-3.1-8B",
     quantization_config=bnb_config,
     device_map="auto",
 )
 
+# Load your fine-tuned adapter
 model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
+
+# Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
 
-prompt = "### Instruction: Fassen Sie die Vertragsklausel zusammen.\n\n### Input: The Licensee shall not reverse engineer, decompile, or disassemble the Software.\n\n### Response:"
+# Generate a response
+prompt = "### Instruction: Summarize the contract clause.\n\n### Input: The Licensee shall not reverse engineer, decompile, or disassemble the Software.\n\n### Response:"
 
 inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
 outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.7)
@@ -375,36 +598,37 @@ response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 print(response)
 ```
 
-Für produktive Umgebungen empfiehlt sich die Bereitstellung über FastAPI, Flask oder Inferenz‑Server wie vLLM oder TGI.
+Für den produktiven Einsatz können Sie das Ganze mit FastAPI oder Flask als API bereitstellen oder über Inferenzserver wie vLLM oder Text Generation Inference (TGI) ausliefern. Einen Vergleich finden Sie in [Ollama vs. vLLM vs. TGI auf einer RTX 4090](/de/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/).
 
 ## Fazit
 
-Sie haben ein modernes Large Language Model mit proprietären Daten feinabgestimmt – ohne diese Daten einem Dritten offenzulegen. Ohne Unternehmensvertrag. Ohne Identitätsprüfung. Ohne Abhängigkeit von geschlossenen APIs.
+Sie haben ein großes Sprachmodell mit vertraulichen Daten feinabgestimmt und diese Daten dabei so kurz wie möglich auf nur einem Rechner gehalten. Dafür mussten Sie weder Unternehmensverträge unterschreiben noch einem Technologiekonzern Zugriff auf Ihr geistiges Eigentum geben.
 
-Die Gesamtkosten eines zweistündigen Trainings auf einer RTX 4090 bei 0,45 US‑Dollar pro Stunde betragen weniger als einen Dollar. Der vergleichbare Ablauf bei AWS liegt bei 100 bis 200 US‑Dollar.
+Die Gesamtkosten lagen bei einem zweistündigen Trainingslauf auf einer RTX 4090 zu 0,45 $ pro Stunde bei neunzig Cent. Eine einzelne A10G kostet auf AWS etwa 1,01 $ pro Stunde, der Lauf selbst wäre also auch dort nicht teuer. Der Unterschied liegt im Kontingentantrag und in der Einrichtung.
 
-Entscheidend ist jedoch nicht nur der Preis, sondern die Kontrolle. Keine Nutzungsbedingungen regeln Ihre Trainingsdaten. Keine Plattform speichert Aktivitätsprotokolle, die Ihre Identität mit Ihrem Modelltraining verknüpfen.
+Wichtiger noch: Ihr Datensatz ist nie über einen Speicherdienst gelaufen und wurde nach getaner Arbeit vom gemieteten Rechner gelöscht.
 
-Dezentrale GPU‑Infrastruktur verschiebt die Kontrolle über Rechenleistung, Kosten und Daten zurück zu denen, die Wert schaffen.
+Die Zeit der Abhängigkeit von Closed-Source-APIs geht zu Ende. Organisationen, die Datenschutz brauchen, Forscher, denen Unabhängigkeit wichtig ist, und Entwickler, die Kontrolle wollen, haben eine Alternative. Gemietete GPUs geben ihnen Infrastruktur, Kosten und Daten zurück in die Hand.
 
-Ihr feinabgestimmtes Modell befindet sich nun auf Infrastruktur unter Ihrer Kontrolle. Wie Sie es einsetzen, wem Sie Zugriff gewähren und zu welchem Zweck es dient, entscheiden allein Sie.
+Ihr feinabgestimmtes Modell liegt jetzt auf Hardware, die Sie kontrollieren. Wie Sie es bereitstellen, wer darauf zugreifen darf und wofür es eingesetzt wird, entscheiden allein Sie.
 
 ---
 
-## Weiterführende Artikel
+## Weiterlesen
 
-**Kosten und Zahlungsmodelle:**
+Dieser Leitfaden hat den grundlegenden Ablauf für privates LLM-Fine-Tuning behandelt. Die folgenden Artikel vertiefen verwandte Themen:
 
-- [GPU Rental Pricing Comparison 2026](/de/gpu-rental-pricing-comparison-2026)
-- [Stablecoins Are the Smartest Way to Pay for GPU Rental](/de/stable-coins-are-the-smartest-way-to-pay-for-gpu-rental)
-- [How to Rent a GPU Without KYC](/de/how-to-rent-gpu-without-kyc)
+**Kosten verstehen:**
 
-**Plattformmechanik:**
+- [Preisvergleich GPU-Miete 2026](/de/gpu-rental-pricing-comparison-2026/) – Kostenanalyse für Marktplätze und große Clouds
+- [Die tatsächlichen Kosten einer GPU-Miete](/de/hidden-fees-in-gpu-rental/) – Kostenfaktoren, die auf keiner Preisseite stehen
 
-- [Setting Up MetaMask for Polygon GPU Rental](/de/setting-up-metamask-polygon-gpu-rental)
-- [Smart Contract Escrow Explained](/de/smart-contract-escrow)
-- [Hidden Fees in GPU Rental](/de/hidden-fees-in-gpu-rental)
+**Einstieg:**
 
-**Vergleich:**
+- [Was Sie 2026 brauchen, um eine GPU zu mieten](/de/what-you-need-to-rent-a-gpu/) – Registrierung, Verifizierung und Zahlung auf jeder Plattform
+- [So schützen Sie Ihren Datensatz auf einem öffentlichen GPU-Knoten](/de/how-to-secure-dataset-on-public-gpu-node/) – Sicherheitsmaßnahmen vor, während und nach dem Training
 
-- [RunPod vs Vast.ai Comparison](/de/runpod-vs-vastapi-comparison)
+**Optionen vergleichen:**
+
+- [RunPod vs. Vast.ai im Vergleich](/de/runpod-vs-vastapi-comparison/) – Wie sich die beiden größten Marktplätze unterscheiden
+- [GPUFlow vs. Vast.ai vs. RunPod vs. SaladCloud](/de/gpuflow-vs-vast-ai-vs-runpod/) – Rechner, Container und API-Keys im Vergleich

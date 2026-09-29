@@ -1,72 +1,69 @@
 ---
 import '../styles/global.css';
-import type { ImageMetadata } from 'astro';
-import FallbackImage from '../assets/blog-placeholder-1.jpg';
 import { SITE_TITLE } from '../consts';
-import { languages } from '../i18n/locales';
+import { htmlLang, ogLocale, type LanguageCode } from '../i18n/locales';
 
 interface Props {
   title: string;
   description: string;
-  image?: ImageMetadata;
+  lang: LanguageCode;
+  ogType?: 'website' | 'article';
+  ogImage?: string;
+  // Language code -> absolute URL of this page in that language.
+  alternates?: Partial<Record<LanguageCode, string>>;
+  noindex?: boolean;
 }
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const { title, description, image = FallbackImage } = Astro.props;
+const {
+  title,
+  description,
+  lang,
+  ogType = 'website',
+  ogImage = new URL('/og-default.jpg', Astro.site).toString(),
+  alternates = {},
+  noindex = false,
+} = Astro.props;
 
-const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://yourdomain.com';
-
-// Map your locale codes to proper hreflang codes
-const hreflangMap: Record<string, string> = {
-  'zh_cn': 'zh-CN',
-  'zh_tw': 'zh-TW',
-  'pt_br': 'pt-BR',
-};
-const getHreflang = (code: string) => hreflangMap[code] || code;
-// Only the language home pages (/de/, /ja/, ...) are translations of each other.
-const isLanguageHome = /^\/[a-z_]+\/?$/.test(Astro.url.pathname) && Astro.url.pathname.replace(/\//g, '') in languages;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
+const alternateList = Object.entries(alternates) as [LanguageCode, string][];
 ---
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="sitemap" href="/sitemap-index.xml" />
-<link
-  rel="alternate"
-  type="application/rss+xml"
-  title={SITE_TITLE}
-  href={new URL('rss.xml', Astro.site)}
-/>
+<link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={new URL(`/${lang}/rss.xml`, Astro.site)} />
 <meta name="generator" content={Astro.generator} />
 
 <link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin />
 <link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin />
 
-<link rel="canonical" href={canonicalURL} />
+{noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonicalURL} />}
 
-<!-- hreflang tags -->
-{isLanguageHome && Object.keys(languages).map((code) => (
-  <link 
-    rel="alternate" 
-    hreflang={getHreflang(code)} 
-    href={`${siteUrl}/${code}/`} 
-  />
+{!noindex && alternateList.length > 1 && alternateList.map(([code, url]) => (
+  <link rel="alternate" hreflang={htmlLang(code)} href={url} />
 ))}
-{isLanguageHome && <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/`} />}
+{!noindex && alternateList.length > 1 && alternates.en && (
+  <link rel="alternate" hreflang="x-default" href={alternates.en} />
+)}
 
 <title>{title}</title>
-<meta name="title" content={title} />
 <meta name="description" content={description} />
 
-<meta property="og:type" content="website" />
-<meta property="og:url" content={Astro.url} />
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={SITE_TITLE} />
+<meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image.src, Astro.url)} />
-<!-- Rybbit Analytics -->
-<script
-    src="https://anal.gpuflow.app/api/script.js"
-    data-site-id="45ee90ef902f"
-    defer
-></script>
+<meta property="og:image" content={ogImage} />
+<meta property="og:locale" content={ogLocale(lang)} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+<slot />
+
+<script src="https://anal.gpuflow.app/api/script.js" data-site-id="45ee90ef902f" defer></script>

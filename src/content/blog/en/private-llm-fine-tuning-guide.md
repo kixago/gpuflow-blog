@@ -1,25 +1,25 @@
 ---
-title: "The Ultimate Guide to Private LLM Fine-Tuning on Decentralized GPUs"
-description: "A comprehensive tutorial on fine-tuning open-weights language models with your own dataset using decentralized GPU rentals. Secure your data, reduce compute costs, and maintain total privacy without KYC or vendor lock-in."
-excerpt: "Learn how to fine-tune open-weights LLMs on decentralized GPUs with complete privacy. Step-by-step instructions covering secure data transfer, QLoRA training, and environment sanitization."
+title: "The Ultimate Guide to Private LLM Fine-Tuning on Rented GPUs"
+description: "A comprehensive tutorial on fine-tuning open-weights language models with your own dataset on a rented GPU. Secure your data, reduce compute costs, and avoid vendor lock-in."
+excerpt: "Learn how to fine-tune open-weights LLMs on rented GPUs while keeping your data under control. Step-by-step instructions covering secure data transfer, QLoRA training, and environment sanitization."
 pubDate: 2025-02-23
-updatedDate: 2025-02-23
+updatedDate: 2026-09-29
 locale: "en"
 category: "tutorials"
-featured: true
+featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "Abstract representation of a secure decentralized server room processing AI data with blue lighting"
+heroImageAlt: "Abstract representation of a secure server room processing AI data with blue lighting"
 faq:
   - question: "Can I fine-tune large language models on a single RTX 4090?"
     answer: "Yes. Using QLoRA (Quantized Low-Rank Adaptation), models up to 8B parameters fit comfortably within 24GB of VRAM. This tutorial demonstrates exactly how to configure the training script for consumer hardware with specific parameters for batch size, sequence length, and LoRA rank."
-  - question: "Is my dataset secure on a decentralized GPU rental?"
-    answer: "Your dataset is as secure as your operational practices. This guide covers encrypted transfer via SCP, avoiding cloud storage intermediaries like S3 or Google Drive, and sanitizing the remote machine after training completes. The decentralized model means no single corporation has access to your data or training logs."
-  - question: "How much does it cost to fine-tune an 8B model on decentralized GPUs?"
-    answer: "A typical fine-tuning run on an 8B parameter model using an RTX 4090 rental costs between three and eight dollars depending on dataset size and training epochs. This compares to approximately 150 to 300 dollars for equivalent compute on AWS or Lambda Labs including setup time and idle charges."
-  - question: "Do I need to complete KYC to rent GPU compute for training?"
-    answer: "No. Decentralized GPU marketplaces like GPUFlow allow you to connect a crypto wallet and begin renting immediately. There is no identity verification, no credit card required, and no enterprise contract. Payments occur through stablecoins on networks like Polygon."
+  - question: "Is my dataset secure on a rented GPU?"
+    answer: "Your dataset is as secure as your operational practices. This guide covers encrypted transfer via SCP, avoiding cloud storage intermediaries like S3 or Google Drive, and sanitizing the remote machine after training completes. Remember that the machine belongs to someone else, so delete everything before you end the rental."
+  - question: "How much does it cost to fine-tune an 8B model on a rented GPU?"
+    answer: "A typical fine-tuning run on an 8B parameter model using an RTX 4090 rental costs between three and eight dollars depending on dataset size and training epochs."
+  - question: "Do I need to verify my identity to rent GPU compute for training?"
+    answer: "Usually not. Marketplaces like Vast.ai and RunPod ask for an email address and prepaid credit, not identity documents. RunPod asks for KYC only before a first crypto payment. On AWS, new accounts start with a GPU quota of zero, which you have to request."
   - question: "What dataset format does the training script expect?"
     answer: "The script expects a JSONL file where each line contains a JSON object with a text field. The text field should contain your instruction, input, and response formatted as a single string with newline characters. An example with proper formatting is provided in Step 4 of this guide."
   - question: "Does this tutorial work for models other than Llama?"
@@ -40,11 +40,11 @@ The solution is not to abandon AI. The solution is to own the infrastructure.
 
 Fine-tuning open-weights models on hardware you control is no longer a niche academic pursuit. It is a business requirement for privacy-conscious organizations. Models like Llama, Mistral, Qwen, and dozens of others are available for commercial use with no API fees and no data sharing requirements. The challenge has always been access to compute. Purchasing NVIDIA H100 clusters requires millions in capital expenditure. Renting from AWS demands identity verification, enterprise agreements, and hourly rates that make extended training runs prohibitively expensive.
 
-This guide presents a third path. You will learn how to fine-tune an open-weights language model using decentralized GPU rentals—hardware owned by individuals around the world, accessible through a peer-to-peer marketplace. We will cover environment setup, security protocols for operating on public nodes, and the complete training execution.
+This guide presents a third path. You will learn how to fine-tune an open-weights language model on a rented GPU from a marketplace, often hardware owned by individuals around the world. We will cover environment setup, security protocols for operating on public nodes, and the complete training execution.
 
 The code examples use Llama-3.1-8B as a concrete working reference, but the workflow applies identically to any Hugging Face-compatible model. Swap the model identifier and you can fine-tune Mistral-7B, Qwen2-7B, or whatever open-weights release fits your use case.
 
-You will accomplish this without KYC verification, without long-term contracts, and for a fraction of what traditional cloud providers charge.
+You will accomplish this without long-term contracts and for a fraction of what traditional cloud providers charge.
 
 ![Terminal window displaying an active SSH connection to a remote GPU server](../_images/terminal-ssh-connection.png)
 
@@ -52,19 +52,19 @@ You will accomplish this without KYC verification, without long-term contracts, 
 
 Before we examine the technical implementation, let us establish the financial context.
 
-Training a model on AWS requires navigating instance scarcity. The p4d.24xlarge instance (8x A100 GPUs) costs $32.77 per hour when you can get one, which is rarely. Lambda Labs offers better pricing but maintains waitlists that stretch for weeks. Both require credit cards, identity verification, and generate detailed billing records that link your AI activities to your legal identity.
+Training a model on AWS means large instances and quota requests. The p4d.24xlarge instance (8x A100 GPUs) costs $32.77 per hour, and new AWS accounts start with a GPU quota of zero.
 
-In a decentralized marketplace, you rent compute power directly from hardware owners. This is peer-to-peer infrastructure operating on blockchain-based payment rails. The implications are significant:
+On a GPU marketplace, you rent compute power directly from hardware owners. The implications are significant:
 
-**Cost reduction:** An RTX 4090 rents for $0.40 to $0.60 per hour on most decentralized platforms. For 8B parameter models using QLoRA, a single 4090 with 24GB VRAM completes a fine-tuning run in two to six hours depending on dataset size. Your total compute cost ranges from three to eight dollars.
+**Cost reduction:** An RTX 4090 rents for roughly $0.30 to $0.46 per hour on marketplaces (September 2026). For 8B parameter models using QLoRA, a single 4090 with 24GB VRAM completes a fine-tuning run in two to six hours depending on dataset size. Your total compute cost ranges from three to eight dollars.
 
-**Privacy by architecture:** Payments occur through [stablecoin transactions](/en/stable-coins-are-the-smartest-way-to-pay-for-gpu-rental) on networks like Polygon. There is no credit card linking your identity to the rental. The marketplace smart contract handles escrow, as detailed in our [escrow documentation](/en/smart-contract-escrow), ensuring neither party can defraud the other.
+**Your data stays on one machine:** You copy the dataset straight to the rented machine over SSH, train, download the result and delete everything. No storage bucket, no third copy.
 
-**No gatekeepers:** You do not need approval from a cloud provider's enterprise sales team. You do not sign acceptable use policies that grant the provider rights to inspect your workloads. You connect a wallet and rent hardware.
+**No gatekeepers:** You do not need approval from a cloud provider's enterprise sales team or a quota increase. You add prepaid credit and rent hardware.
 
-For comparison: the equivalent fine-tuning workflow on AWS using a single A10G instance (the cheapest option with sufficient VRAM) costs approximately $1.50 per hour. Factor in setup time, idle compute while configuring your environment, and the inability to pay anonymously, and the true cost approaches $150 to $300 for what you can accomplish for under ten dollars on decentralized infrastructure.
+For comparison: a single A10G on AWS (g5.xlarge, the cheapest option with 24GB of VRAM) costs about $1.01 per hour in us-east-1. Factor in the quota request, setup time and idle compute while configuring your environment, and the true cost of a first run is far higher than the few dollars it takes on a marketplace.
 
-These economics are documented in detail in our [GPU rental pricing comparison](/en/gpu-rental-pricing-comparison-2026).
+These economics are documented in detail in our [GPU rental pricing comparison](/en/gpu-rental-pricing-comparison-2026/) and [the real cost of renting a GPU](/en/hidden-fees-in-gpu-rental/).
 
 ## Prerequisites
 
@@ -84,20 +84,21 @@ respectively, requiring multi-GPU configurations that exceed the scope of a sing
 rental. The workflow described here applies equally to Mistral-7B, Qwen2-7B, Gemma-2-9B,
 and any other Hugging Face-compatible model that fits within your rented hardware's
 VRAM constraints.
+
 **Software Prerequisites:**
 
 - Python 3.10 or later
 - Basic proficiency with PyTorch
 - A Hugging Face account (required for downloading gated models like Llama which require license acceptance)
-- A cryptocurrency wallet (MetaMask or equivalent) funded with USDC or MATIC on the Polygon network
+- An account with prepaid credit on a GPU marketplace that rents whole machines with SSH access, such as Vast.ai, RunPod or TensorDock
 
-If you have not configured a wallet for decentralized GPU rental, complete our [MetaMask and Polygon setup guide](/en/setting-up-metamask-polygon-gpu-rental) before proceeding. The process takes approximately fifteen minutes.
+Not sure which one? See [what you need to rent a GPU](/en/what-you-need-to-rent-a-gpu/) and [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/en/gpuflow-vs-vast-ai-vs-runpod/). Note that GPUFlow itself isn't suitable for this tutorial: it rents access to AI models through an API, not a machine you can log into.
 
 ## Step 1: Securing Your Compute Node
 
-The first step is acquiring hardware. On centralized cloud platforms, this involves creating an account, uploading identity documents, waiting for approval, and adding a payment method. Here, the process is considerably more direct.
+The first step is acquiring hardware. On the big cloud platforms, this involves creating an account, requesting a GPU quota and waiting for approval. On a marketplace, the process is considerably more direct.
 
-Navigate to the GPUFlow marketplace. Connect your wallet using the button in the upper right corner. The interface displays available machines with their specifications, hourly rates, and reliability scores.
+Open your marketplace of choice and add some credit. The interface displays available machines with their specifications, hourly rates, and reliability scores.
 
 Filter for machines with the following characteristics:
 
@@ -106,13 +107,13 @@ Filter for machines with the following characteristics:
 - **Storage:** 100GB+ available
 - **Reliability:** 95% or higher uptime score
 
-Select a node and initiate the rental. The smart contract will request a deposit covering your estimated usage. You can review how this escrow mechanism protects both parties in our [smart contract escrow explanation](/en/smart-contract-escrow).
+Select a machine and start the rental. Choose an image that already has CUDA and PyTorch installed; it saves setup time, and setup time is billed.
 
 **Security considerations for public nodes:**
 
 When you rent a machine on any remote network, you are accessing hardware owned and physically controlled by a stranger. The virtualization layer provides meaningful isolation, but you must operate with appropriate caution:
 
-1. **Do not store private keys on the remote machine.** Your cryptocurrency wallet, SSH keys for other systems, and API tokens for production services should never exist on a rental node.
+1. **Do not store private keys on the remote machine.** SSH keys for other systems, cloud credentials and API tokens for production services should never exist on a rental node.
 
 2. **Treat the filesystem as hostile.** Assume that anything you write to disk could theoretically be recovered by the host after you disconnect. We will cover secure deletion procedures in Step 6.
 
@@ -134,7 +135,7 @@ Verify that the hardware matches your order:
 nvidia-smi
 ```
 
-The output should display your rented GPU, its memory capacity, and the installed driver version. If the GPU does not appear or the specifications differ from your order, disconnect immediately and report the discrepancy through the marketplace dispute system.
+The output should display your rented GPU, its memory capacity, and the installed driver version. If the GPU does not appear or the specifications differ from your order, disconnect immediately and report the discrepancy through the marketplace's support.
 
 ## Step 2: Environment Configuration
 
@@ -190,11 +191,12 @@ huggingface-cli login
 ```
 
 Paste your access token when prompted. The token is stored in `~/.cache/huggingface/token`. You now have authorization to download gated model weights directly to the rental node.
+
 ![Python code displayed in a terminal showing Llama-3 model configuration parameters](../_images/python-llama3-config.png)
 
 ## Step 3: Secure Data Transfer
 
-This section addresses the primary reason you are renting decentralized compute rather than calling an API: data sovereignty.
+This section addresses the primary reason you are renting a machine rather than calling an API: data sovereignty.
 
 The standard cloud workflow involves uploading your dataset to a storage bucket—S3, Google Cloud Storage, Azure Blob—and then downloading it to your compute instance. This approach creates multiple copies of your sensitive data across systems you do not control. The storage provider has access. The compute provider has access. Both maintain logs of your activity.
 
@@ -504,6 +506,9 @@ from transformers import AutoModelForCausalLM
 
 base_model = AutoModelForCausalLM.from_pretrained(
     "meta-llama/Llama-3.1-8B",
+    device_map="auto",
+)
+model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
 ```
 
 To download your adapter, return to your **local terminal** (not the SSH session) and execute:
@@ -552,7 +557,7 @@ Disconnect from the SSH session:
 exit
 ```
 
-Navigate to the GPUFlow marketplace dashboard and formally end your rental. The smart contract will release any remaining deposit back to your wallet, minus the compute time consumed.
+Go back to the marketplace dashboard and terminate the rental, including any storage volume, so you stop paying for it.
 
 ## Running Inference with Your Fine-Tuned Model
 
@@ -572,7 +577,7 @@ bnb_config = BitsAndBytesConfig(
 
 # Load base model
 base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Meta-Llama-3-8B",
+    "meta-llama/Llama-3.1-8B",
     quantization_config=bnb_config,
     device_map="auto",
 )
@@ -593,17 +598,17 @@ response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 print(response)
 ```
 
-For production deployment, consider wrapping this in an API using FastAPI or Flask, or deploying through inference servers like vLLM or Text Generation Inference (TGI). These options are explored in our upcoming guide on deploying fine-tuned models.
+For production deployment, consider wrapping this in an API using FastAPI or Flask, or deploying through inference servers like vLLM or Text Generation Inference (TGI). We compare them in [Ollama vs vLLM vs TGI on an RTX 4090](/en/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/).
 
 ## Conclusion
 
-You have fine-tuned a state-of-the-art Large Language Model on proprietary data without exposing that data to any third party. You accomplished this without signing enterprise contracts, without uploading identity documents, and without granting a technology corporation access to your intellectual property.
+You have fine-tuned a Large Language Model on proprietary data while keeping that data on one machine for as short a time as possible. You accomplished this without signing enterprise contracts and without granting a technology corporation access to your intellectual property.
 
-The total cost of this operation, assuming a two-hour training run on an RTX 4090 at $0.45 per hour, was ninety cents. The equivalent workflow on AWS, accounting for setup time, instance costs, and the overhead of identity verification, would cost one hundred to two hundred dollars.
+The total cost of this operation, assuming a two-hour training run on an RTX 4090 at $0.45 per hour, was ninety cents. A single A10G on AWS costs about $1.01 per hour, so the run itself isn't expensive there either. The difference is the quota request and the setup.
 
-More importantly, no record exists linking your identity to this training run. No corporate acceptable use policy governs what you can train. No terms of service grants a cloud provider rights to inspect your dataset.
+More importantly, your dataset never passed through a storage service, and it was deleted from the rented machine when you finished.
 
-The era of dependency on closed-source APIs is ending. Organizations that require privacy, researchers who value sovereignty, and developers who refuse surveillance have an alternative. Decentralized GPU compute restores control over infrastructure, costs, and data to the people who create value.
+The era of dependency on closed-source APIs is ending. Organizations that require privacy, researchers who value sovereignty, and developers who want control have an alternative. Rented GPUs put infrastructure, costs, and data back in their hands.
 
 Your fine-tuned model now exists on hardware you control. The decisions about how to deploy it, who can access it, and what purposes it serves belong to you alone.
 
@@ -613,18 +618,17 @@ Your fine-tuned model now exists on hardware you control. The decisions about ho
 
 This guide covered the core workflow for private LLM fine-tuning. The following resources address related topics in greater depth:
 
-**Understanding Costs and Payment:**
+**Understanding Costs:**
 
-- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026) — Detailed cost analysis across decentralized and centralized providers
-- [Stablecoins Are the Smartest Way to Pay for GPU Rental](/en/stable-coins-are-the-smartest-way-to-pay-for-gpu-rental) — Why cryptocurrency payments provide advantages beyond anonymity
-- [How to Rent a GPU Without KYC](/en/how-to-rent-gpu-without-kyc) — Complete walkthrough of anonymous rental workflows
+- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026/) — Cost analysis across marketplaces and big clouds
+- [The Real Cost of Renting a GPU](/en/hidden-fees-in-gpu-rental/) — Cost factors that pricing pages do not advertise
 
-**Platform Mechanics:**
+**Getting Started:**
 
-- [Setting Up MetaMask for Polygon GPU Rental](/en/setting-up-metamask-polygon-gpu-rental) — Wallet configuration for first-time users
-- [Smart Contract Escrow Explained](/en/smart-contract-escrow) — How trustless payments protect both renters and providers
-- [Hidden Fees in GPU Rental](/en/hidden-fees-in-gpu-rental) — Cost factors that pricing pages do not advertise
+- [What You Need to Rent a GPU in 2026](/en/what-you-need-to-rent-a-gpu/) — Sign-up, verification and payment on each platform
+- [How to Secure Your Dataset on a Public GPU Node](/en/how-to-secure-dataset-on-public-gpu-node/) — Security practices before, during and after training
 
 **Comparing Options:**
 
-- [RunPod vs Vast.ai Comparison](/en/runpod-vs-vastapi-comparison) — How centralized marketplaces differ from decentralized alternatives
+- [RunPod vs Vast.ai Comparison](/en/runpod-vs-vastapi-comparison/) — How the two biggest marketplaces differ
+- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/en/gpuflow-vs-vast-ai-vs-runpod/) — Machines, containers and API keys compared

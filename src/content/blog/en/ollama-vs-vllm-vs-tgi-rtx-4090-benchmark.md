@@ -3,7 +3,7 @@ title: "Ollama vs vLLM vs TGI: RTX 4090 Inference Benchmark (Measured, Not Marke
 description: "A controlled RTX 4090 benchmark comparing Ollama, vLLM, and Hugging Face TGI for Llama‑3.1‑8B inference. Throughput, latency, VRAM usage, and cost-per-token analysis."
 excerpt: "Measured benchmark of Ollama, vLLM, and TGI on a single RTX 4090 with Llama‑3.1‑8B. Real throughput, real latency, real cost implications."
 pubDate: 2026-02-25
-updatedDate: 2026-02-25
+updatedDate: 2026-09-29
 locale: "en"
 category: "benchmarks"
 featured: false
@@ -33,7 +33,7 @@ faq:
 
 Running your own model is only half the equation.
 
-After completing fine‑tuning — as detailed in our [Private LLM Fine‑Tuning Guide](/en/private-llm-fine-tuning-guide) — the next decision is operational: how do you serve the model efficiently?
+After completing fine‑tuning — as detailed in our [Private LLM Fine‑Tuning Guide](/en/private-llm-fine-tuning-guide/) — the next decision is operational: how do you serve the model efficiently?
 
 Inference determines:
 
@@ -193,12 +193,12 @@ TGI offers production controls and monitoring but does not extract maximum throu
 
 ---
 
-# Cost Implications on Decentralized GPUs
+# Cost Implications on Rented GPUs
 
-On decentralized marketplaces, RTX 4090 rentals average approximately $0.40–$0.50 per hour, depending on demand. See our detailed breakdown in:
+On GPU marketplaces, RTX 4090 rentals cost roughly $0.30–$0.46 per hour in September 2026, depending on the platform and demand. See our detailed breakdown in:
 
-- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026)
-- [Hidden Fees in GPU Rental](/en/hidden-fees-in-gpu-rental)
+- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026/)
+- [The Real Cost of Renting a GPU](/en/hidden-fees-in-gpu-rental/)
 
 Assume:
 
@@ -222,11 +222,9 @@ At 50 million tokens per day, throughput efficiency directly affects GPU fleet s
 
 ## Running This Benchmark Yourself
 
-If you want to reproduce these measurements without purchasing hardware, RTX 4090 nodes are typically available through the GPUFlow marketplace.
+To reproduce these measurements, you need a machine you control, so you can install and configure each server. Marketplaces that rent containers with SSH access, such as Vast.ai or RunPod, work for this.
 
-Machines are rented hourly and can be accessed immediately after connecting a wallet. There are no account approval delays, enterprise contracts, or long provisioning queues.
-
-You can browse available GPUs at [GPU Flow](https://gpuflow.app)
+If you only want to try Ollama-served models on an RTX 4090 without setting anything up, [GPUFlow](https://gpuflow.app/en/marketplace) providers run Ollama and you rent access through an OpenAI-compatible API key, billed to the second. You can't swap the inference server there, so it's for using the models, not for benchmarking the servers.
 
 Because rental is hourly, inference efficiency directly impacts cost. The difference between 100 tokens/sec and 200 tokens/sec becomes meaningful over sustained workloads.
 
@@ -234,18 +232,12 @@ Because rental is hourly, inference efficiency directly impacts cost. The differ
 
 # Deployment Context
 
-If you are renting decentralized GPUs — as described in:
-
-- [How to Rent a GPU Without KYC](/en/how-to-rent-gpu-without-kyc)
-- [Rent GPU with Crypto](/en/rent-gpu-with-crypto)
-- [Smart Contract Escrow Explained](/en/smart-contract-escrow)
-
-— inference efficiency directly determines capital efficiency.
+If you are renting GPUs by the hour, inference efficiency directly determines cost efficiency. We work through the numbers in [hourly GPU or per-token API](/en/hourly-gpu-vs-per-token-api/).
 
 Throughput affects:
 
-- Escrow duration
-- Blockchain settlement frequency
+- How many rented hours a job needs
+- How many GPUs you need for your traffic
 - Exposure to host instability
 - Operational margin
 
@@ -285,21 +277,19 @@ On a single RTX 4090 running Llama‑3.1‑8B in FP16:
 
 Inference stack selection is not cosmetic. It defines cost structure and scaling behavior.
 
-For workloads deployed on decentralized consumer GPUs, batching efficiency materially affects economics.
+For workloads deployed on rented consumer GPUs, batching efficiency materially affects economics.
 
 # Where to Run This in Production
 
 All benchmarks in this article were conducted on rented consumer hardware rather than owned infrastructure.
 
-If you need immediate access to RTX 4090, RTX 3090, or higher-memory GPUs for inference or fine‑tuning, nodes are available on [GPU Flow](https://gpuflow.app)
-
-## Rental is hourly. Payment is handled via stablecoin. Access is immediate after wallet connection.
+For fine-tuning or running your own inference server, rent a machine you can log into. For using an Ollama-served model through an API with nothing to set up, see [GPUFlow](https://gpuflow.app/en/marketplace): rentals are billed to the second, paid with credits bought by card.
 
 ### Related Resources
 
 **Deepen your deployment stack knowledge:**
 
-- [The Ultimate Guide to Private LLM Fine‑Tuning on Decentralized GPUs](/en/private-llm-fine-tuning-guide) — Complete walkthrough for training open‑weights models securely
-- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026) — Measured cost differences across major GPU rental platforms
-- [Hidden Fees in GPU Rental](/en/hidden-fees-in-gpu-rental) — What hourly pricing pages do not disclose
-- [RunPod vs Vast.ai Comparison](/en/runpod-vs-vastapi-comparison) — Centralized vs marketplace infrastructure differences
+- [The Ultimate Guide to Private LLM Fine‑Tuning on Rented GPUs](/en/private-llm-fine-tuning-guide/) — Complete walkthrough for training open‑weights models securely
+- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026/) — Cost differences across major GPU rental platforms
+- [The Real Cost of Renting a GPU](/en/hidden-fees-in-gpu-rental/) — What hourly pricing pages do not disclose
+- [RunPod vs Vast.ai Comparison](/en/runpod-vs-vastapi-comparison/) — Centralized vs marketplace infrastructure differences

@@ -62,11 +62,12 @@ function generateLlmsTxt() {
           "",
           "## About GPUFlow",
           "",
-          "GPUFlow (gpuflow.app) is a marketplace where people rent GPUs by the hour from other people. Renters add credits by card through Stripe and get an OpenAI-compatible API key for the GPU they rent, billed to the second. Providers run one command on a Linux machine with a GPU, set an hourly price, and cash out to a bank account through Stripe. Some older posts on this blog describe crypto payments and wallet setup; GPUFlow no longer uses crypto.",
+          "GPUFlow (gpuflow.app) is a marketplace where people rent GPUs by the hour from other people. Renters add credits by card through Stripe and get an OpenAI-compatible API key for the GPU they rent, billed to the second. Providers run one command on a Linux machine with a GPU, set an hourly price, and cash out to a bank account through Stripe.",
           "",
           "- Platform: https://gpuflow.app",
           "- Documentation: https://docs.gpuflow.app",
           "- Blog: https://blog.gpuflow.app/en/",
+          "- Every post is also published in es, fr, de, ja, ko, zh_cn, zh_tw, pt_br, ru, he, ar and hi at https://blog.gpuflow.app/<lang>/<slug>/",
           "",
           "## Posts",
           "",
@@ -83,16 +84,14 @@ function generateLlmsTxt() {
         }
 
         lines.push("## Key Topics Covered", "");
-        lines.push(
-          "- GPU rental pricing and cost comparison (AWS vs decentralized)",
-        );
+        lines.push("- What renting a GPU really costs, including fees and extras");
+        lines.push("- Hourly GPU rental compared with per-token AI APIs");
+        lines.push("- GPUFlow, Vast.ai, RunPod and other GPU rental platforms compared");
+        lines.push("- Using an OpenAI-compatible API key in apps and code");
+        lines.push("- Earning money by renting out a GPU");
         lines.push("- LLM inference benchmarks (Ollama, vLLM, TGI, RTX 4090)");
-        lines.push("- Private AI training and data security on rented GPUs");
-        lines.push("- Crypto payments for GPU rental (USDC, USDT, Polygon)");
-        lines.push("- No-KYC GPU rental options");
-        lines.push("- Fine-tuning (QLoRA, LoRA, Stable Diffusion)");
-        lines.push("- Smart contract escrow for trustless payments");
-        lines.push("- Enterprise AI compliance and ChatGPT alternatives");
+        lines.push("- Fine-tuning (QLoRA, LoRA, Stable Diffusion) and data security on rented GPUs");
+        lines.push("- Enterprise AI policies and open-weights alternatives");
 
         const outPath = join(dir.pathname, "llms.txt");
         await fs.writeFile(outPath, lines.join("\n"));
@@ -109,9 +108,7 @@ export default defineConfig({
   site: "https://blog.gpuflow.app",
   integrations: [
     mdx(),
-    sitemap({
-      filter: (page) => !page.includes("/debug/"),
-    }),
+    sitemap(),
     generateLlmsTxt(),
   ],
 
