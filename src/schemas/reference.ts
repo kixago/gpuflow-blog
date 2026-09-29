@@ -1,3 +1,4 @@
+import { languageToLocale, type LanguageCode } from "../i18n/locales";
 // ============================================
 // GPUFLOW SCHEMA REFERENCE
 // ============================================
@@ -13,7 +14,7 @@
 export const SITE_CONFIG = {
   name: "GPUFlow",
   url: "https://gpuflow.app",
-  logo: "https://gpuflow.app/logo.png", // Update path if different
+  logo: "https://blog.gpuflow.app/logo.png",
   description:
     "Your guide to the decentralized GPU marketplace. Rent GPUs for AI training, gaming, rendering, or any compute workload.",
   foundingDate: "2025",
@@ -29,7 +30,7 @@ export const SITE_CONFIG = {
 
   // Related properties
   docsUrl: "https://docs.gpuflow.app",
-  blogPath: "/blog",
+  blogUrl: "https://blog.gpuflow.app",
 } as const;
 
 // ============================================
@@ -106,12 +107,14 @@ export function createWebPageSchema({
   description,
   datePublished,
   dateModified,
+  locale,
 }: {
   url: string;
   title: string;
   description: string;
   datePublished?: Date;
   dateModified?: Date;
+  locale: LanguageCode;
 }) {
   return {
     "@type": "WebPage",
@@ -123,7 +126,7 @@ export function createWebPageSchema({
     about: { "@id": `${SITE_CONFIG.url}/#organization` },
     ...(datePublished && { datePublished: datePublished.toISOString() }),
     ...(dateModified && { dateModified: dateModified.toISOString() }),
-    inLanguage: "en-US",
+    inLanguage: languageToLocale[locale],
   };
 }
 
@@ -165,6 +168,7 @@ export function createArticleSchema({
   datePublished,
   dateModified,
   authorName = "GPUFlow Team",
+  locale,
 }: {
   url: string;
   title: string;
@@ -173,6 +177,7 @@ export function createArticleSchema({
   datePublished: Date;
   dateModified?: Date;
   authorName?: string;
+  locale: LanguageCode;
 }) {
   return {
     "@type": "Article",
@@ -196,7 +201,7 @@ export function createArticleSchema({
     },
     publisher: { "@id": `${SITE_CONFIG.url}/#organization` },
     mainEntityOfPage: { "@id": `${url}#webpage` },
-    inLanguage: "en-US",
+    inLanguage: languageToLocale[locale],
   };
 }
 
@@ -286,10 +291,23 @@ export function createSchemaGraph(schemas: object[]) {
 // ============================================
 // HELPER: Generate Blog Post Breadcrumbs
 // ============================================
-export function createBlogBreadcrumbs(postTitle: string, postUrl: string) {
+// The app's URL prefix for a blog language code (zh_cn -> zh-CN).
+const APP_LOCALE: Partial<Record<LanguageCode, string>> = {
+  zh_cn: "zh-CN",
+  zh_tw: "zh-TW",
+  pt_br: "pt-BR",
+};
+
+// Home is the app in the same language; Blog is this language's blog home.
+export function createBlogBreadcrumbs(
+  postTitle: string,
+  postUrl: string,
+  lang: LanguageCode,
+  labels: { home: string; blog: string },
+) {
   return [
-    { name: "Home", url: SITE_CONFIG.url },
-    { name: "Blog", url: `${SITE_CONFIG.url}${SITE_CONFIG.blogPath}` },
+    { name: labels.home, url: `${SITE_CONFIG.url}/${APP_LOCALE[lang] ?? lang}` },
+    { name: labels.blog, url: `${SITE_CONFIG.blogUrl}/${lang}/` },
     { name: postTitle, url: postUrl },
   ];
 }

@@ -23,6 +23,8 @@ const hreflangMap: Record<string, string> = {
   'pt_br': 'pt-BR',
 };
 const getHreflang = (code: string) => hreflangMap[code] || code;
+// Only the language home pages (/de/, /ja/, ...) are translations of each other.
+const isLanguageHome = /^\/[a-z_]+\/?$/.test(Astro.url.pathname) && Astro.url.pathname.replace(/\//g, '') in languages;
 ---
 
 <meta charset="utf-8" />
@@ -44,14 +46,14 @@ const getHreflang = (code: string) => hreflangMap[code] || code;
 <link rel="canonical" href={canonicalURL} />
 
 <!-- hreflang tags -->
-{Object.keys(languages).map((code) => (
+{isLanguageHome && Object.keys(languages).map((code) => (
   <link 
     rel="alternate" 
     hreflang={getHreflang(code)} 
     href={`${siteUrl}/${code}/`} 
   />
 ))}
-<link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/`} />
+{isLanguageHome && <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/`} />}
 
 <title>{title}</title>
 <meta name="title" content={title} />

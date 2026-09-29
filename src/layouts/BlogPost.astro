@@ -1,12 +1,13 @@
 ---
 import { Image, getImage } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import '../styles/global.css';
 
-import { getAlternateLanguageUrls, useTranslations } from '../i18n/utils';
+import { useTranslations } from '../i18n/utils';
 import { getTextDirection } from '../i18n/locales';
 import {
   SITE_CONFIG,
@@ -86,7 +87,19 @@ if (faq) {
 }
 
 const schemaGraph = createSchemaGraph(schemas);
-const alternateUrls = getAlternateLanguageUrls(SITE_CONFIG.url, Astro.url.pathname);
+// hreflang: the other languages this post really exists in, on this site.
+// Post ids are "<lang>/<slug>".
+const HREFLANG: Record<string, string> = { zh_cn: 'zh-CN', zh_tw: 'zh-TW', pt_br: 'pt-BR' };
+const slugOf = (id: string) => id.split('/').slice(1).join('/');
+const thisSlug = Astro.url.pathname.split('/').filter(Boolean).slice(1).join('/');
+const alternateUrls = (await getCollection('blog', ({ data }) => !data.draft))
+  .filter((p) => slugOf(p.id) === thisSlug)
+  .map((p) => ({
+    code: p.data.locale,
+    lang: HREFLANG[p.data.locale] ?? p.data.locale,
+    url: new URL(`/${p.id}/`, Astro.site).toString(),
+  }));
+const xDefault = alternateUrls.find((u) => u.code === 'en')?.url;
 ---
 
 <!DOCTYPE html>
@@ -104,16 +117,12 @@ const alternateUrls = getAlternateLanguageUrls(SITE_CONFIG.url, Astro.url.pathna
 
     <link rel="canonical" href={canonicalURL} />
 
-    {alternateUrls.map(({ lang: altLang, url }) => (
-      <link rel="alternate" hreflang={
-        ({ 'zh_cn': 'zh-CN', 'zh_tw': 'zh-TW', 'pt_br': 'pt-BR' })[altLang] || altLang
-      } href={url} />
+    {alternateUrls.length > 1 && alternateUrls.map(({ lang: altLang, url }) => (
+      <link rel="alternate" hreflang={altLang} href={url} />
     ))}
-    <link
-      rel="alternate"
-      hreflang="x-default"
-      href={alternateUrls.find((u) => u.lang === 'en')?.url}
-    />
+    {alternateUrls.length > 1 && xDefault && (
+      <link rel="alternate" hreflang="x-default" href={xDefault} />
+    )}
 
     <title>{title}</title>
     <meta name="title" content={title} />

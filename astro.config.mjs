@@ -58,11 +58,11 @@ function generateLlmsTxt() {
         const lines = [
           "# GPUFlow Blog",
           "",
-          "> GPU rental guides, pricing comparisons, benchmarks, and tutorials for ML engineers and AI developers. Learn how to rent GPUs up to 60% cheaper than AWS using decentralized infrastructure and crypto payments.",
+          "> GPU rental guides, pricing comparisons, benchmarks, and tutorials for ML engineers and AI developers.",
           "",
           "## About GPUFlow",
           "",
-          "GPUFlow is a decentralized GPU rental marketplace connecting GPU owners with AI/ML developers, miners, and researchers. Payments via stablecoin (USDC/USDT) on Polygon. No KYC required. Smart contract escrow protects all payments.",
+          "GPUFlow (gpuflow.app) is a marketplace where people rent GPUs by the hour from other people. Renters add credits by card through Stripe and get an OpenAI-compatible API key for the GPU they rent, billed to the second. Providers run one command on a Linux machine with a GPU, set an hourly price, and cash out to a bank account through Stripe. Some older posts on this blog describe crypto payments and wallet setup; GPUFlow no longer uses crypto.",
           "",
           "- Platform: https://gpuflow.app",
           "- Documentation: https://docs.gpuflow.app",
