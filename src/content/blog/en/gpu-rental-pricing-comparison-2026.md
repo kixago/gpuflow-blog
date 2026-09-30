@@ -206,9 +206,9 @@ At this duration the commitment discounts start to matter: AWS's 1-year reserved
 
 ## How I'd choose
 
-For experiments, image generation, LoRA training and anything you can restart: a marketplace RTX 3090 or 4090. The cheap end is $0.11 to $0.34 an hour, and nothing on the big clouds comes close.
+For experiments, image generation, [LoRA training](/en/stable-diffusion-lora-training-under-10-dollars/) and anything you can restart: a marketplace RTX 3090 or 4090. The cheap end is $0.11 to $0.34 an hour, and nothing on the big clouds comes close.
 
-For a big model that needs an A100 or H100 and is not regulated: RunPod or Lambda first, Vast.ai if you're willing to check each host's reliability score. Look at the spot prices on Azure and Google Cloud before you decide; in September 2026 they were surprisingly competitive.
+For a big model that needs an A100 or H100 and is not regulated: RunPod or Lambda first, [Vast.ai if you're willing to check each host's reliability score](/en/runpod-vs-vastapi-comparison/). Look at the spot prices on Azure and Google Cloud before you decide; in September 2026 they were surprisingly competitive.
 
 For regulated data, a company that already runs on AWS, Azure or Google Cloud, or anything that needs an SLA: stay on your cloud and buy commitments or spot capacity to bring the price down. Paying $7 an hour for an H100 is often cheaper than a security review of a new vendor.
 

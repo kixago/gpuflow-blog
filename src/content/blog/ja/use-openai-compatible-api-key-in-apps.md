@@ -138,7 +138,7 @@ Continue のエージェントモードには、ツール呼び出しに対応�
 1. Cline の設定を開きます。
 2. **API Provider** を **OpenAI Compatible** にします。
 3. **Base URL**、**API Key**、**Model**（`qwen2.5:7b`）を入力します。
-4. **Model Configuration** で、コンテキストウィンドウをモデルに合わせて設定します。
+4. **Model Configuration** で、コンテキストウィンドウを[モデルに合わせて](/ja/which-ai-models-fit-your-gpu-vram/)設定します。
 
 **Roo Code** について補足します。ドキュメントによると、Roo Code はネイティブのツール呼び出しに対応したモデルでしか動作せず、代替手段もありません。通常のチャット用エンドポイントでは動かない可能性があります。
 

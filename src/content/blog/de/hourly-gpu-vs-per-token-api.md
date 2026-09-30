@@ -109,7 +109,7 @@ So sind wir auf die GPU-Werte gekommen: 500.000 Output-Tokens geteilt durch die 
 
 ## Datenschutz spielt auf beiden Seiten eine Rolle
 
-Bei einer Token-API gehen Ihre Prompts an den API-Anbieter. Bei einer gemieteten GPU gehen sie an die Maschine, die Sie mieten. Bei GPUFlow zum Beispiel läuft das Modell auf dem eigenen Rechner des Anbieters, Prompts und Antworten laufen also über diesen Rechner. Unsere Doku sagt es klar: Senden Sie keine Passwörter, Kartennummern oder sonst etwas, das Sie keinem Fremden zeigen würden. Wenn die Daten wirklich sensibel sind, ersetzt keine der beiden Optionen ein Modell auf Ihrer eigenen Hardware.
+Bei einer Token-API [gehen Ihre Prompts an den API-Anbieter](/de/why-corporate-policies-banning-chatgpt/). Bei einer gemieteten GPU gehen sie an die Maschine, die Sie mieten. Bei GPUFlow zum Beispiel läuft das Modell auf dem eigenen Rechner des Anbieters, Prompts und Antworten laufen also über diesen Rechner. Unsere Doku sagt es klar: Senden Sie keine Passwörter, Kartennummern oder sonst etwas, das Sie keinem Fremden zeigen würden. Wenn die Daten wirklich sensibel sind, ersetzt keine der beiden Optionen ein Modell auf Ihrer eigenen Hardware.
 
 ## So testen Sie das auf GPUFlow
 

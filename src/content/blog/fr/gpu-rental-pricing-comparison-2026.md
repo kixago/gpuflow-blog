@@ -206,9 +206,9 @@ Sur cette durée, les remises d'engagement commencent à peser : le tarif réser
 
 ## Comment je choisirais
 
-Pour les expériences, la génération d'images, l'entraînement de LoRA et tout ce qui peut redémarrer : une RTX 3090 ou 4090 sur une place de marché. Le bas de la fourchette va de 0,11 $ à 0,34 $ de l'heure, et rien chez les grands clouds n'en approche.
+Pour les expériences, la génération d'images, l'[entraînement de LoRA](/fr/stable-diffusion-lora-training-under-10-dollars/) et tout ce qui peut redémarrer : une RTX 3090 ou 4090 sur une place de marché. Le bas de la fourchette va de 0,11 $ à 0,34 $ de l'heure, et rien chez les grands clouds n'en approche.
 
-Pour un gros modèle qui demande une A100 ou un H100, sans contrainte réglementaire : RunPod ou Lambda d'abord, Vast.ai si vous acceptez de vérifier le score de fiabilité de chaque hôte. Regardez les prix spot d'Azure et de Google Cloud avant de trancher ; en septembre 2026, ils étaient étonnamment compétitifs.
+Pour un gros modèle qui demande une A100 ou un H100, sans contrainte réglementaire : RunPod ou Lambda d'abord, [Vast.ai si vous acceptez de vérifier le score de fiabilité de chaque hôte](/fr/runpod-vs-vastapi-comparison/). Regardez les prix spot d'Azure et de Google Cloud avant de trancher ; en septembre 2026, ils étaient étonnamment compétitifs.
 
 Pour des données réglementées, une entreprise qui tourne déjà sur AWS, Azure ou Google Cloud, ou tout ce qui exige un SLA : restez sur votre cloud et achetez des engagements ou de la capacité spot pour faire baisser le prix. Payer 7 $ de l'heure pour un H100 revient souvent moins cher que l'audit de sécurité d'un nouveau fournisseur.
 

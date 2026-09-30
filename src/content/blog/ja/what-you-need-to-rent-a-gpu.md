@@ -77,7 +77,7 @@ GPUFlow は「5 分で AI モデルを使いたい」というケースのため
 
    ![金額のボタンと「支払いへ進む」ボタンが強調表示された GPUFlow の支払いページ](../_images/screens/ja/renter-add-credits.png)
 
-4. 必要な時間数を指定して **GPU を借り**、API キーをコピーします。支払いは秒単位で、早めに終了すれば残りはクレジットに戻ります。
+4. 必要な時間数を指定して **GPU を借り**、API キーをコピーします。[支払いは秒単位で](/ja/per-second-vs-hourly-gpu-billing/)、早めに終了すれば残りはクレジットに戻ります。
 
 すべての画面を含む詳しい手順はドキュメントにあります：[GPU を借りる手順](https://docs.gpuflow.app/ja/renters/getting-started/)。
 

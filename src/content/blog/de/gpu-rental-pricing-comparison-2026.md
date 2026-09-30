@@ -206,9 +206,9 @@ Bei dieser Laufzeit zählen die Rabatte für Laufzeitverträge: Der reservierte 
 
 ## Wie ich wählen würde
 
-Für Experimente, Bildgenerierung, LoRA-Training und alles, was Sie neu starten können: eine RTX 3090 oder 4090 vom Marktplatz. Das günstige Ende liegt bei 0,11 $ bis 0,34 $ pro Stunde, und bei den großen Clouds kommt nichts auch nur in die Nähe.
+Für Experimente, Bildgenerierung, [LoRA-Training](/de/stable-diffusion-lora-training-under-10-dollars/) und alles, was Sie neu starten können: eine RTX 3090 oder 4090 vom Marktplatz. Das günstige Ende liegt bei 0,11 $ bis 0,34 $ pro Stunde, und bei den großen Clouds kommt nichts auch nur in die Nähe.
 
-Für ein großes Modell, das eine A100 oder H100 braucht und keinen regulatorischen Vorgaben unterliegt: zuerst RunPod oder Lambda, Vast.ai, wenn Sie bereit sind, den Zuverlässigkeitswert jedes Hosts zu prüfen. Schauen Sie sich vor der Entscheidung die Spot-Preise bei Azure und Google Cloud an; im September 2026 waren sie überraschend konkurrenzfähig.
+Für ein großes Modell, das eine A100 oder H100 braucht und keinen regulatorischen Vorgaben unterliegt: zuerst RunPod oder Lambda, [Vast.ai, wenn Sie bereit sind, den Zuverlässigkeitswert jedes Hosts zu prüfen](/de/runpod-vs-vastapi-comparison/). Schauen Sie sich vor der Entscheidung die Spot-Preise bei Azure und Google Cloud an; im September 2026 waren sie überraschend konkurrenzfähig.
 
 Für regulierte Daten, ein Unternehmen, das schon auf AWS, Azure oder Google Cloud läuft, oder alles, was ein SLA braucht: Bleiben Sie in Ihrer Cloud und senken Sie den Preis mit Laufzeitverträgen oder Spot-Kapazität. 7 $ pro Stunde für eine H100 sind oft billiger als die Sicherheitsprüfung eines neuen Anbieters.
 

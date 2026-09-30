@@ -43,7 +43,7 @@ faq:
 | RTX 4090 | $0.30 – $0.46 | $0.38 |
 | RTX 5090 | $0.41 – $0.69 | $0.55 |
 
-記憶體和速度一樣重要。3090 或 4090 這類 24 GB 的卡，能執行比 12 GB 或 16 GB 的卡更大的 AI 模型，租用者也願意為此多付錢。
+記憶體和速度一樣重要。3090 或 4090 這類 24 GB 的卡，[能執行比 12 GB 或 16 GB 的卡更大的 AI 模型](/zh_tw/which-ai-models-fit-your-gpu-vram/)，租用者也願意為此多付錢。
 
 ## 2. 平台抽多少
 
@@ -53,7 +53,7 @@ faq:
 | Vast.ai | Vast 表示刊登價格通常比主機實際收入高約 25% | Wise、PayPal 或 Stripe。最低 $20，每週開立發票。 |
 | Salad | 未公開 | PayPal、禮物卡、遊戲等 |
 
-各平台的架構也不一樣。Vast.ai 的主機執行 Ubuntu，租用者在主機上取得容器，可以透過 SSH 或 Jupyter 存取。Salad 在 Windows 10 或 11 上執行。在 GPUFlow 上，您只要在一台使用 systemd 的 Linux 電腦上執行一行指令；租用者只能透過 API 使用您的 AI 模型，永遠無法取得您機器上的 shell。[租用者能存取什麼、不能存取什麼](https://docs.gpuflow.app/zh-tw/providers/security/)。
+各平台的架構也不一樣。Vast.ai 的主機執行 Ubuntu，租用者在主機上取得容器，可以透過 SSH 或 Jupyter 存取。Salad 在 Windows 10 或 11 上執行。在 GPUFlow 上，您只要在一台使用 systemd 的 Linux 電腦上執行一行指令；租用者只能透過 API 使用您的 AI 模型，[永遠無法取得您機器上的 shell](/zh_tw/is-it-safe-to-rent-out-your-gpu/)。[租用者能存取什麼、不能存取什麼](https://docs.gpuflow.app/zh-tw/providers/security/)。
 
 ## 3. 電費要多少
 

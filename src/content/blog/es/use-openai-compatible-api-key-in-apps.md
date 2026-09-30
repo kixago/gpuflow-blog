@@ -138,7 +138,7 @@ El modo Agent de Continue necesita un modelo que admita llamadas a herramientas.
 1. Abre los ajustes de Cline.
 2. Pon **API Provider** en **OpenAI Compatible**.
 3. Rellena **Base URL**, **API Key** y **Model** (`qwen2.5:7b`).
-4. En **Model Configuration**, ajusta la ventana de contexto a la de tu modelo.
+4. En **Model Configuration**, ajusta la ventana de contexto [a la de tu modelo](/es/which-ai-models-fit-your-gpu-vram/).
 
 Una nota sobre **Roo Code**: su documentación dice que solo funciona con modelos que admiten llamadas nativas a herramientas, sin alternativa. Es posible que un endpoint que solo ofrece chat no funcione con él.
 

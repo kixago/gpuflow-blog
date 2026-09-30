@@ -92,7 +92,7 @@ Full fine-tuning updates every weight, so the GPU has to hold gradients and opti
 
 QLoRA goes further: the frozen base model is loaded in 4-bit NF4 precision, and only the adapters are trained in 16-bit. Dettmers et al. used it to fine-tune a 65B model on a single 48 GB GPU "while preserving full 16-bit finetuning task performance". The paper added three pieces that the tools still use: the NF4 data type, double quantization of the quantization constants, and paged optimizers that absorb memory spikes.
 
-The result of either is an adapter, a folder of a few tensors, that you apply on top of the unchanged base model. You can keep it separate or merge it into the weights.
+The result of either is an adapter, a folder of a few tensors, that you apply on top of the unchanged base model. You can keep it separate or merge it into the weights. Image models use the same method: a [Stable Diffusion LoRA](/en/stable-diffusion-lora-training-under-10-dollars/) trains on one rented 24 GB card for well under $10.
 
 ## How much VRAM you need
 
@@ -195,7 +195,7 @@ For private data:
 3. **Keep logging local.** In TRL 1.14 `report_to` defaults to `"none"`, so nothing goes to an experiment tracker unless you turn it on. Don't call `push_to_hub` with an adapter trained on private data.
 4. **Take the results out, then delete the instance.** Download the adapter and evaluation outputs, log out of Hugging Face (`hf auth logout`) if you used a token, and delete the instance and any volume. On Vast.ai, storage is billed and kept until the instance is deleted, not just stopped.
 
-Deleting files inside a container doesn't guarantee the host's disk is wiped, so the real protection is steps 1 and 2: choose who holds the hardware, and send them as little as possible. More detail in [how to secure a dataset on a public GPU node](/en/how-to-secure-dataset-on-public-gpu-node/). If your policy forbids any third-party hardware, the same script runs on your own 24 GB card.
+Deleting files inside a container doesn't guarantee the host's disk is wiped, so the real protection is steps 1 and 2: choose who holds the hardware, and send them as little as possible. More detail in [how to secure a dataset on a public GPU node](/en/how-to-secure-dataset-on-public-gpu-node/). If [your policy forbids any third-party hardware](/en/why-corporate-policies-banning-chatgpt/), the same script runs on your own 24 GB card.
 
 ## Train: a QLoRA script with TRL
 

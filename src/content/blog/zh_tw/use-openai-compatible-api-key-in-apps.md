@@ -138,7 +138,7 @@ Continue 的 Agent 模式需要支援工具呼叫（tool calling）的模型。�
 1. 打開 Cline 的設定。
 2. 把 **API Provider** 設為 **OpenAI Compatible**。
 3. 填入 **Base URL**、**API Key** 和 **Model**（`qwen2.5:7b`）。
-4. 在 **Model Configuration** 下方，把上下文視窗設成和您的模型一致。
+4. 在 **Model Configuration** 下方，把上下文視窗設成[和您的模型一致](/zh_tw/which-ai-models-fit-your-gpu-vram/)。
 
 關於 **Roo Code**：它的文件說明，它只能搭配支援原生工具呼叫的模型，沒有任何退回機制。一般的聊天端點可能無法和它搭配使用。
 

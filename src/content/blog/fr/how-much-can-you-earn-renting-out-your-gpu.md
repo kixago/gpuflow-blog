@@ -43,7 +43,7 @@ Voici les prix à la demande courants par heure sur les sites de location de GPU
 | RTX 4090 | 0,30 $ – 0,46 $ | 0,38 $ |
 | RTX 5090 | 0,41 $ – 0,69 $ | 0,55 $ |
 
-La mémoire compte autant que la vitesse. Une carte de 24 Go comme la 3090 ou la 4090 peut faire tourner des modèles d'IA plus gros qu'une carte de 12 ou 16 Go, et les locataires paient pour cela.
+La mémoire compte autant que la vitesse. Une carte de 24 Go comme la 3090 ou la 4090 peut [faire tourner des modèles d'IA plus gros qu'une carte de 12 ou 16 Go](/fr/which-ai-models-fit-your-gpu-vram/), et les locataires paient pour cela.
 
 ## 2. Ce que garde la plateforme
 
@@ -53,7 +53,7 @@ La mémoire compte autant que la vitesse. Une carte de 24 Go comme la 3090 ou l
 | Vast.ai | Selon Vast, les prix affichés sont en général environ 25 % au-dessus de ce que gagnent les hôtes | Wise, PayPal ou Stripe. Minimum 20 $, facturation hebdomadaire. |
 | Salad | Non publiée | PayPal, cartes cadeaux, jeux et autres |
 
-Les configurations diffèrent aussi. Les hôtes Vast.ai tournent sous Ubuntu, et les locataires obtiennent des conteneurs sur la machine de l'hôte avec un accès SSH ou Jupyter. Salad fonctionne sous Windows 10 ou 11. Sur GPUFlow, vous lancez une seule commande sur un ordinateur Linux avec systemd ; les locataires n'accèdent à vos modèles d'IA que par une API, jamais par un shell sur votre machine. [Ce à quoi les locataires ont accès, ou pas](https://docs.gpuflow.app/fr/providers/security/).
+Les configurations diffèrent aussi. Les hôtes Vast.ai tournent sous Ubuntu, et les locataires obtiennent des conteneurs sur la machine de l'hôte avec un accès SSH ou Jupyter. Salad fonctionne sous Windows 10 ou 11. Sur GPUFlow, vous lancez une seule commande sur un ordinateur Linux avec systemd ; les locataires n'accèdent à vos modèles d'IA que par une API, [jamais par un shell sur votre machine](/fr/is-it-safe-to-rent-out-your-gpu/). [Ce à quoi les locataires ont accès, ou pas](https://docs.gpuflow.app/fr/providers/security/).
 
 ## 3. Ce que coûte l'électricité
 

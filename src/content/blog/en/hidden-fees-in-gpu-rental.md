@@ -197,7 +197,7 @@ The biggest item isn't the GPU at all, it's a disk that sat stopped for 91% of t
 2. Check the bandwidth price on the listing if the platform has one, and estimate how much you'll download.
 3. Count setup time as paid time.
 4. Know how you'll stop paying: end the rental, stop or deallocate the machine, delete the volume.
-5. Know what happens to your data if the balance hits zero.
+5. Know [what happens to your data if the balance hits zero](/en/runpod-vs-vastapi-comparison/).
 6. Check your card's foreign transaction fee.
 
 If what you need is an AI model you can call from your code, and not a machine to run your own software, an API-based rental avoids the storage, transfer and setup lines entirely. [Hourly GPU or per-token API](/en/hourly-gpu-vs-per-token-api/) compares that with paying per token, and [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/en/gpuflow-vs-vast-ai-vs-runpod/) covers which platform fits which job. For training or anything else that needs a full machine, this checklist is how you keep the bill close to the hourly price.

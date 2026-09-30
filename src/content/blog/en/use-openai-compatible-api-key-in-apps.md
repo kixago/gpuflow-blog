@@ -138,7 +138,7 @@ Continue's Agent mode needs a model that handles tool calls. Only add `capabilit
 1. Open Cline's settings.
 2. Set **API Provider** to **OpenAI Compatible**.
 3. Fill in **Base URL**, **API Key** and **Model** (`qwen2.5:7b`).
-4. Under **Model Configuration**, set the context window to match your model.
+4. Under **Model Configuration**, set the context window to [match your model](/en/which-ai-models-fit-your-gpu-vram/).
 
 A note on **Roo Code**: its docs say it only works with models that support native tool calling, with no fallback. A plain chat endpoint may not work with it.
 

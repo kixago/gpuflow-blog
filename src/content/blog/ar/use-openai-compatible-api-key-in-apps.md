@@ -138,7 +138,7 @@ models:
 1. افتح إعدادات Cline.
 2. اضبط **API Provider** على **OpenAI Compatible**.
 3. املأ **Base URL** و**API Key** و**Model** (`qwen2.5:7b`).
-4. تحت **Model Configuration**، اضبط نافذة السياق بما يطابق نموذجك.
+4. تحت **Model Configuration**، اضبط نافذة السياق [بما يطابق نموذجك](/ar/which-ai-models-fit-your-gpu-vram/).
 
 ملاحظة عن **Roo Code**: تقول وثائقه إنه لا يعمل إلا مع النماذج التي تدعم استدعاء الأدوات الأصلي (native tool calling)، دون بديل احتياطي. لذلك قد لا تعمل معه نقطة اتصال محادثة عادية.
 

@@ -77,7 +77,7 @@ GPUFlow는 "5분 안에 AI 모델이 필요하다"는 상황을 위해 만들었
 
    ![금액 버튼과 결제로 이동 버튼이 강조된 GPUFlow 결제 페이지](../_images/screens/ko/renter-add-credits.png)
 
-4. 원하는 시간만큼 **GPU를 대여하고** API 키를 복사합니다. 요금은 초 단위로 나가며, 일찍 끝내면 남은 시간은 크레딧으로 돌아옵니다.
+4. 원하는 시간만큼 **GPU를 대여하고** API 키를 복사합니다. [요금은 초 단위로 나가며](/ko/per-second-vs-hourly-gpu-billing/), 일찍 끝내면 남은 시간은 크레딧으로 돌아옵니다.
 
 모든 화면이 담긴 전체 안내는 문서에 있습니다. [GPU 대여하기, 단계별 안내](https://docs.gpuflow.app/ko/renters/getting-started/).
 

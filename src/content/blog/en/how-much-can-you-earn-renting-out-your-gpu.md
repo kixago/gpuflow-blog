@@ -43,7 +43,7 @@ These are typical on-demand prices per hour on GPU rental sites (Vast.ai, RunPod
 | RTX 4090 | $0.30 – $0.46 | $0.38 |
 | RTX 5090 | $0.41 – $0.69 | $0.55 |
 
-Memory matters as much as speed. A 24 GB card like the 3090 or 4090 can run bigger AI models than a 12 GB or 16 GB card, and renters pay for that.
+Memory matters as much as speed. A 24 GB card like the 3090 or 4090 can [run bigger AI models than a 12 GB or 16 GB card](/en/which-ai-models-fit-your-gpu-vram/), and renters pay for that.
 
 ## 2. What the platform keeps
 
@@ -53,7 +53,7 @@ Memory matters as much as speed. A 24 GB card like the 3090 or 4090 can run bigg
 | Vast.ai | Vast says listed prices are typically about 25% above what hosts earn | Wise, PayPal or Stripe. $20 minimum, invoiced weekly. |
 | Salad | Not published | PayPal, gift cards, games and more |
 
-The setups differ too. Vast.ai hosts run Ubuntu, and renters get containers on the host with SSH or Jupyter access. Salad runs on Windows 10 or 11. On GPUFlow you run one command on a Linux computer with systemd; renters only reach your AI models through an API, never a shell on your machine. [What renters can and can't reach](https://docs.gpuflow.app/providers/security/).
+The setups differ too. Vast.ai hosts run Ubuntu, and renters get containers on the host with SSH or Jupyter access. Salad runs on Windows 10 or 11. On GPUFlow you run one command on a Linux computer with systemd; renters only reach your AI models through an API, [never a shell on your machine](/en/is-it-safe-to-rent-out-your-gpu/). [What renters can and can't reach](https://docs.gpuflow.app/providers/security/).
 
 ## 3. What the electricity costs
 

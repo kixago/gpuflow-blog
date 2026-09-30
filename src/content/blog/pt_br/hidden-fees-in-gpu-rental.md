@@ -197,7 +197,7 @@ O maior item nem é a GPU, é um disco que ficou parado 91% do mês. A solução
 2. Confira o preço de banda na oferta, se a plataforma cobrar, e estime quanto você vai baixar.
 3. Conte o tempo de preparação como tempo pago.
 4. Saiba como você vai parar de pagar: encerrar o aluguel, parar ou desalocar a máquina, apagar o volume.
-5. Saiba o que acontece com os seus dados se o saldo chegar a zero.
+5. Saiba [o que acontece com os seus dados se o saldo chegar a zero](/pt_br/runpod-vs-vastapi-comparison/).
 6. Confira a tarifa internacional do seu cartão.
 
 Se o que você precisa é de um modelo de IA para chamar a partir do seu código, e não de uma máquina para rodar o seu próprio software, um aluguel via API elimina de vez as linhas de armazenamento, transferência e preparação. [GPU por hora ou API por token](/pt_br/hourly-gpu-vs-per-token-api/) compara isso com pagar por token, e [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/pt_br/gpuflow-vs-vast-ai-vs-runpod/) mostra qual plataforma serve para qual trabalho. Para treino ou qualquer outra coisa que exija uma máquina inteira, este checklist é o que mantém a conta perto do preço por hora.

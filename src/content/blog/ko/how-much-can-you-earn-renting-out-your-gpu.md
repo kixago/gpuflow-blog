@@ -43,7 +43,7 @@ faq:
 | RTX 4090 | $0.30 – $0.46 | $0.38 |
 | RTX 5090 | $0.41 – $0.69 | $0.55 |
 
-메모리는 속도만큼 중요합니다. 3090이나 4090 같은 24GB 카드는 12GB나 16GB 카드보다 큰 AI 모델을 돌릴 수 있고, 대여자는 그만큼 더 냅니다.
+메모리는 속도만큼 중요합니다. 3090이나 4090 같은 24GB 카드는 [12GB나 16GB 카드보다 큰 AI 모델을 돌릴 수 있고](/ko/which-ai-models-fit-your-gpu-vram/), 대여자는 그만큼 더 냅니다.
 
 ## 2. 플랫폼이 가져가는 몫
 
@@ -53,7 +53,7 @@ faq:
 | Vast.ai | Vast에 따르면 표시 가격은 보통 호스트 수익보다 약 25% 높음 | Wise, PayPal, Stripe. 최소 $20, 매주 정산. |
 | Salad | 공개하지 않음 | PayPal, 기프트 카드, 게임 등 |
 
-운영 방식도 다릅니다. Vast.ai 호스트는 Ubuntu를 쓰고, 대여자는 호스트에 컨테이너를 받아 SSH나 Jupyter로 접속합니다. Salad는 Windows 10이나 11에서 돌아갑니다. GPUFlow에서는 systemd를 쓰는 Linux 컴퓨터에서 명령어 하나를 실행하면 됩니다. 대여자는 API를 통해 내 AI 모델에만 접근할 수 있고, 내 머신의 셸에는 절대 접근할 수 없습니다. [대여자가 접근할 수 있는 것과 없는 것](https://docs.gpuflow.app/ko/providers/security/).
+운영 방식도 다릅니다. Vast.ai 호스트는 Ubuntu를 쓰고, 대여자는 호스트에 컨테이너를 받아 SSH나 Jupyter로 접속합니다. Salad는 Windows 10이나 11에서 돌아갑니다. GPUFlow에서는 systemd를 쓰는 Linux 컴퓨터에서 명령어 하나를 실행하면 됩니다. 대여자는 API를 통해 내 AI 모델에만 접근할 수 있고, [내 머신의 셸에는 절대 접근할 수 없습니다](/ko/is-it-safe-to-rent-out-your-gpu/). [대여자가 접근할 수 있는 것과 없는 것](https://docs.gpuflow.app/ko/providers/security/).
 
 ## 3. 전기료
 

@@ -92,7 +92,7 @@ Vollständiges Fine-Tuning aktualisiert jedes Gewicht. Die GPU muss also zusätz
 
 QLoRA geht weiter: Das eingefrorene Basismodell wird in 4-Bit-NF4-Präzision geladen, nur die Adapter werden in 16 Bit trainiert. Dettmers et al. haben damit ein 65B-Modell auf einer einzigen 48-GB-GPU feingetunt, „bei voller Leistung eines 16-Bit-Fine-Tunings“. Das Paper brachte drei Bausteine mit, die die Tools bis heute nutzen: den Datentyp NF4, doppelte Quantisierung der Quantisierungskonstanten und Paged Optimizers, die Speicherspitzen abfangen.
 
-Das Ergebnis ist in beiden Fällen ein Adapter, ein Ordner mit ein paar Tensoren, den Sie auf das unveränderte Basismodell anwenden. Sie können ihn getrennt halten oder in die Gewichte einmergen.
+Das Ergebnis ist in beiden Fällen ein Adapter, ein Ordner mit ein paar Tensoren, den Sie auf das unveränderte Basismodell anwenden. Sie können ihn getrennt halten oder in die Gewichte einmergen. Bildmodelle nutzen dieselbe Methode: Eine [Stable-Diffusion-LoRA](/de/stable-diffusion-lora-training-under-10-dollars/) lässt sich auf einer einzigen gemieteten 24-GB-Karte für deutlich unter 10 $ trainieren.
 
 ## Wie viel VRAM Sie brauchen
 
@@ -195,7 +195,7 @@ Für private Daten:
 3. **Halten Sie das Logging lokal.** In TRL 1.14 steht `report_to` standardmäßig auf `"none"`, es geht also nichts an einen Experiment-Tracker, solange Sie das nicht einschalten. Rufen Sie `push_to_hub` nicht mit einem Adapter auf, der auf privaten Daten trainiert wurde.
 4. **Holen Sie die Ergebnisse heraus und löschen Sie dann die Instanz.** Laden Sie Adapter und Evaluationsergebnisse herunter, melden Sie sich bei Hugging Face ab (`hf auth logout`), falls Sie ein Token genutzt haben, und löschen Sie Instanz und Volumes. Bei Vast.ai wird Speicher berechnet und aufbewahrt, bis die Instanz gelöscht ist, nicht nur gestoppt.
 
-Dateien in einem Container zu löschen garantiert nicht, dass die Festplatte des Hosts gelöscht wird. Der eigentliche Schutz sind deshalb die Schritte 1 und 2: Wählen Sie, wer die Hardware hält, und schicken Sie so wenig wie möglich dorthin. Mehr dazu in [einen Datensatz auf einem öffentlichen GPU-Knoten absichern](/de/how-to-secure-dataset-on-public-gpu-node/). Verbietet Ihre Richtlinie jede fremde Hardware, läuft dasselbe Skript auch auf Ihrer eigenen 24-GB-Karte.
+Dateien in einem Container zu löschen garantiert nicht, dass die Festplatte des Hosts gelöscht wird. Der eigentliche Schutz sind deshalb die Schritte 1 und 2: Wählen Sie, wer die Hardware hält, und schicken Sie so wenig wie möglich dorthin. Mehr dazu in [einen Datensatz auf einem öffentlichen GPU-Knoten absichern](/de/how-to-secure-dataset-on-public-gpu-node/). [Verbietet Ihre Richtlinie jede fremde Hardware](/de/why-corporate-policies-banning-chatgpt/), läuft dasselbe Skript auch auf Ihrer eigenen 24-GB-Karte.
 
 ## Training: ein QLoRA-Skript mit TRL
 

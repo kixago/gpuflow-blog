@@ -43,7 +43,7 @@ Das sind typische On-Demand-Preise pro Stunde auf GPU-Vermietungsseiten (Vast.ai
 | RTX 4090 | 0,30 $ – 0,46 $ | 0,38 $ |
 | RTX 5090 | 0,41 $ – 0,69 $ | 0,55 $ |
 
-Der Grafikspeicher zählt genauso viel wie die Geschwindigkeit. Eine Karte mit 24 GB wie die 3090 oder 4090 kann größere KI-Modelle ausführen als eine Karte mit 12 GB oder 16 GB, und dafür zahlen Mieter.
+Der Grafikspeicher zählt genauso viel wie die Geschwindigkeit. Eine Karte mit 24 GB wie die 3090 oder 4090 kann [größere KI-Modelle ausführen als eine Karte mit 12 GB oder 16 GB](/de/which-ai-models-fit-your-gpu-vram/), und dafür zahlen Mieter.
 
 ## 2. Was die Plattform behält
 
@@ -53,7 +53,7 @@ Der Grafikspeicher zählt genauso viel wie die Geschwindigkeit. Eine Karte mit 2
 | Vast.ai | Laut Vast liegen die Angebotspreise typischerweise etwa 25 % über dem, was Hosts verdienen | Wise, PayPal oder Stripe. Mindestens 20 $, wöchentliche Abrechnung. |
 | Salad | Nicht veröffentlicht | PayPal, Geschenkkarten, Spiele und mehr |
 
-Auch die Voraussetzungen unterscheiden sich. Hosts bei Vast.ai nutzen Ubuntu, und Mieter bekommen Container auf dem Host mit Zugriff per SSH oder Jupyter. Salad läuft unter Windows 10 oder 11. Bei GPUFlow führen Sie einen einzigen Befehl auf einem Linux-Rechner mit systemd aus; Mieter greifen nur über eine API auf Ihre KI-Modelle zu, nie auf eine Shell auf Ihrem Rechner. [Worauf Mieter zugreifen können und worauf nicht](https://docs.gpuflow.app/de/providers/security/).
+Auch die Voraussetzungen unterscheiden sich. Hosts bei Vast.ai nutzen Ubuntu, und Mieter bekommen Container auf dem Host mit Zugriff per SSH oder Jupyter. Salad läuft unter Windows 10 oder 11. Bei GPUFlow führen Sie einen einzigen Befehl auf einem Linux-Rechner mit systemd aus; Mieter greifen nur über eine API auf Ihre KI-Modelle zu, [nie auf eine Shell auf Ihrem Rechner](/de/is-it-safe-to-rent-out-your-gpu/). [Worauf Mieter zugreifen können und worauf nicht](https://docs.gpuflow.app/de/providers/security/).
 
 ## 3. Was der Strom kostet
 

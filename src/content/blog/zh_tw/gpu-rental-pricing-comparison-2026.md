@@ -206,9 +206,9 @@ Vast.ai 那一列是 getdeploying.com 回報的最便宜 A100 上架價（一台
 
 ## 我會怎麼選
 
-實驗、圖片生成、LoRA 訓練，以及任何可以重來的工作：市集上的 RTX 3090 或 4090。便宜的每小時 $0.11 到 $0.34，大型雲端沒有一個比得上。
+實驗、圖片生成、[LoRA 訓練](/zh_tw/stable-diffusion-lora-training-under-10-dollars/)，以及任何可以重來的工作：市集上的 RTX 3090 或 4090。便宜的每小時 $0.11 到 $0.34，大型雲端沒有一個比得上。
 
-需要 A100 或 H100、又不受法規管制的大模型：先看 RunPod 或 Lambda，如果願意逐一檢查主機的可靠度分數，再看 Vast.ai。做決定之前也看一下 Azure 和 Google Cloud 的 Spot 價格；2026 年 9 月時它們出乎意料地有競爭力。
+需要 A100 或 H100、又不受法規管制的大模型：先看 RunPod 或 Lambda，[如果願意逐一檢查主機的可靠度分數，再看 Vast.ai](/zh_tw/runpod-vs-vastapi-comparison/)。做決定之前也看一下 Azure 和 Google Cloud 的 Spot 價格；2026 年 9 月時它們出乎意料地有競爭力。
 
 受管制的資料、公司本來就在 AWS、Azure 或 Google Cloud 上，或任何需要 SLA 的東西：留在原本的雲端，用承諾用量或 Spot 容量把價格壓下來。H100 每小時付 $7，往往比對新廠商做一次資安審查還便宜。
 

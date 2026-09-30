@@ -77,7 +77,7 @@ GPUFlow est conçu pour le cas « il me faut un modèle d'IA dans cinq minutes�
 
    ![La page Paiements de GPUFlow avec les boutons de montant et le bouton Continuer vers le paiement mis en évidence](../_images/screens/fr/renter-add-credits.png)
 
-4. **Louez un GPU** pour le nombre d'heures voulu, et copiez votre clé API. Vous payez à la seconde ; si vous terminez plus tôt, le reste revient sur vos crédits.
+4. **Louez un GPU** pour le nombre d'heures voulu, et copiez votre clé API. Vous [payez à la seconde](/fr/per-second-vs-hourly-gpu-billing/) ; si vous terminez plus tôt, le reste revient sur vos crédits.
 
 Le guide complet, écran par écran, se trouve dans la documentation : [Louer un GPU, étape par étape](https://docs.gpuflow.app/fr/renters/getting-started/).
 

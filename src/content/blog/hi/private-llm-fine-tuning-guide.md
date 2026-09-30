@@ -92,7 +92,7 @@ fine-tuning की अच्छी वजहें:
 
 QLoRA एक क़दम आगे जाता है: जस का तस base मॉडल 4-bit NF4 precision में load होता है, और सिर्फ़ adapters 16-bit में train होते हैं। Dettmers et al. ने इससे एक 48 GB GPU पर 65B मॉडल की fine-tuning की, "पूरी 16-bit finetuning जितनी task performance बनाए रखते हुए"। paper ने तीन चीज़ें जोड़ीं जिन्हें टूल आज भी इस्तेमाल करते हैं: NF4 data type, quantization constants का double quantization, और memory के अचानक उछाल को सँभालने वाले paged optimizers।
 
-दोनों का नतीजा एक adapter है, कुछ tensors वाला एक फ़ोल्डर, जिसे आप बिना बदले base मॉडल के ऊपर लगाते हैं। आप इसे अलग रख सकते हैं या weights में merge कर सकते हैं।
+दोनों का नतीजा एक adapter है, कुछ tensors वाला एक फ़ोल्डर, जिसे आप बिना बदले base मॉडल के ऊपर लगाते हैं। आप इसे अलग रख सकते हैं या weights में merge कर सकते हैं। image मॉडल भी यही तरीका अपनाते हैं: एक [Stable Diffusion LoRA](/hi/stable-diffusion-lora-training-under-10-dollars/) किराये के एक 24 GB कार्ड पर $10 से काफ़ी कम में train हो जाता है।
 
 ## कितनी VRAM चाहिए
 
@@ -195,7 +195,7 @@ GPU मार्केटप्लेस पर कंप्यूटर कि�
 3. **logging local रखें।** TRL 1.14 में `report_to` का default `"none"` है, इसलिए जब तक आप चालू न करें, कुछ भी किसी experiment tracker पर नहीं जाता। निजी डेटा पर train हुए adapter के साथ `push_to_hub` न चलाएँ।
 4. **नतीजे निकालें, फिर instance delete करें।** adapter और evaluation outputs डाउनलोड करें, अगर token इस्तेमाल किया था तो Hugging Face से logout करें (`hf auth logout`), और instance और हर volume delete करें। Vast.ai पर storage का बिल बनता है और वह तब तक रहता है जब तक instance delete न हो, सिर्फ़ रोकने से नहीं।
 
-container के अंदर फ़ाइलें मिटाने से यह पक्का नहीं होता कि host की डिस्क साफ़ हो गई, इसलिए असली सुरक्षा क़दम 1 और 2 हैं: तय करें कि hardware किसके पास है, और उसे जितना कम हो सके, भेजें। ज़्यादा ब्योरा [public GPU node पर dataset कैसे सुरक्षित रखें](/hi/how-to-secure-dataset-on-public-gpu-node/) में है। अगर आपकी policy किसी तीसरे पक्ष के hardware की इजाज़त नहीं देती, तो यही script आपके अपने 24 GB कार्ड पर चलती है।
+container के अंदर फ़ाइलें मिटाने से यह पक्का नहीं होता कि host की डिस्क साफ़ हो गई, इसलिए असली सुरक्षा क़दम 1 और 2 हैं: तय करें कि hardware किसके पास है, और उसे जितना कम हो सके, भेजें। ज़्यादा ब्योरा [public GPU node पर dataset कैसे सुरक्षित रखें](/hi/how-to-secure-dataset-on-public-gpu-node/) में है। अगर [आपकी policy किसी तीसरे पक्ष के hardware की इजाज़त नहीं देती](/hi/why-corporate-policies-banning-chatgpt/), तो यही script आपके अपने 24 GB कार्ड पर चलती है।
 
 ## Train करें: TRL के साथ QLoRA script
 

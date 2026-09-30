@@ -43,7 +43,7 @@ faq:
 | RTX 4090 | $0.30 – $0.46 | $0.38 |
 | RTX 5090 | $0.41 – $0.69 | $0.55 |
 
-显存和速度同样重要。3090 或 4090 这样的 24 GB 显卡能跑比 12 GB 或 16 GB 显卡更大的 AI 模型，租用者愿意为此多付钱。
+显存和速度同样重要。3090 或 4090 这样的 24 GB 显卡[能跑比 12 GB 或 16 GB 显卡更大的 AI 模型](/zh_cn/which-ai-models-fit-your-gpu-vram/)，租用者愿意为此多付钱。
 
 ## 2. 平台抽走多少
 
@@ -53,7 +53,7 @@ faq:
 | Vast.ai | Vast 表示挂牌价通常比主机方收入高约 25% | Wise、PayPal 或 Stripe。最低 $20，每周结算。 |
 | Salad | 未公开 | PayPal、礼品卡、游戏等 |
 
-各平台的运行方式也不一样。Vast.ai 的主机方运行 Ubuntu，租用者在主机上获得容器，可以通过 SSH 或 Jupyter 访问。Salad 运行在 Windows 10 或 11 上。在 GPUFlow 上，你只需在一台带 systemd 的 Linux 电脑上运行一条命令；租用者只能通过 API 访问你的 AI 模型，永远拿不到你机器上的 shell。[租用者能访问什么、不能访问什么](https://docs.gpuflow.app/zh-cn/providers/security/)。
+各平台的运行方式也不一样。Vast.ai 的主机方运行 Ubuntu，租用者在主机上获得容器，可以通过 SSH 或 Jupyter 访问。Salad 运行在 Windows 10 或 11 上。在 GPUFlow 上，你只需在一台带 systemd 的 Linux 电脑上运行一条命令；租用者只能通过 API 访问你的 AI 模型，[永远拿不到你机器上的 shell](/zh_cn/is-it-safe-to-rent-out-your-gpu/)。[租用者能访问什么、不能访问什么](https://docs.gpuflow.app/zh-cn/providers/security/)。
 
 ## 3. 电费多少
 

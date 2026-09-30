@@ -138,7 +138,7 @@ models:
 1. פתחו את ההגדרות של Cline.
 2. הגדירו את **API Provider** ל-**OpenAI Compatible**.
 3. מלאו את **Base URL**, **API Key** ו-**Model** (`qwen2.5:7b`).
-4. תחת **Model Configuration**, הגדירו את חלון ה-context כך שיתאים למודל שלכם.
+4. תחת **Model Configuration**, הגדירו את חלון ה-context כך ש[יתאים למודל שלכם](/he/which-ai-models-fit-your-gpu-vram/).
 
 הערה לגבי **Roo Code**: התיעוד שלו אומר שהוא עובד רק עם מודלים שתומכים ב-tool calling מובנה, בלי חלופה. ייתכן ש-endpoint צ'אט רגיל לא יעבוד איתו.
 

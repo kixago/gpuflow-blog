@@ -43,7 +43,7 @@ Estes são os preços típicos sob demanda por hora em sites de aluguel de GPU (
 | RTX 4090 | US$ 0,30 – US$ 0,46 | US$ 0,38 |
 | RTX 5090 | US$ 0,41 – US$ 0,69 | US$ 0,55 |
 
-A memória pesa tanto quanto a velocidade. Uma placa de 24 GB, como a 3090 ou a 4090, roda modelos de IA maiores do que uma de 12 GB ou 16 GB, e os locatários pagam por isso.
+A memória pesa tanto quanto a velocidade. Uma placa de 24 GB, como a 3090 ou a 4090, [roda modelos de IA maiores do que uma de 12 GB ou 16 GB](/pt_br/which-ai-models-fit-your-gpu-vram/), e os locatários pagam por isso.
 
 ## 2. Com quanto a plataforma fica
 
@@ -53,7 +53,7 @@ A memória pesa tanto quanto a velocidade. Uma placa de 24 GB, como a 3090 ou a 
 | Vast.ai | A Vast diz que os preços anunciados costumam ficar cerca de 25% acima do que os hosts recebem | Wise, PayPal ou Stripe. Mínimo de US$ 20, faturado semanalmente. |
 | Salad | Não divulgada | PayPal, vale-presentes, jogos e mais |
 
-A configuração também muda. Os hosts da Vast.ai rodam Ubuntu, e os locatários recebem contêineres no host com acesso por SSH ou Jupyter. O Salad roda no Windows 10 ou 11. No GPUFlow você roda um único comando em um computador Linux com systemd; os locatários só acessam seus modelos de IA por meio de uma API, nunca um shell na sua máquina. [O que os locatários podem e não podem acessar](https://docs.gpuflow.app/pt-br/providers/security/).
+A configuração também muda. Os hosts da Vast.ai rodam Ubuntu, e os locatários recebem contêineres no host com acesso por SSH ou Jupyter. O Salad roda no Windows 10 ou 11. No GPUFlow você roda um único comando em um computador Linux com systemd; os locatários só acessam seus modelos de IA por meio de uma API, [nunca um shell na sua máquina](/pt_br/is-it-safe-to-rent-out-your-gpu/). [O que os locatários podem e não podem acessar](https://docs.gpuflow.app/pt-br/providers/security/).
 
 ## 3. Quanto custa a energia
 

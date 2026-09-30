@@ -68,7 +68,7 @@ GPUFlow에서는 제공자마다 직접 가격을 정합니다. 대여 사이트
 
 ### 모델 학습이나 파인튜닝
 
-**Vast.ai 또는 RunPod.** 코드, 데이터, 라이브러리까지 환경 전체가 필요합니다. 보통 Vast.ai가 더 저렴하고, RunPod는 기성 템플릿이 더 많고 데이터 센터 등급을 제공합니다. GPUFlow는 머신을 주지 않으므로 이런 작업을 할 수 없습니다.
+**Vast.ai 또는 RunPod.** 코드, 데이터, 라이브러리까지 환경 전체가 필요합니다. 보통 Vast.ai가 더 저렴하고, RunPod는 기성 템플릿이 더 많고 데이터 센터 등급을 제공합니다. [Stable Diffusion LoRA 학습 가이드](/ko/stable-diffusion-lora-training-under-10-dollars/)에서 두 플랫폼의 일반적인 학습 비용을 계산해 두었습니다. GPUFlow는 머신을 주지 않으므로 이런 작업을 할 수 없습니다.
 
 ### 내 컨테이너를 대규모로 실행
 
@@ -93,7 +93,7 @@ GPUFlow가 하지 않는 것: 임베딩, 이미지 생성, Responses API, 내 �
 | | GPUFlow | Vast.ai | Salad |
 | --- | --- | --- | --- |
 | **운영체제** | systemd를 쓰는 64비트 Linux | Ubuntu | Windows 10/11 |
-| **대여자가 접근하는 것** | GPUFlow 릴레이를 통한 내 AI 모델. 셸도 열린 포트도 없음 | 내 머신의 컨테이너 | Salad의 워크로드 |
+| **대여자가 접근하는 것** | GPUFlow 릴레이를 통한 내 AI 모델. [셸도 열린 포트도 없음](/ko/is-it-safe-to-rent-out-your-gpu/) | 내 머신의 컨테이너 | Salad의 워크로드 |
 | **내 몫** | 88% | Vast에 따르면 표시 가격은 보통 호스트 수익보다 약 25% 높음 | 공개하지 않음 |
 | **출금** | Stripe를 통해 은행으로, 최소 $25, 출금 1회당 $2.50 | Wise, PayPal, Stripe, 최소 $20 | PayPal, 기프트 카드 등 |
 

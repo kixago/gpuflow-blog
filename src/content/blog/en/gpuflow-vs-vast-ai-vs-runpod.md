@@ -68,7 +68,7 @@ Remember that these aren't the same product. A $0.30 container that takes 20 min
 
 ### Training or fine-tuning a model
 
-**Vast.ai or RunPod.** You need the whole environment: your code, your data, your libraries. Vast.ai is usually cheaper; RunPod has more ready-made templates and a data-center tier. GPUFlow can't do this: it doesn't give you a machine.
+**Vast.ai or RunPod.** You need the whole environment: your code, your data, your libraries. Vast.ai is usually cheaper; RunPod has more ready-made templates and a data-center tier. Our [Stable Diffusion LoRA training walkthrough](/en/stable-diffusion-lora-training-under-10-dollars/) prices a typical run on both. GPUFlow can't do this: it doesn't give you a machine.
 
 ### Running your own container at scale
 
@@ -93,7 +93,7 @@ What GPUFlow doesn't do: embeddings, image generation, the Responses API, or run
 | | GPUFlow | Vast.ai | Salad |
 | --- | --- | --- | --- |
 | **Operating system** | 64-bit Linux with systemd | Ubuntu | Windows 10/11 |
-| **What renters can reach** | Your AI models through GPUFlow's relay. No shell, no open ports | A container on your machine | Salad's workloads |
+| **What renters can reach** | Your AI models through GPUFlow's relay. [No shell, no open ports](/en/is-it-safe-to-rent-out-your-gpu/) | A container on your machine | Salad's workloads |
 | **Your share** | 88% | Vast says listed prices are typically about 25% above what hosts earn | Not published |
 | **Payouts** | Bank through Stripe, $25 minimum, $2.50 per cash-out | Wise, PayPal or Stripe, $20 minimum | PayPal, gift cards and more |
 

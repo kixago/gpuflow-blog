@@ -92,7 +92,7 @@ datacenter कार्ड तेज़ हैं, लेकिन RunPod A100 8
 
 ## कहाँ किराये पर लें, और ख़र्च कितना
 
-आपको ऐसा प्लेटफ़ॉर्म चाहिए जो मशीन दे: shell या Jupyter notebook, डिस्क, और फ़ाइलें अंदर-बाहर कॉपी करने का तरीका। इस तरह के काम के लिए Vast.ai और RunPod सबसे आम विकल्प हैं।
+आपको ऐसा प्लेटफ़ॉर्म चाहिए जो मशीन दे: shell या Jupyter notebook, डिस्क, और फ़ाइलें अंदर-बाहर कॉपी करने का तरीका। इस तरह के काम के लिए [Vast.ai और RunPod](/hi/runpod-vs-vastapi-comparison/) सबसे आम विकल्प हैं।
 
 | GPU | VRAM | Vast.ai (से शुरू) | RunPod pricing पेज | RunPod का सबसे सस्ता दर्ज |
 | --- | --- | --- | --- | --- |
@@ -321,7 +321,7 @@ rsync -avP user@your-instance:/workspace/output/*.safetensors ./loras/
 <figcaption>RunPod की list price पर पाँच अलग SDXL कोशिशें भी $10 से काफ़ी नीचे रहती हैं। $0.74 प्रति घंटा पर $10 में RTX 4090 के 13.5 घंटे मिलते हैं; $0.31 पर लगभग 32 घंटे।</figcaption>
 </figure>
 
-$10 का बजट असल में training से शायद ही बिगड़ता है। बिगाड़ता है रात भर चालू छूटा instance (12 घंटे × $0.74 = $8.88), storage का पैसा देता रुका हुआ Vast.ai instance, या billed समय पर तस्वीरों के captions लिखने में लगा एक घंटा। प्रति सेकंड बिलिंग तभी फ़ायदा देती है जब काम ख़त्म होते ही आप मशीन delete कर दें।
+$10 का बजट असल में training से शायद ही बिगड़ता है। बिगाड़ता है रात भर चालू छूटा instance (12 घंटे × $0.74 = $8.88), storage का पैसा देता रुका हुआ Vast.ai instance, या billed समय पर तस्वीरों के captions लिखने में लगा एक घंटा। [प्रति सेकंड बिलिंग](/hi/per-second-vs-hourly-gpu-billing/) तभी फ़ायदा देती है जब काम ख़त्म होते ही आप मशीन delete कर दें।
 
 ## GPUFlow कहाँ फ़िट होता है
 

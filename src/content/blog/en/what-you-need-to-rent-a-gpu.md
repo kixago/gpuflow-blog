@@ -77,7 +77,7 @@ GPUFlow is built for the "I need an AI model in five minutes" case. What you get
 
    ![The GPUFlow Payments page with the amount buttons and the Continue to payment button highlighted](../_images/screens/en/renter-add-credits.png)
 
-4. **Rent a GPU** for the number of hours you want, and copy your API key. You pay by the second; if you end early, the rest goes back to your credits.
+4. **Rent a GPU** for the number of hours you want, and copy your API key. You [pay by the second](/en/per-second-vs-hourly-gpu-billing/); if you end early, the rest goes back to your credits.
 
 The full walkthrough with every screen is in the docs: [rent a GPU, step by step](https://docs.gpuflow.app/renters/getting-started/).
 

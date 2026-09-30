@@ -109,7 +109,7 @@ Comment nous avons calculé les chiffres des GPU : 500 000 tokens en sortie d
 
 ## La confidentialité compte des deux côtés
 
-Avec une API au token, vos prompts vont chez l'entreprise qui fournit l'API. Avec un GPU loué, ils vont sur la machine que vous louez. Sur GPUFlow, par exemple, le modèle tourne sur l'ordinateur du fournisseur : les prompts et les réponses passent donc par lui. Notre documentation le dit clairement : n'envoyez ni mots de passe, ni numéros de carte, ni rien que vous ne confieriez pas à un inconnu. Aucune des deux options ne remplace l'exécution du modèle sur votre propre matériel quand les données sont vraiment sensibles.
+Avec une API au token, [vos prompts vont chez l'entreprise qui fournit l'API](/fr/why-corporate-policies-banning-chatgpt/). Avec un GPU loué, ils vont sur la machine que vous louez. Sur GPUFlow, par exemple, le modèle tourne sur l'ordinateur du fournisseur : les prompts et les réponses passent donc par lui. Notre documentation le dit clairement : n'envoyez ni mots de passe, ni numéros de carte, ni rien que vous ne confieriez pas à un inconnu. Aucune des deux options ne remplace l'exécution du modèle sur votre propre matériel quand les données sont vraiment sensibles.
 
 ## Comment tester sur GPUFlow
 

@@ -92,7 +92,7 @@ O fine-tuning completo atualiza todos os pesos, então a GPU precisa guardar os 
 
 O QLoRA vai além: o modelo base congelado é carregado em precisão NF4 de 4 bits, e só os adaptadores são treinados em 16 bits. Dettmers et al. o usaram para fazer fine-tuning de um modelo de 65B numa única GPU de 48 GB "preservando o desempenho do fine-tuning completo em 16 bits". O artigo trouxe três peças que as ferramentas usam até hoje: o tipo de dado NF4, a quantização dupla das constantes de quantização e os otimizadores paginados, que absorvem picos de memória.
 
-O resultado de qualquer um dos dois é um adaptador, uma pasta com alguns tensores, que você aplica sobre o modelo base inalterado. Dá para mantê-lo separado ou mesclá-lo aos pesos.
+O resultado de qualquer um dos dois é um adaptador, uma pasta com alguns tensores, que você aplica sobre o modelo base inalterado. Dá para mantê-lo separado ou mesclá-lo aos pesos. Modelos de imagem usam o mesmo método: uma [LoRA de Stable Diffusion](/pt_br/stable-diffusion-lora-training-under-10-dollars/) treina numa única placa alugada de 24 GB por bem menos de US$ 10.
 
 ## Quanta VRAM você precisa
 
@@ -195,7 +195,7 @@ Para dados privados:
 3. **Mantenha os logs locais.** No TRL 1.14, `report_to` tem `"none"` como padrão, então nada vai para um rastreador de experimentos a menos que você ative. Não chame `push_to_hub` com um adaptador treinado com dados privados.
 4. **Tire os resultados e depois apague a instância.** Baixe o adaptador e as saídas da avaliação, saia do Hugging Face (`hf auth logout`) se tiver usado um token, e apague a instância e qualquer volume. No Vast.ai, o armazenamento é cobrado e mantido até a instância ser apagada, não só parada.
 
-Apagar arquivos dentro de um contêiner não garante que o disco do host seja limpo, então a proteção de verdade está nos passos 1 e 2: escolher quem fica com o hardware e mandar para ele o mínimo possível. Mais detalhes em [como proteger um dataset em um nó de GPU público](/pt_br/how-to-secure-dataset-on-public-gpu-node/). Se a sua política proíbe qualquer hardware de terceiros, o mesmo script roda na sua própria placa de 24 GB.
+Apagar arquivos dentro de um contêiner não garante que o disco do host seja limpo, então a proteção de verdade está nos passos 1 e 2: escolher quem fica com o hardware e mandar para ele o mínimo possível. Mais detalhes em [como proteger um dataset em um nó de GPU público](/pt_br/how-to-secure-dataset-on-public-gpu-node/). Se [a sua política proíbe qualquer hardware de terceiros](/pt_br/why-corporate-policies-banning-chatgpt/), o mesmo script roda na sua própria placa de 24 GB.
 
 ## Treino: um script QLoRA com o TRL
 

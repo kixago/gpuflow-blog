@@ -206,9 +206,9 @@ Vast.ai वाली पंक्ति getdeploying.com पर दर्ज स
 
 ## मैं कैसे चुनूँगा
 
-प्रयोग, image generation, LoRA training और जो कुछ भी दोबारा शुरू किया जा सके: मार्केटप्लेस पर RTX 3090 या 4090। सस्ता सिरा $0.11 से $0.34 प्रति घंटा है, और बड़े क्लाउड पर कुछ भी इसके आसपास नहीं है।
+प्रयोग, image generation, [LoRA training](/hi/stable-diffusion-lora-training-under-10-dollars/) और जो कुछ भी दोबारा शुरू किया जा सके: मार्केटप्लेस पर RTX 3090 या 4090। सस्ता सिरा $0.11 से $0.34 प्रति घंटा है, और बड़े क्लाउड पर कुछ भी इसके आसपास नहीं है।
 
-किसी बड़े मॉडल के लिए जिसे A100 या H100 चाहिए और जो regulated नहीं है: पहले RunPod या Lambda, और Vast.ai अगर आप हर host का reliability score जाँचने को तैयार हैं। फ़ैसला करने से पहले Azure और Google Cloud की spot कीमतें देख लें; सितंबर 2026 में वे चौंकाने लायक प्रतिस्पर्धी थीं।
+किसी बड़े मॉडल के लिए जिसे A100 या H100 चाहिए और जो regulated नहीं है: पहले RunPod या Lambda, और [Vast.ai अगर आप हर host का reliability score जाँचने को तैयार हैं](/hi/runpod-vs-vastapi-comparison/)। फ़ैसला करने से पहले Azure और Google Cloud की spot कीमतें देख लें; सितंबर 2026 में वे चौंकाने लायक प्रतिस्पर्धी थीं।
 
 regulated डेटा, पहले से AWS, Azure या Google Cloud पर चल रही कंपनी, या जिसे भी SLA चाहिए: अपने क्लाउड पर ही रहें और कीमत घटाने के लिए commitments या spot क्षमता ख़रीदें। H100 के लिए $7 प्रति घंटा देना अक्सर किसी नए vendor की security review से सस्ता पड़ता है।
 

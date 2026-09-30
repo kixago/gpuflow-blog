@@ -206,9 +206,9 @@ Nessa duração, os descontos por compromisso começam a pesar: a tarifa reserva
 
 ## Como eu escolheria
 
-Para experimentos, geração de imagens, treino de LoRA e qualquer coisa que você possa reiniciar: uma RTX 3090 ou 4090 de marketplace. A ponta barata vai de US$ 0,11 a US$ 0,34 por hora, e nada nas grandes nuvens chega perto.
+Para experimentos, geração de imagens, [treino de LoRA](/pt_br/stable-diffusion-lora-training-under-10-dollars/) e qualquer coisa que você possa reiniciar: uma RTX 3090 ou 4090 de marketplace. A ponta barata vai de US$ 0,11 a US$ 0,34 por hora, e nada nas grandes nuvens chega perto.
 
-Para um modelo grande que precisa de A100 ou H100 e não é regulado: RunPod ou Lambda primeiro, Vast.ai se você topar conferir o índice de confiabilidade de cada host. Olhe os preços spot do Azure e do Google Cloud antes de decidir; em setembro de 2026 eles estavam surpreendentemente competitivos.
+Para um modelo grande que precisa de A100 ou H100 e não é regulado: RunPod ou Lambda primeiro, [Vast.ai se você topar conferir o índice de confiabilidade de cada host](/pt_br/runpod-vs-vastapi-comparison/). Olhe os preços spot do Azure e do Google Cloud antes de decidir; em setembro de 2026 eles estavam surpreendentemente competitivos.
 
 Para dados regulados, uma empresa que já roda na AWS, no Azure ou no Google Cloud, ou qualquer coisa que exija SLA: fique na sua nuvem e compre compromissos ou capacidade spot para baixar o preço. Pagar US$ 7 por hora por uma H100 muitas vezes sai mais barato do que uma revisão de segurança de um fornecedor novo.
 

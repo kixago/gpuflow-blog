@@ -92,7 +92,7 @@ LoRA（Low-Rank Adaptation，低秩适配）冻结基础模型，只在其中部
 
 ## 去哪里租，要花多少钱
 
-你需要一个给你整台机器的平台：有 shell 或 Jupyter notebook，有磁盘，能把文件传进传出。这类任务最常见的两个选择是 Vast.ai 和 RunPod。
+你需要一个给你整台机器的平台：有 shell 或 Jupyter notebook，有磁盘，能把文件传进传出。这类任务最常见的两个选择是 [Vast.ai 和 RunPod](/zh_cn/runpod-vs-vastapi-comparison/)。
 
 | GPU | 显存 | Vast.ai（起价） | RunPod 价格页面 | RunPod 最低追踪价 |
 | --- | --- | --- | --- | --- |
@@ -321,7 +321,7 @@ rsync -avP user@your-instance:/workspace/output/*.safetensors ./loras/
 <figcaption>即使按 RunPod 的标价单独尝试五次 SDXL，也远低于 $10。按每小时 $0.74，$10 能买 13.5 小时 RTX 4090；按每小时 $0.31，约 32 小时。</figcaption>
 </figure>
 
-真正把 $10 预算花光的很少是训练本身，而是忘了关、跑了一整夜的实例（按每小时 $0.74 算，12 小时就是 $8.88），是停止后仍在交存储费的 Vast.ai 实例，或者是在计费时间里花一小时给图片写标注。按秒计费只有在你用完就删机器时才省钱。
+真正把 $10 预算花光的很少是训练本身，而是忘了关、跑了一整夜的实例（按每小时 $0.74 算，12 小时就是 $8.88），是停止后仍在交存储费的 Vast.ai 实例，或者是在计费时间里花一小时给图片写标注。[按秒计费](/zh_cn/per-second-vs-hourly-gpu-billing/)只有在你用完就删机器时才省钱。
 
 ## GPUFlow 在其中的位置
 

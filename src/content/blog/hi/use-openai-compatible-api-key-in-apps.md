@@ -138,7 +138,7 @@ Continue के Agent मोड को ऐसा मॉडल चाहिए �
 1. Cline की सेटिंग खोलें।
 2. **API Provider** को **OpenAI Compatible** पर सेट करें।
 3. **Base URL**, **API Key** और **Model** (`qwen2.5:7b`) भरें।
-4. **Model Configuration** के नीचे context window को अपने मॉडल के हिसाब से सेट करें।
+4. **Model Configuration** के नीचे context window को [अपने मॉडल के हिसाब से](/hi/which-ai-models-fit-your-gpu-vram/) सेट करें।
 
 **Roo Code** के बारे में एक बात: इसके docs कहते हैं कि यह सिर्फ़ उन मॉडल के साथ काम करता है जो native tool calling सपोर्ट करते हैं, कोई fallback नहीं है। एक सामान्य चैट endpoint इसके साथ शायद काम न करे।
 

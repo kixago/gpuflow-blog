@@ -77,7 +77,7 @@ Vast.ai وRunPod وSaladCloud وTensorDock وGPUFlow كلها تعمل بالد�
 
    ![صفحة المدفوعات في GPUFlow مع إبراز أزرار المبالغ وزر المتابعة إلى الدفع](../_images/screens/ar/renter-add-credits.png)
 
-4. **استأجر GPU** لعدد الساعات الذي تريده، وانسخ مفتاح API. تدفع بالثانية؛ وإذا أنهيت مبكراً، يعود الباقي إلى رصيدك.
+4. **استأجر GPU** لعدد الساعات الذي تريده، وانسخ مفتاح API. [تدفع بالثانية](/ar/per-second-vs-hourly-gpu-billing/)؛ وإذا أنهيت مبكراً، يعود الباقي إلى رصيدك.
 
 الشرح الكامل مع كل الشاشات موجود في الوثائق: [استأجر GPU خطوة بخطوة](https://docs.gpuflow.app/ar/renters/getting-started/).
 

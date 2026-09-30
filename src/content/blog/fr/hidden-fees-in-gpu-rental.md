@@ -197,7 +197,7 @@ Le plus gros poste n'est pas du tout le GPU : c'est un disque resté à l'arrêt
 2. Vérifiez le prix de la bande passante sur l'offre si la plateforme en a un, et estimez ce que vous allez télécharger.
 3. Comptez le temps de mise en route comme du temps payé.
 4. Sachez comment vous cesserez de payer : terminer la location, arrêter ou désallouer la machine, supprimer le volume.
-5. Sachez ce que deviennent vos données si le solde tombe à zéro.
+5. Sachez [ce que deviennent vos données si le solde tombe à zéro](/fr/runpod-vs-vastapi-comparison/).
 6. Vérifiez les frais à l'étranger de votre carte.
 
 Si ce qu'il vous faut est un modèle d'IA à appeler depuis votre code, et non une machine pour faire tourner votre propre logiciel, une location via API supprime entièrement les lignes stockage, transfert et mise en route. [GPU à l'heure ou API au token ?](/fr/hourly-gpu-vs-per-token-api/) compare cette option au paiement par token, et [GPUFlow, Vast.ai, RunPod et SaladCloud comparés](/fr/gpuflow-vs-vast-ai-vs-runpod/) indique quelle plateforme convient à quelle tâche. Pour l'entraînement ou tout ce qui demande une machine complète, cette liste est ce qui garde la facture proche du prix à l'heure.

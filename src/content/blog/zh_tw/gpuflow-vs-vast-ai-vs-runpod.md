@@ -68,7 +68,7 @@ Vast.ai 和 SaladCloud 的價格取自 getdeploying.com，因為我們查詢時 
 
 ### 訓練或微調模型
 
-**Vast.ai 或 RunPod**。您需要完整的環境：您的程式碼、您的資料、您的函式庫。Vast.ai 通常比較便宜；RunPod 有更多現成範本，還有資料中心等級的方案。GPUFlow 做不到這件事：它不提供機器。
+**Vast.ai 或 RunPod**。您需要完整的環境：您的程式碼、您的資料、您的函式庫。Vast.ai 通常比較便宜；RunPod 有更多現成範本，還有資料中心等級的方案。我們的[Stable Diffusion LoRA 訓練教學](/zh_tw/stable-diffusion-lora-training-under-10-dollars/)估算了在這兩個平台上跑一次典型訓練的費用。GPUFlow 做不到這件事：它不提供機器。
 
 ### 大規模執行自己的容器
 
@@ -93,7 +93,7 @@ GPUFlow 不提供的功能：嵌入、圖片生成、Responses API，以及執�
 | | GPUFlow | Vast.ai | Salad |
 | --- | --- | --- | --- |
 | **作業系統** | 使用 systemd 的 64 位元 Linux | Ubuntu | Windows 10/11 |
-| **租用者能存取的東西** | 透過 GPUFlow 中繼伺服器存取您的 AI 模型。沒有 shell，不開放連接埠 | 您機器上的一個容器 | Salad 的工作負載 |
+| **租用者能存取的東西** | 透過 GPUFlow 中繼伺服器存取您的 AI 模型。[沒有 shell，不開放連接埠](/zh_tw/is-it-safe-to-rent-out-your-gpu/) | 您機器上的一個容器 | Salad 的工作負載 |
 | **您的分潤** | 88% | Vast 表示刊登價格通常比主機實際收入高約 25% | 未公開 |
 | **提領** | 透過 Stripe 匯入銀行，最低 $25，每次提領 $2.50 | Wise、PayPal 或 Stripe，最低 $20 | PayPal、禮物卡等 |
 

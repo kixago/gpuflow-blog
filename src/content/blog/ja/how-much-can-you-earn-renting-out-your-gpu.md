@@ -43,7 +43,7 @@ faq:
 | RTX 4090 | $0.30〜$0.46 | $0.38 |
 | RTX 5090 | $0.41〜$0.69 | $0.55 |
 
-速度と同じくらいメモリも重要です。3090 や 4090 のような 24 GB のカードは、12 GB や 16 GB のカードより大きな AI モデルを動かせるため、借り手はその分を支払います。
+速度と同じくらいメモリも重要です。3090 や 4090 のような 24 GB のカードは、[12 GB や 16 GB のカードより大きな AI モデルを動かせる](/ja/which-ai-models-fit-your-gpu-vram/)ため、借り手はその分を支払います。
 
 ## 2. サービスが受け取る金額
 
@@ -53,7 +53,7 @@ faq:
 | Vast.ai | Vast によると、表示価格はホストの収益より通常 25% ほど高い | Wise、PayPal、Stripe。最低 $20、毎週精算。 |
 | Salad | 公表されていない | PayPal、ギフトカード、ゲームなど |
 
-しくみも異なります。Vast.ai のホストは Ubuntu を使い、借り手はホスト上のコンテナを受け取って SSH や Jupyter でアクセスします。Salad は Windows 10 または 11 で動きます。GPUFlow では、systemd を搭載した Linux コンピューターでコマンドを 1 つ実行するだけです。借り手がアクセスできるのは API 経由の AI モデルだけで、あなたのマシンのシェルには決して触れられません。[借り手がアクセスできるもの、できないもの](https://docs.gpuflow.app/ja/providers/security/)。
+しくみも異なります。Vast.ai のホストは Ubuntu を使い、借り手はホスト上のコンテナを受け取って SSH や Jupyter でアクセスします。Salad は Windows 10 または 11 で動きます。GPUFlow では、systemd を搭載した Linux コンピューターでコマンドを 1 つ実行するだけです。借り手がアクセスできるのは API 経由の AI モデルだけで、[あなたのマシンのシェルには決して触れられません](/ja/is-it-safe-to-rent-out-your-gpu/)。[借り手がアクセスできるもの、できないもの](https://docs.gpuflow.app/ja/providers/security/)。
 
 ## 3. 電気代
 

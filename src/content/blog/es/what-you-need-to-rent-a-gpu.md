@@ -77,7 +77,7 @@ GPUFlow está pensado para el caso de «necesito un modelo de IA en cinco minuto
 
    ![La página de Pagos de GPUFlow con los botones de importe y el botón Continuar al pago resaltados](../_images/screens/es/renter-add-credits.png)
 
-4. **Alquila una GPU** durante las horas que quieras y copia tu clave API. Pagas por segundo; si terminas antes, el resto vuelve a tus créditos.
+4. **Alquila una GPU** durante las horas que quieras y copia tu clave API. [Pagas por segundo](/es/per-second-vs-hourly-gpu-billing/); si terminas antes, el resto vuelve a tus créditos.
 
 La guía completa, con todas las pantallas, está en la documentación: [alquilar una GPU, paso a paso](https://docs.gpuflow.app/es/renters/getting-started/).
 

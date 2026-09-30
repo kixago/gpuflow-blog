@@ -109,7 +109,7 @@ How we got the GPU numbers: 500,000 output tokens divided by the speed from step
 
 ## Privacy is a factor on both sides
 
-With a per-token API, your prompts go to the API company. With a rented GPU, they go to the machine you rent. On GPUFlow, for example, the model runs on the provider's own computer, so prompts and answers pass through it. Our docs say it plainly: don't send passwords, card numbers or anything you wouldn't share with a stranger. Neither option replaces running the model on your own hardware when the data is truly sensitive.
+With a per-token API, [your prompts go to the API company](/en/why-corporate-policies-banning-chatgpt/). With a rented GPU, they go to the machine you rent. On GPUFlow, for example, the model runs on the provider's own computer, so prompts and answers pass through it. Our docs say it plainly: don't send passwords, card numbers or anything you wouldn't share with a stranger. Neither option replaces running the model on your own hardware when the data is truly sensitive.
 
 ## How to test this on GPUFlow
 

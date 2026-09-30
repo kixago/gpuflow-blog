@@ -77,7 +77,7 @@ GPUFlow 是為「我要在五分鐘內用上 AI 模型」這種情況打造的�
 
    ![GPUFlow「支付」頁面：金額按鈕和「前往付款」按鈕已標示出來](../_images/screens/zh_tw/renter-add-credits.png)
 
-4. **租用 GPU**，選擇您要的時數，然後複製您的 API 金鑰。按秒計費；如果提早結束，剩下的會退回您的額度。
+4. **租用 GPU**，選擇您要的時數，然後複製您的 API 金鑰。[按秒計費](/zh_tw/per-second-vs-hourly-gpu-billing/)；如果提早結束，剩下的會退回您的額度。
 
 文件中有附上每個畫面的完整教學：[一步步租用 GPU](https://docs.gpuflow.app/zh-tw/renters/getting-started/)。
 

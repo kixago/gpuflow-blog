@@ -109,7 +109,7 @@ Como chegamos aos números das GPUs: 500.000 tokens de saída divididos pela vel
 
 ## Privacidade conta nos dois lados
 
-Com uma API por token, seus prompts vão para a empresa da API. Com uma GPU alugada, eles vão para a máquina que você alugou. No GPUFlow, por exemplo, o modelo roda no computador do próprio provedor, então prompts e respostas passam por ele. Nossa documentação diz isso claramente: não envie senhas, números de cartão nem nada que você não compartilharia com um desconhecido. Nenhuma das duas opções substitui rodar o modelo no seu próprio hardware quando os dados são realmente sensíveis.
+Com uma API por token, [seus prompts vão para a empresa da API](/pt_br/why-corporate-policies-banning-chatgpt/). Com uma GPU alugada, eles vão para a máquina que você alugou. No GPUFlow, por exemplo, o modelo roda no computador do próprio provedor, então prompts e respostas passam por ele. Nossa documentação diz isso claramente: não envie senhas, números de cartão nem nada que você não compartilharia com um desconhecido. Nenhuma das duas opções substitui rodar o modelo no seu próprio hardware quando os dados são realmente sensíveis.
 
 ## Como testar isso no GPUFlow
 

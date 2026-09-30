@@ -68,7 +68,7 @@ GPUFlow पर हर provider अपनी कीमत ख़ुद तय क
 
 ### मॉडल को ट्रेन या fine-tune करना
 
-**Vast.ai या RunPod।** आपको पूरा environment चाहिए: आपका कोड, आपका डेटा, आपकी libraries। Vast.ai आमतौर पर सस्ता है; RunPod में ज़्यादा तैयार templates हैं और डेटा सेंटर वाला tier भी। GPUFlow यह नहीं कर सकता: यह आपको मशीन नहीं देता।
+**Vast.ai या RunPod।** आपको पूरा environment चाहिए: आपका कोड, आपका डेटा, आपकी libraries। Vast.ai आमतौर पर सस्ता है; RunPod में ज़्यादा तैयार templates हैं और डेटा सेंटर वाला tier भी। हमारी [Stable Diffusion LoRA training गाइड](/hi/stable-diffusion-lora-training-under-10-dollars/) दोनों पर एक आम run की लागत का हिसाब लगाती है। GPUFlow यह नहीं कर सकता: यह आपको मशीन नहीं देता।
 
 ### बड़े पैमाने पर अपना container चलाना
 
@@ -93,7 +93,7 @@ GPUFlow क्या नहीं करता: embeddings, इमेज बन�
 | | GPUFlow | Vast.ai | Salad |
 | --- | --- | --- | --- |
 | **ऑपरेटिंग सिस्टम** | systemd वाला 64-bit Linux | Ubuntu | Windows 10/11 |
-| **किरायेदार किस तक पहुँच सकते हैं** | GPUFlow के relay के ज़रिए आपके AI मॉडल। कोई shell नहीं, कोई खुला port नहीं | आपकी मशीन पर एक container | Salad के workloads |
+| **किरायेदार किस तक पहुँच सकते हैं** | GPUFlow के relay के ज़रिए आपके AI मॉडल। [कोई shell नहीं, कोई खुला port नहीं](/hi/is-it-safe-to-rent-out-your-gpu/) | आपकी मशीन पर एक container | Salad के workloads |
 | **आपका हिस्सा** | 88% | Vast के मुताबिक़ लिस्ट की गई कीमतें आमतौर पर hosts की कमाई से लगभग 25% ज़्यादा होती हैं | प्रकाशित नहीं |
 | **Payouts** | Stripe के ज़रिए बैंक, न्यूनतम $25, हर निकासी पर $2.50 | Wise, PayPal या Stripe, न्यूनतम $20 | PayPal, गिफ़्ट कार्ड और बहुत कुछ |
 

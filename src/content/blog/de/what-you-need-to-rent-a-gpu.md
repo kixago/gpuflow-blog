@@ -77,7 +77,7 @@ GPUFlow ist für den Fall „Ich brauche in fünf Minuten ein KI-Modell“ gebau
 
    ![Die Seite Zahlungen bei GPUFlow mit hervorgehobenen Betragsschaltflächen und der Schaltfläche Weiter zur Zahlung](../_images/screens/de/renter-add-credits.png)
 
-4. **Mieten Sie eine GPU** für die gewünschte Zahl von Stunden und kopieren Sie Ihren API-Schlüssel. Sie zahlen sekundengenau; beenden Sie die Miete früher, wird der Rest Ihren Credits gutgeschrieben.
+4. **Mieten Sie eine GPU** für die gewünschte Zahl von Stunden und kopieren Sie Ihren API-Schlüssel. Sie [zahlen sekundengenau](/de/per-second-vs-hourly-gpu-billing/); beenden Sie die Miete früher, wird der Rest Ihren Credits gutgeschrieben.
 
 Die vollständige Anleitung mit allen Screenshots steht in der Doku: [GPU mieten, Schritt für Schritt](https://docs.gpuflow.app/de/renters/getting-started/).
 

@@ -92,7 +92,7 @@ Las tarjetas de centro de datos son más rápidas, pero RunPod anuncia una A100 
 
 ## Dónde alquilar y cuánto cuesta
 
-Necesitas una plataforma que te dé una máquina: una shell o un notebook de Jupyter, un disco y una forma de subir y bajar archivos. Vast.ai y RunPod son las dos opciones más habituales para este tipo de trabajo.
+Necesitas una plataforma que te dé una máquina: una shell o un notebook de Jupyter, un disco y una forma de subir y bajar archivos. [Vast.ai y RunPod](/es/runpod-vs-vastapi-comparison/) son las dos opciones más habituales para este tipo de trabajo.
 
 | GPU | VRAM | Vast.ai (desde) | Página de precios de RunPod | RunPod, lo más barato registrado |
 | --- | --- | --- | --- | --- |
@@ -321,7 +321,7 @@ Una LoRA de FLUX.2 [klein] con una hora de entrenamiento y 30 minutos de prepara
 <figcaption>Incluso cinco intentos de SDXL al precio de lista de RunPod se quedan muy por debajo de 10 $. A 0,74 $ la hora, 10 $ dan para 13,5 horas de RTX 4090; a 0,31 $, para unas 32 horas.</figcaption>
 </figure>
 
-Lo que de verdad se come un presupuesto de 10 $ rara vez es el entrenamiento. Es una instancia que se queda encendida toda la noche (12 horas a 0,74 $ son 8,88 $), una instancia de Vast.ai parada que sigue pagando almacenamiento o una hora describiendo imágenes con el contador en marcha. La facturación por segundo solo ayuda si borras la máquina cuando terminas.
+Lo que de verdad se come un presupuesto de 10 $ rara vez es el entrenamiento. Es una instancia que se queda encendida toda la noche (12 horas a 0,74 $ son 8,88 $), una instancia de Vast.ai parada que sigue pagando almacenamiento o una hora describiendo imágenes con el contador en marcha. La [facturación por segundo](/es/per-second-vs-hourly-gpu-billing/) solo ayuda si borras la máquina cuando terminas.
 
 ## Dónde encaja GPUFlow
 

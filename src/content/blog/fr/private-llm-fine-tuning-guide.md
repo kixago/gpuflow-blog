@@ -92,7 +92,7 @@ Un fine-tuning complet met à jour tous les poids : le GPU doit donc garder les 
 
 QLoRA va plus loin : le modèle de base gelé est chargé en précision NF4 sur 4 bits, et seuls les adaptateurs sont entraînés en 16 bits. Dettmers et al. l'ont utilisé pour fine-tuner un modèle de 65B sur un seul GPU de 48 Go « tout en conservant les performances d'un fine-tuning complet en 16 bits ». L'article a introduit trois éléments que les outils utilisent encore : le type de données NF4, la double quantification des constantes de quantification, et des optimiseurs paginés qui absorbent les pics de mémoire.
 
-Dans les deux cas, on obtient un adaptateur, un dossier de quelques tenseurs, que l'on applique par-dessus le modèle de base inchangé. Vous pouvez le garder séparé ou le fusionner dans les poids.
+Dans les deux cas, on obtient un adaptateur, un dossier de quelques tenseurs, que l'on applique par-dessus le modèle de base inchangé. Vous pouvez le garder séparé ou le fusionner dans les poids. Les modèles d'image utilisent la même méthode : un [LoRA Stable Diffusion](/fr/stable-diffusion-lora-training-under-10-dollars/) s'entraîne sur une seule carte louée de 24 Go pour bien moins de 10 $.
 
 ## La VRAM nécessaire
 
@@ -195,7 +195,7 @@ Pour des données privées :
 3. **Gardez les logs en local.** Dans TRL 1.14, `report_to` vaut `"none"` par défaut : rien ne part vers un outil de suivi d'expériences tant que vous ne l'activez pas. N'appelez pas `push_to_hub` avec un adaptateur entraîné sur des données privées.
 4. **Récupérez les résultats, puis supprimez l'instance.** Téléchargez l'adaptateur et les résultats d'évaluation, déconnectez-vous de Hugging Face (`hf auth logout`) si vous avez utilisé un token, et supprimez l'instance et tout volume. Sur Vast.ai, le stockage est facturé et conservé jusqu'à la suppression de l'instance, pas seulement jusqu'à son arrêt.
 
-Supprimer des fichiers dans un conteneur ne garantit pas que le disque de l'hôte soit effacé : la vraie protection, ce sont les étapes 1 et 2. Choisissez qui détient le matériel, et envoyez-lui le moins possible. Plus de détails dans [comment sécuriser un jeu de données sur un nœud GPU public](/fr/how-to-secure-dataset-on-public-gpu-node/). Si votre politique interdit tout matériel tiers, le même script tourne sur votre propre carte de 24 Go.
+Supprimer des fichiers dans un conteneur ne garantit pas que le disque de l'hôte soit effacé : la vraie protection, ce sont les étapes 1 et 2. Choisissez qui détient le matériel, et envoyez-lui le moins possible. Plus de détails dans [comment sécuriser un jeu de données sur un nœud GPU public](/fr/how-to-secure-dataset-on-public-gpu-node/). Si [votre politique interdit tout matériel tiers](/fr/why-corporate-policies-banning-chatgpt/), le même script tourne sur votre propre carte de 24 Go.
 
 ## Entraîner : un script QLoRA avec TRL
 

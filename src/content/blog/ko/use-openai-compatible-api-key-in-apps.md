@@ -138,7 +138,7 @@ Continue의 Agent 모드에는 도구 호출을 처리할 수 있는 모델이 �
 1. Cline 설정을 엽니다.
 2. **API Provider**를 **OpenAI Compatible**로 설정합니다.
 3. **Base URL**, **API Key**, **Model**(`qwen2.5:7b`)을 입력합니다.
-4. **Model Configuration**에서 컨텍스트 창 크기를 모델에 맞게 설정합니다.
+4. **Model Configuration**에서 컨텍스트 창 크기를 [모델에 맞게](/ko/which-ai-models-fit-your-gpu-vram/) 설정합니다.
 
 **Roo Code**에 대한 참고: 문서에 따르면 네이티브 도구 호출을 지원하는 모델에서만 작동하며 대체 방식이 없습니다. 일반 채팅 엔드포인트로는 작동하지 않을 수 있습니다.
 

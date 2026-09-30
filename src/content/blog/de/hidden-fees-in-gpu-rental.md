@@ -197,7 +197,7 @@ Der größte Posten ist gar nicht die GPU, sondern eine Festplatte, die 91 % des
 2. Prüfen Sie den Bandbreitenpreis im Angebot, falls die Plattform einen hat, und schätzen Sie, wie viel Sie herunterladen.
 3. Zählen Sie Einrichtungszeit als bezahlte Zeit.
 4. Wissen Sie, wie Sie aufhören zu zahlen: Miete beenden, Maschine stoppen oder freigeben, Volume löschen.
-5. Wissen Sie, was mit Ihren Daten passiert, wenn das Guthaben auf null fällt.
+5. Wissen Sie, [was mit Ihren Daten passiert, wenn das Guthaben auf null fällt](/de/runpod-vs-vastapi-comparison/).
 6. Prüfen Sie das Auslandseinsatzentgelt Ihrer Karte.
 
 Wenn Sie ein KI-Modell brauchen, das Sie aus Ihrem Code aufrufen, und keine Maschine für eigene Software, spart eine API-basierte Miete die Posten für Speicher, Übertragung und Einrichtung komplett. [GPU pro Stunde oder API pro Token?](/de/hourly-gpu-vs-per-token-api/) vergleicht das mit der Bezahlung pro Token, und [GPUFlow vs. Vast.ai vs. RunPod vs. SaladCloud](/de/gpuflow-vs-vast-ai-vs-runpod/) zeigt, welche Plattform zu welchem Job passt. Für Training oder alles andere, was eine vollständige Maschine braucht, hält diese Checkliste die Rechnung nah am Stundenpreis.

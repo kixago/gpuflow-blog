@@ -92,7 +92,7 @@ VRAM 決定您能訓練什麼。速度決定一次訓練要計費幾分鐘，所
 
 ## 去哪裡租，要花多少
 
-您需要的是給您一台機器的平台：有 shell 或 Jupyter notebook、有磁碟，也有辦法把檔案傳進傳出。這類工作最常見的兩個選擇是 Vast.ai 和 RunPod。
+您需要的是給您一台機器的平台：有 shell 或 Jupyter notebook、有磁碟，也有辦法把檔案傳進傳出。這類工作最常見的兩個選擇是 [Vast.ai 和 RunPod](/zh_tw/runpod-vs-vastapi-comparison/)。
 
 | GPU | VRAM | Vast.ai（起價） | RunPod 價格頁面 | RunPod 追蹤到的最低價 |
 | --- | --- | --- | --- | --- |
@@ -321,7 +321,7 @@ rsync -avP user@your-instance:/workspace/output/*.safetensors ./loras/
 <figcaption>就算以 RunPod 的牌價分開嘗試五次 SDXL，總額仍遠低於 $10。以每小時 $0.74 計算，$10 可買 13.5 小時的 RTX 4090 時間；以 $0.31 計算，約 32 小時。</figcaption>
 </figure>
 
-真正讓 $10 預算破功的，很少是訓練本身。而是整晚忘了關的執行個體（每小時 $0.74，12 小時就是 $8.88）、已停止卻仍在付儲存費的 Vast.ai 執行個體，或是在計費時間內花一小時寫標註。按秒計費只有在您用完就刪除機器時才有幫助。
+真正讓 $10 預算破功的，很少是訓練本身。而是整晚忘了關的執行個體（每小時 $0.74，12 小時就是 $8.88）、已停止卻仍在付儲存費的 Vast.ai 執行個體，或是在計費時間內花一小時寫標註。[按秒計費](/zh_tw/per-second-vs-hourly-gpu-billing/)只有在您用完就刪除機器時才有幫助。
 
 ## GPUFlow 適合這項工作嗎
 
