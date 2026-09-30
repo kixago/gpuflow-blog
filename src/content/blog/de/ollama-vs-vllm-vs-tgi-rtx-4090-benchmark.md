@@ -87,9 +87,9 @@ Alle Tests liefen auf einer sauberen Maschine ohne Hintergrundlast. Jeder Messwe
 
 ---
 
-# Ergebnisse
+## Ergebnisse
 
-## 1. Ollama
+### 1. Ollama
 
 Ollama setzt auf Einfachheit. Die Installation ist minimal, Modelle werden automatisch heruntergeladen.
 
@@ -99,14 +99,14 @@ ollama run llama3
 
 Batching-Verhalten und Scheduling-Strategie lassen sich nur eingeschränkt konfigurieren.
 
-### Gemessene Leistung (RTX 4090, FP16)
+#### Gemessene Leistung (RTX 4090, FP16)
 
 - **Durchsatz mit einem Stream:** 62–74 Tokens/s
 - **Durchsatz mit 8 Streams:** 95–108 Tokens/s
 - **Latenz bis zum ersten Token:** 720–980 ms
 - **Beobachteter VRAM-Bedarf:** 14–17GB
 
-### Beobachtungen
+#### Beobachtungen
 
 - Die GPU-Auslastung schwankte unter paralleler Last.
 - Ab 4 Streams skalierte der Durchsatz nicht mehr linear.
@@ -116,7 +116,7 @@ Ollama läuft zuverlässig für die lokale Entwicklung und Dienste mit wenig Tra
 
 ---
 
-## 2. vLLM
+### 2. vLLM
 
 vLLM ist auf Durchsatz ausgelegt. Die PagedAttention-Implementierung nutzt den KV-Cache bei parallelen Anfragen effizienter.
 
@@ -134,14 +134,14 @@ python -m vllm.entrypoints.openai.api_server \
   --dtype float16
 ```
 
-### Gemessene Leistung (RTX 4090, FP16)
+#### Gemessene Leistung (RTX 4090, FP16)
 
 - **Durchsatz mit einem Stream:** 92–104 Tokens/s
 - **Durchsatz mit 8 Streams:** 185–215 Tokens/s
 - **Latenz bis zum ersten Token:** 360–480 ms
 - **Beobachteter VRAM-Bedarf:** 20–22GB
 
-### Beobachtungen
+#### Beobachtungen
 
 - Die GPU-Auslastung blieb unter Last über 95 %.
 - Continuous Batching verbesserte die Skalierung.
@@ -151,7 +151,7 @@ vLLM erreichte den höchsten dauerhaften Durchsatz pro Stunde Mietzeit.
 
 ---
 
-## 3. Hugging Face Text Generation Inference (TGI)
+### 3. Hugging Face Text Generation Inference (TGI)
 
 TGI ist ein containerisierter Inferenzserver für den Produktionseinsatz.
 
@@ -162,14 +162,14 @@ docker run --gpus all \
   --model-id meta-llama/Llama-3.1-8B
 ```
 
-### Gemessene Leistung (RTX 4090, FP16)
+#### Gemessene Leistung (RTX 4090, FP16)
 
 - **Durchsatz mit einem Stream:** 78–88 Tokens/s
 - **Durchsatz mit 8 Streams:** 150–176 Tokens/s
 - **Latenz bis zum ersten Token:** 510–690 ms
 - **Beobachteter VRAM-Bedarf:** 21–23GB
 
-### Beobachtungen
+#### Beobachtungen
 
 - Die Leistung war konstant und vorhersehbar.
 - Der Durchsatz skalierte besser als bei Ollama, aber schlechter als bei vLLM.
@@ -183,7 +183,7 @@ TGI bietet Steuerungs- und Monitoring-Funktionen für die Produktion, holt aber 
 
 ---
 
-# Direkter Vergleich
+## Direkter Vergleich
 
 | Stack  | Ein Stream    | 8 Streams   | Erstes Token | VRAM    | GPU-Auslastung |
 | ------ | ------------- | ----------- | ------------ | ------- | -------------- |
@@ -193,7 +193,7 @@ TGI bietet Steuerungs- und Monitoring-Funktionen für die Produktion, holt aber 
 
 ---
 
-# Was das für die Kosten gemieteter GPUs bedeutet
+## Was das für die Kosten gemieteter GPUs bedeutet
 
 Auf GPU-Marktplätzen kostete eine RTX 4090 im September 2026 je nach Plattform und Nachfrage rund 0,30–0,46 $ pro Stunde. Eine detaillierte Aufschlüsselung finden Sie hier:
 
@@ -220,7 +220,7 @@ Für sich genommen ist der Kostenunterschied nicht dramatisch. Er summiert sich 
 
 Bei 50 Millionen Tokens pro Tag bestimmt die Durchsatzeffizienz direkt, wie viele GPUs Sie brauchen und wie lange Sie sie mieten.
 
-## Den Benchmark selbst durchführen
+### Den Benchmark selbst durchführen
 
 Um diese Messungen nachzustellen, brauchen Sie eine Maschine, die Sie selbst kontrollieren, damit Sie jeden Server installieren und konfigurieren können. Dafür eignen sich Marktplätze, die Container mit SSH-Zugang vermieten, etwa Vast.ai oder RunPod.
 
@@ -230,7 +230,7 @@ Da stundenweise abgerechnet wird, wirkt sich die Inferenzeffizienz direkt auf di
 
 ---
 
-# Einordnung für das Deployment
+## Einordnung für das Deployment
 
 Wenn Sie GPUs stundenweise mieten, bestimmt die Inferenzeffizienz direkt Ihre Kosteneffizienz. Die Zahlen dazu rechnen wir in [GPU pro Stunde oder API pro Token](/de/hourly-gpu-vs-per-token-api/) durch.
 
@@ -245,7 +245,7 @@ Consumer-GPUs bleiben für Modelle mit 7B–8B Parametern wirtschaftlich, wenn s
 
 ---
 
-# Wann sich welcher Stack eignet
+## Wann sich welcher Stack eignet
 
 **Ollama**
 
@@ -267,7 +267,7 @@ Consumer-GPUs bleiben für Modelle mit 7B–8B Parametern wirtschaftlich, wenn s
 
 ---
 
-# Fazit
+## Fazit
 
 Auf einer einzelnen RTX 4090 mit Llama‑3.1‑8B in FP16 gilt:
 
@@ -279,13 +279,13 @@ Die Wahl des Inferenz-Stacks ist keine Geschmacksfrage. Sie bestimmt die Kostens
 
 Bei Workloads auf gemieteten Consumer-GPUs beeinflusst die Batching-Effizienz die Wirtschaftlichkeit erheblich.
 
-# Wo Sie das in Produktion betreiben
+## Wo Sie das in Produktion betreiben
 
 Alle Benchmarks in diesem Artikel liefen auf gemieteter Consumer-Hardware, nicht auf eigener Infrastruktur.
 
 Für Fine-Tuning oder einen eigenen Inferenzserver mieten Sie eine Maschine, auf der Sie sich anmelden können. Wenn Sie ein von Ollama bereitgestelltes Modell ohne jede Einrichtung über eine API nutzen möchten, sehen Sie sich [GPUFlow](https://gpuflow.app/de/marketplace) an: Mieten werden sekundengenau abgerechnet und mit Guthaben bezahlt, das Sie per Karte kaufen.
 
-### Weiterführende Ressourcen
+#### Weiterführende Ressourcen
 
 **Vertiefen Sie Ihr Wissen zum Deployment-Stack:**
 

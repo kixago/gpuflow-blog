@@ -87,9 +87,9 @@ Todos os testes rodaram em uma máquina limpa, sem cargas em segundo plano. Cada
 
 ---
 
-# Resultados
+## Resultados
 
-## 1. Ollama
+### 1. Ollama
 
 O Ollama prioriza a simplicidade. A instalação é mínima, e os modelos são baixados automaticamente.
 
@@ -99,14 +99,14 @@ ollama run llama3
 
 Há pouca configuração para o comportamento de batching ou a estratégia de agendamento.
 
-### Desempenho medido (RTX 4090, FP16)
+#### Desempenho medido (RTX 4090, FP16)
 
 - **Throughput com um fluxo:** 62–74 tokens/s
 - **Throughput com 8 fluxos:** 95–108 tokens/s
 - **Latência do primeiro token:** 720–980 ms
 - **Uso de VRAM observado:** 14–17GB
 
-### Observações
+#### Observações
 
 - O uso da GPU oscilou sob concorrência.
 - O throughput deixou de escalar de forma linear acima de 4 fluxos.
@@ -116,7 +116,7 @@ O Ollama funciona bem para desenvolvimento local e serviços com pouco tráfego.
 
 ---
 
-## 2. vLLM
+### 2. vLLM
 
 O vLLM foi feito para throughput. Sua implementação de PagedAttention melhora a eficiência do KV cache com requisições simultâneas.
 
@@ -134,14 +134,14 @@ python -m vllm.entrypoints.openai.api_server \
   --dtype float16
 ```
 
-### Desempenho medido (RTX 4090, FP16)
+#### Desempenho medido (RTX 4090, FP16)
 
 - **Throughput com um fluxo:** 92–104 tokens/s
 - **Throughput com 8 fluxos:** 185–215 tokens/s
 - **Latência do primeiro token:** 360–480 ms
 - **Uso de VRAM observado:** 20–22GB
 
-### Observações
+#### Observações
 
 - O uso da GPU ficou acima de 95% sob carga.
 - O batching contínuo melhorou a eficiência de escala.
@@ -151,7 +151,7 @@ O vLLM teve o maior throughput sustentado por hora de aluguel.
 
 ---
 
-## 3. Hugging Face Text Generation Inference (TGI)
+### 3. Hugging Face Text Generation Inference (TGI)
 
 O TGI é um servidor de inferência para produção distribuído em contêiner.
 
@@ -162,14 +162,14 @@ docker run --gpus all \
   --model-id meta-llama/Llama-3.1-8B
 ```
 
-### Desempenho medido (RTX 4090, FP16)
+#### Desempenho medido (RTX 4090, FP16)
 
 - **Throughput com um fluxo:** 78–88 tokens/s
 - **Throughput com 8 fluxos:** 150–176 tokens/s
 - **Latência do primeiro token:** 510–690 ms
 - **Uso de VRAM observado:** 21–23GB
 
-### Observações
+#### Observações
 
 - O desempenho foi consistente e previsível.
 - O throughput escalou melhor que o do Ollama, mas abaixo do vLLM.
@@ -183,7 +183,7 @@ O TGI oferece controles e monitoramento para produção, mas não extrai o máxi
 
 ---
 
-# Comparação direta
+## Comparação direta
 
 | Stack  | Um fluxo      | 8 fluxos    | Primeiro token | VRAM    | Saturação da GPU |
 | ------ | ------------- | ----------- | -------------- | ------- | ---------------- |
@@ -193,7 +193,7 @@ O TGI oferece controles e monitoramento para produção, mas não extrai o máxi
 
 ---
 
-# Impacto no custo em GPUs alugadas
+## Impacto no custo em GPUs alugadas
 
 Nos marketplaces de GPU, o aluguel de uma RTX 4090 custava cerca de US$ 0,30–0,46 por hora em setembro de 2026, dependendo da plataforma e da demanda. Veja a análise detalhada em:
 
@@ -220,7 +220,7 @@ Isoladamente, a diferença de custo não é dramática. Mas ela se acumula em es
 
 Com 50 milhões de tokens por dia, a eficiência de throughput afeta diretamente o tamanho da frota de GPUs e o tempo de aluguel.
 
-## Como rodar este benchmark por conta própria
+### Como rodar este benchmark por conta própria
 
 Para reproduzir essas medições, você precisa de uma máquina que você controle, para instalar e configurar cada servidor. Marketplaces que alugam contêineres com acesso SSH, como a Vast.ai ou a RunPod, servem para isso.
 
@@ -230,7 +230,7 @@ Como o aluguel é por hora, a eficiência da inferência afeta diretamente o cus
 
 ---
 
-# Contexto de deploy
+## Contexto de deploy
 
 Se você aluga GPUs por hora, a eficiência da inferência determina diretamente a eficiência de custo. Fazemos as contas em [GPU por hora ou API por token](/pt_br/hourly-gpu-vs-per-token-api/).
 
@@ -245,7 +245,7 @@ GPUs de consumo continuam economicamente viáveis para modelos de 7B–8B quando
 
 ---
 
-# Quando usar cada um
+## Quando usar cada um
 
 **Ollama**
 
@@ -267,7 +267,7 @@ GPUs de consumo continuam economicamente viáveis para modelos de 7B–8B quando
 
 ---
 
-# Conclusão
+## Conclusão
 
 Em uma única RTX 4090 rodando Llama‑3.1‑8B em FP16:
 
@@ -279,13 +279,13 @@ A escolha do stack de inferência não é detalhe estético. Ela define a estrut
 
 Para cargas rodando em GPUs de consumo alugadas, a eficiência de batching afeta de forma concreta a conta no fim do mês.
 
-# Onde rodar isso em produção
+## Onde rodar isso em produção
 
 Todos os benchmarks deste artigo foram feitos em hardware de consumo alugado, e não em infraestrutura própria.
 
 Para fazer fine-tuning ou rodar o seu próprio servidor de inferência, alugue uma máquina em que você possa fazer login. Para usar um modelo servido pelo Ollama por meio de uma API, sem nada para configurar, veja o [GPUFlow](https://gpuflow.app/pt-BR/marketplace): os aluguéis são cobrados por segundo e pagos com créditos comprados com cartão.
 
-### Recursos relacionados
+#### Recursos relacionados
 
 **Aprofunde seu conhecimento sobre o stack de deploy:**
 

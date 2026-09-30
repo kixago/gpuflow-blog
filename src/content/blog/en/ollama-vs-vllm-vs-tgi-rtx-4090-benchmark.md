@@ -87,9 +87,9 @@ All tests were executed on a clean machine with no background workloads. Each me
 
 ---
 
-# Results
+## Results
 
-## 1. Ollama
+### 1. Ollama
 
 Ollama prioritizes simplicity. Installation is minimal, and models download automatically.
 
@@ -99,14 +99,14 @@ ollama run llama3
 
 There is limited configuration for batching behavior or scheduling strategy.
 
-### Measured Performance (RTX 4090, FP16)
+#### Measured Performance (RTX 4090, FP16)
 
 - **Single stream throughput:** 62–74 tokens/sec
 - **8-stream throughput:** 95–108 tokens/sec
 - **First token latency:** 720–980 ms
 - **Observed VRAM usage:** 14–17GB
 
-### Observations
+#### Observations
 
 - GPU utilization fluctuated under concurrency.
 - Throughput scaling was non-linear past 4 streams.
@@ -116,7 +116,7 @@ Ollama performs reliably for local development and low-traffic services. Under s
 
 ---
 
-## 2. vLLM
+### 2. vLLM
 
 vLLM is designed for throughput. Its PagedAttention implementation improves KV cache efficiency under concurrent requests.
 
@@ -134,14 +134,14 @@ python -m vllm.entrypoints.openai.api_server \
   --dtype float16
 ```
 
-### Measured Performance (RTX 4090, FP16)
+#### Measured Performance (RTX 4090, FP16)
 
 - **Single stream throughput:** 92–104 tokens/sec
 - **8-stream throughput:** 185–215 tokens/sec
 - **First token latency:** 360–480 ms
 - **Observed VRAM usage:** 20–22GB
 
-### Observations
+#### Observations
 
 - GPU utilization remained above 95% under load.
 - Continuous batching improved scaling efficiency.
@@ -151,7 +151,7 @@ vLLM achieved the highest sustained throughput per hour of rental time.
 
 ---
 
-## 3. Hugging Face Text Generation Inference (TGI)
+### 3. Hugging Face Text Generation Inference (TGI)
 
 TGI is a containerized production inference server.
 
@@ -162,14 +162,14 @@ docker run --gpus all \
   --model-id meta-llama/Llama-3.1-8B
 ```
 
-### Measured Performance (RTX 4090, FP16)
+#### Measured Performance (RTX 4090, FP16)
 
 - **Single stream throughput:** 78–88 tokens/sec
 - **8-stream throughput:** 150–176 tokens/sec
 - **First token latency:** 510–690 ms
 - **Observed VRAM usage:** 21–23GB
 
-### Observations
+#### Observations
 
 - Performance was consistent and predictable.
 - Throughput scaled better than Ollama but below vLLM.
@@ -183,7 +183,7 @@ TGI offers production controls and monitoring but does not extract maximum throu
 
 ---
 
-# Direct Comparison
+## Direct Comparison
 
 | Stack  | Single Stream | 8 Streams   | First Token | VRAM    | GPU Saturation |
 | ------ | ------------- | ----------- | ----------- | ------- | -------------- |
@@ -193,7 +193,7 @@ TGI offers production controls and monitoring but does not extract maximum throu
 
 ---
 
-# Cost Implications on Rented GPUs
+## Cost Implications on Rented GPUs
 
 On GPU marketplaces, RTX 4090 rentals cost roughly $0.30–$0.46 per hour in September 2026, depending on the platform and demand. See our detailed breakdown in:
 
@@ -220,7 +220,7 @@ The cost difference is not dramatic in isolation. It compounds at scale.
 
 At 50 million tokens per day, throughput efficiency directly affects GPU fleet size and rental duration.
 
-## Running This Benchmark Yourself
+### Running This Benchmark Yourself
 
 To reproduce these measurements, you need a machine you control, so you can install and configure each server. Marketplaces that rent containers with SSH access, such as Vast.ai or RunPod, work for this.
 
@@ -230,7 +230,7 @@ Because rental is hourly, inference efficiency directly impacts cost. The differ
 
 ---
 
-# Deployment Context
+## Deployment Context
 
 If you are renting GPUs by the hour, inference efficiency directly determines cost efficiency. We work through the numbers in [hourly GPU or per-token API](/en/hourly-gpu-vs-per-token-api/).
 
@@ -245,7 +245,7 @@ Consumer GPUs remain economically viable for 7B–8B models when paired with eff
 
 ---
 
-# When to Use Each
+## When to Use Each
 
 **Ollama**
 
@@ -267,7 +267,7 @@ Consumer GPUs remain economically viable for 7B–8B models when paired with eff
 
 ---
 
-# Conclusion
+## Conclusion
 
 On a single RTX 4090 running Llama‑3.1‑8B in FP16:
 
@@ -279,13 +279,13 @@ Inference stack selection is not cosmetic. It defines cost structure and scaling
 
 For workloads deployed on rented consumer GPUs, batching efficiency materially affects economics.
 
-# Where to Run This in Production
+## Where to Run This in Production
 
 All benchmarks in this article were conducted on rented consumer hardware rather than owned infrastructure.
 
 For fine-tuning or running your own inference server, rent a machine you can log into. For using an Ollama-served model through an API with nothing to set up, see [GPUFlow](https://gpuflow.app/en/marketplace): rentals are billed to the second, paid with credits bought by card.
 
-### Related Resources
+#### Related Resources
 
 **Deepen your deployment stack knowledge:**
 

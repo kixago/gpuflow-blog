@@ -24,8 +24,6 @@ faq:
     answer: "Para treinar Stable Diffusion e fazer fine-tuning com LoRA, uma RTX 4090 ou RTX 3090 com 24 GB de VRAM oferece a melhor relação preço-desempenho. Essas GPUs custam de US$ 0,40 a US$ 0,80 por hora em marketplaces e concluem a maioria dos treinamentos de LoRA em 1 a 3 horas, por menos de US$ 5 no total."
 ---
 
-# Comparação de preços de aluguel de GPU em 2026: análise completa
-
 > **Preços coletados em fevereiro de 2026.** Para os preços de setembro de 2026 nos marketplaces, veja [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/pt_br/gpuflow-vs-vast-ai-vs-runpod/) e [o custo real de alugar uma GPU](/pt_br/hidden-fees-in-gpu-rental/).
 
 O custo de alugar GPU virou um fator decisivo para quem trabalha com machine learning, pesquisa em IA ou cargas de computação pesadas. Esta análise compara os preços de cinco grandes provedores, colocando plataformas de nuvem corporativas lado a lado com marketplaces peer-to-peer, para ajudar você a decidir com base nos seus requisitos e no seu orçamento.

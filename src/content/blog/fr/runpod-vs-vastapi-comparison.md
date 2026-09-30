@@ -24,8 +24,6 @@ faq:
     answer: "Aucune des deux plateformes ne demande de pièce d'identité aux locataires pour un usage de base. Vast.ai exige une adresse e-mail vérifiée et un dépôt minimum de 5 $. RunPod exige du crédit prépayé et ne demande un KYC qu'avant un premier paiement en cryptomonnaie. Dans les deux cas, on démarre bien plus vite que sur un cloud d'entreprise, où un nouveau compte doit souvent d'abord demander un quota de GPU."
 ---
 
-# RunPod vs Vast.ai : comparatif complet pour les développeurs IA
-
 RunPod ou Vast.ai ? C'est l'une des questions les plus fréquentes chez les développeurs IA qui ont besoin de GPU sans payer les tarifs des clouds d'entreprise. Les deux plateformes se situent entre les hyperscalers, coûteux, et l'achat de son propre matériel. Mais elles abordent le problème de façon assez différente pour que le bon choix dépende largement de votre situation.
 
 Ce comparatif examine les deux plateformes sur ce qui compte vraiment quand on loue un GPU : la structure des prix, la fiabilité, les fonctionnalités et les usages pour lesquels chacune est la plus adaptée.

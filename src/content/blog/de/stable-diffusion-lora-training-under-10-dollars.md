@@ -24,8 +24,6 @@ faq:
     answer: "Ja. Wer mehrere LoRAs in einer längeren Sitzung trainiert, spart die wiederholte Einrichtung und minimiert Kosten für ungenutzte GPU-Zeit. Drei bis fünf LoRA-Modelle in einer vierstündigen Sitzung kosten meist weniger als die Hälfte dessen, was einzelne Trainings kosten würden."
 ---
 
-# Stable Diffusion LoRA trainieren für unter 10 $
-
 Eigene LoRA-Modelle für Stable Diffusion zu trainieren, ist heute einer der einfachsten Wege zu individuellen KI-Bildern. Ob Sie einen bestimmten künstlerischen Stil nachbilden, Gesichter von Figuren konsistent darstellen oder das Modell auf Produktfotos abstimmen wollen: Mit LoRA-Training erreichen Sie das ohne den Rechenaufwand eines vollständigen Fine-Tunings.
 
 Oft wird angenommen, dafür brauche man entweder teure eigene Hardware oder ein ordentliches Cloud-Budget. Beides stimmt nicht. Bei den aktuellen Mietpreisen für GPUs und mit einer effizienten Trainingskonfiguration trainieren Sie produktionsreife LoRA-Modelle für unter zehn Dollar – oft sogar für deutlich weniger.

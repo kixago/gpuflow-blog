@@ -24,8 +24,6 @@ faq:
     answer: "Sí. Entrenar varios LoRA en una sola sesión larga elimina la configuración repetida y reduce al mínimo el tiempo de GPU ociosa que pagas. Entrenar de tres a cinco modelos LoRA en una sesión de cuatro horas suele costar menos de la mitad que entrenarlos por separado."
 ---
 
-# Cómo entrenar modelos LoRA de Stable Diffusion por menos de 10 $
-
 Entrenar modelos LoRA personalizados para Stable Diffusion se ha convertido en una de las formas más accesibles de crear imágenes personalizadas con IA. Tanto si quieres reproducir un estilo artístico concreto como generar caras coherentes de un personaje o ajustar el modelo con fotografía de producto, el entrenamiento de LoRA te permite conseguirlo sin el coste computacional de un fine-tuning completo del modelo.
 
 Se suele dar por hecho que este proceso exige hardware local caro o un presupuesto considerable de computación en la nube. Ninguna de las dos cosas es cierta. Con los precios actuales de alquiler de GPU y una configuración de entrenamiento eficiente, puedes entrenar modelos LoRA con calidad de producción por menos de diez dólares, y a menudo por bastante menos.

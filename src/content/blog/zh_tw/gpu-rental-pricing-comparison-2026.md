@@ -24,8 +24,6 @@ faq:
     answer: "若要訓練 Stable Diffusion 或進行 LoRA 微調，配備 24GB VRAM 的 RTX 4090 或 RTX 3090 性價比最高。這類 GPU 在市集平台上的租金為每小時 $0.40-0.80，大多數 LoRA 訓練工作 1-3 小時就能完成，總花費不到 $5。"
 ---
 
-# 2026 年 GPU 租用價格比較：完整分析
-
 > **價格蒐集於 2026 年 2 月。** 各市集平台 2026 年 9 月的價格，請參閱〈[GPUFlow、Vast.ai、RunPod、SaladCloud 比較](/zh_tw/gpuflow-vs-vast-ai-vs-runpod/)〉與〈[租用 GPU 的真實成本](/zh_tw/hidden-fees-in-gpu-rental/)〉。
 
 對從事機器學習、AI 研究或其他運算工作負載的人來說，GPU 租用成本已經是不可忽視的考量。本文分析五家主要供應商的價格，比較企業級雲端平台與點對點市集平台，協助您依照自己的需求與預算限制，做出有根據的決定。

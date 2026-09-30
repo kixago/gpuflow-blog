@@ -103,12 +103,41 @@ function generateLlmsTxt() {
   };
 }
 
+// Sitemap lastmod by URL path: a post's updatedDate or pubDate, and for a
+// language home page the newest of its posts. Pages without a real date get none.
+async function lastmodByPath() {
+  const root = join(process.cwd(), "src/content/blog");
+  const dates = new Map();
+  for (const dir of await fs.readdir(root, { withFileTypes: true })) {
+    if (!dir.isDirectory()) continue;
+    const lang = dir.name;
+    for (const file of await fs.readdir(join(root, lang))) {
+      if (!/\.mdx?$/.test(file)) continue;
+      const { data } = matter(await fs.readFile(join(root, lang, file), "utf-8"));
+      if (data.draft) continue;
+      const date = new Date(data.updatedDate ?? data.pubDate);
+      dates.set(`/${lang}/${file.replace(/\.mdx?$/, "")}/`, date);
+      const home = dates.get(`/${lang}/`);
+      if (!home || date > home) dates.set(`/${lang}/`, date);
+    }
+  }
+  return dates;
+}
+
+const lastmods = await lastmodByPath();
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://blog.gpuflow.app",
   integrations: [
     mdx(),
-    sitemap(),
+    sitemap({
+      serialize(item) {
+        const date = lastmods.get(new URL(item.url).pathname);
+        if (date) item.lastmod = date.toISOString();
+        return item;
+      },
+    }),
     generateLlmsTxt(),
   ],
 
