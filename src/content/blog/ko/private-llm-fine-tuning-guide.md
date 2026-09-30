@@ -1,627 +1,346 @@
 ---
-title: "GPU 대여로 하는 프라이빗 LLM 파인튜닝 완벽 가이드"
-description: "대여한 GPU에서 자체 데이터셋으로 오픈 웨이트 언어 모델을 파인튜닝하는 방법을 처음부터 끝까지 설명합니다. 데이터를 안전하게 지키고, 컴퓨팅 비용을 줄이고, 특정 업체에 종속되지 않는 방법입니다."
-excerpt: "데이터 통제권을 유지하면서 대여 GPU로 오픈 웨이트 LLM을 파인튜닝하는 방법을 알아봅니다. 안전한 데이터 전송, QLoRA 학습, 작업 환경 정리까지 단계별로 설명합니다."
+title: "대여 GPU로 LLM을 비공개로 파인튜닝하기: 실전 가이드"
+description: "파인튜닝이 RAG나 프롬프트보다 나은 경우, 모델 크기별 QLoRA VRAM, TRL·Unsloth·Axolotl 비교, GPU 대여 시 데이터 보호, 비용과 서빙까지 정리했습니다."
+excerpt: "8B 오픈 모델의 QLoRA 파인튜닝은 대여한 24 GB GPU 한 장에 들어가고, 한 번에 약 $0.35~$0.83입니다. 돈을 쓰기 전에 파인튜닝이 맞는 도구인지 확인하고, 남의 머신에서 내 데이터를 어떻게 지킬지 계획하세요."
 pubDate: 2025-02-23
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "ko"
 category: "tutorials"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "파란 조명 아래에서 AI 데이터를 처리하는 보안 서버실을 추상적으로 표현한 이미지"
+heroImage: "../_images/private-llm-fine-tuning-guide-hero.png"
+heroImageAlt: "대여한 GPU 서버에서 비공개 데이터셋으로 언어 모델을 파인튜닝하는 모습을 그린 일러스트"
 faq:
-  - question: "RTX 4090 한 장으로 대규모 언어 모델을 파인튜닝할 수 있나요?"
-    answer: "가능합니다. QLoRA(Quantized Low-Rank Adaptation)를 사용하면 파라미터 8B까지의 모델이 24GB VRAM에 여유 있게 들어갑니다. 이 튜토리얼에서는 배치 크기, 시퀀스 길이, LoRA 랭크 값을 구체적으로 제시하며 소비자용 하드웨어에 맞게 학습 스크립트를 설정하는 방법을 보여 줍니다."
-  - question: "대여한 GPU에 올린 데이터셋은 안전한가요?"
-    answer: "데이터셋의 안전은 운영 방식에 달려 있습니다. 이 가이드에서는 SCP를 이용한 암호화 전송, S3나 Google Drive 같은 클라우드 스토리지를 거치지 않는 방법, 학습이 끝난 뒤 원격 머신을 정리하는 방법을 다룹니다. 머신은 다른 사람의 소유라는 점을 잊지 말고, 대여를 종료하기 전에 모든 것을 삭제해야 합니다."
-  - question: "대여 GPU로 8B 모델을 파인튜닝하는 데 비용이 얼마나 드나요?"
-    answer: "RTX 4090을 대여해 8B 파라미터 모델을 파인튜닝하면 데이터셋 크기와 학습 에폭 수에 따라 보통 3~8달러가 듭니다."
-  - question: "학습용 GPU를 대여하려면 신원 인증이 필요한가요?"
-    answer: "대개 필요하지 않습니다. Vast.ai나 RunPod 같은 마켓플레이스는 신분증이 아니라 이메일 주소와 선불 크레딧을 요구합니다. RunPod는 첫 암호화폐 결제 전에만 KYC를 요구합니다. AWS에서는 신규 계정의 GPU 할당량이 0으로 시작하므로 별도로 요청해야 합니다."
-  - question: "학습 스크립트는 어떤 데이터셋 형식을 사용하나요?"
-    answer: "각 줄에 text 필드가 있는 JSON 객체가 들어 있는 JSONL 파일을 사용합니다. text 필드에는 지시문, 입력, 응답을 줄바꿈 문자로 구분해 하나의 문자열로 담아야 합니다. 올바른 형식의 예시는 이 가이드의 4단계에 있습니다."
-  - question: "Llama 외의 모델에도 이 튜토리얼을 적용할 수 있나요?"
-    answer: "적용할 수 있습니다. 이 워크플로는 Mistral, Qwen, Falcon 등 모든 오픈 웨이트 모델에 똑같이 적용됩니다. 예제 코드는 Llama-3.1-8B를 사용하지만, 다른 기본 모델을 파인튜닝하려면 모델 식별자만 바꾸면 됩니다."
-  - question: "8B 파라미터 모델 파인튜닝에는 시간이 얼마나 걸리나요?"
-    answer: "학습 시간은 데이터셋 크기에 따라 달라집니다. 예제 1,000개로 학습하면 RTX 4090에서 보통 30~60분 안에 끝납니다. 데이터셋이 커지면 시간도 거의 비례해서 늘어나, 예제 10,000개라면 5~10시간이 필요합니다."
-  - question: "학습이 끝난 뒤 원격 머신은 어떻게 처리해야 하나요?"
-    answer: "데이터셋, 학습 코드, Hugging Face 캐시, bash 기록을 삭제해 환경을 정리해야 합니다. 이 가이드에서는 대여 계약을 종료하기 전에 실행할 삭제 명령어를 구체적으로 제시하며, 파일을 확실히 없애기 위해 shred를 사용하는 방법도 함께 설명합니다."
+  - question: "7B나 8B 모델을 파인튜닝하려면 VRAM이 얼마나 필요한가요?"
+    answer: "Unsloth 요구 사항 표에 따르면 QLoRA로는 7B 모델에 약 5 GB, 8B 모델에 약 6 GB가 필요하고, 일반 16비트 LoRA로는 약 19 GB와 22 GB가 필요합니다. 실제 학습에는 더 긴 시퀀스와 큰 배치를 위한 여유가 필요하므로 RTX 3090이나 4090 같은 24 GB 카드가 무난합니다."
+  - question: "파인튜닝과 RAG 중 무엇을 써야 하나요?"
+    answer: "모델이 내 문서의 사실, 특히 바뀌는 사실을 알아야 한다면 RAG를 쓰세요. Ovadia 외의 2024년 연구는 지식을 추가하는 데 RAG가 비지도 파인튜닝보다 일관되게 낫다는 결과를 얻었습니다. 프롬프트로는 안정적으로 얻을 수 없는 일정한 형식, 어조, 좁은 작업 동작이 필요할 때 파인튜닝하세요."
+  - question: "대여 GPU로 LLM을 파인튜닝하는 데 비용이 얼마나 드나요?"
+    answer: "예시 2,000개로 8B 모델을 QLoRA 학습하면 준비를 포함해 1시간 조금 넘게 걸립니다. 시간당 $0.31인 Vast.ai RTX 4090에서 약 $0.35, RunPod 정가 시간당 $0.74로는 $0.83입니다(2026년 9월). 예시 20,000개짜리 학습은 약 4시간, $1.24~$2.97입니다."
+  - question: "GPU 호스트가 내 학습 데이터를 볼 수 있나요?"
+    answer: "하드웨어의 주인이 호스트이므로 볼 수 있다고 가정하세요. 컨테이너 격리는 다른 대여자로부터 나를 보호할 뿐, 머신 소유자로부터 보호하지는 않습니다. 민감한 데이터에는 검증된 데이터센터 호스트(Vast.ai Secure Cloud, RunPod Secure Cloud)를 쓰고, 업로드 전에 개인정보를 지우고, 끝나면 인스턴스를 삭제하세요."
+  - question: "LoRA와 QLoRA는 무엇이 다른가요?"
+    answer: "LoRA는 기본 모델을 고정하고 작은 어댑터 행렬을 학습합니다. QLoRA도 같지만 고정된 기본 모델을 4비트 NF4 정밀도로 불러오며, 원 논문에서는 이 덕분에 메모리가 줄어 48 GB GPU 한 장으로 65B 모델을 파인튜닝할 수 있었습니다."
+  - question: "GPUFlow에서 파인튜닝하거나 내 모델을 올릴 수 있나요?"
+    answer: "없습니다. GPUFlow는 추론 전용입니다. 제공자가 자기 머신에 (보통 Ollama로) 설치한 모델에 대한 OpenAI 호환 채팅 API를 빌리는 것입니다. 셸이나 파일 접근이 없으므로 학습하거나 내 모델을 올릴 수 없습니다."
 ---
 
-지금 이 글을 읽고 계신다면, OpenAI에 업로드할 수 없거나 업로드하고 싶지 않은 데이터셋을 갖고 계실 가능성이 높습니다.
-
-그런 분은 적지 않습니다. 많은 기업과 개인 개발자에게 데이터 유출 위험은 ChatGPT의 편리함과 맞바꿀 수 없는 문제입니다. HIPAA 규제를 받는 의료 기록이든, 수년간의 엔지니어링 투자가 담긴 사내 코드베이스든, 시장을 움직일 수 있는 민감한 금융 모델이든, 클라우드 AI를 쓴다는 것은 가장 소중한 지식 자산을 제3자에게 맡긴다는 뜻인 경우가 많습니다.
-
-그 제3자가 고객 데이터를 차기 모델 학습에 사용해 온 이력이 있는 거대 기술 기업이라면, '신뢰'라는 말은 편하게 쓰기 어려워집니다.
-
-해결책은 AI를 포기하는 것이 아닙니다. 인프라를 직접 소유하는 것입니다.
-
-직접 통제하는 하드웨어에서 오픈 웨이트 모델을 파인튜닝하는 일은 더 이상 일부 연구자만의 관심사가 아닙니다. 프라이버시를 중시하는 조직에는 업무상 필수 요건입니다. Llama, Mistral, Qwen을 비롯한 수십 개의 모델을 API 요금도, 데이터 공유 의무도 없이 상업적으로 사용할 수 있습니다. 문제는 늘 컴퓨팅 자원을 구하는 일이었습니다. NVIDIA H100 클러스터를 구매하려면 수백만 달러의 설비 투자가 필요합니다. AWS에서 빌리려면 신원 인증과 기업 계약이 필요하고, 시간당 요금 때문에 장시간 학습은 감당하기 어려울 만큼 비싸집니다.
-
-이 가이드는 세 번째 방법을 소개합니다. 마켓플레이스에서 GPU를 대여해 오픈 웨이트 언어 모델을 파인튜닝하는 방법으로, 이런 GPU는 전 세계 개인이 소유한 하드웨어인 경우가 많습니다. 환경 설정, 공용 노드에서 작업할 때의 보안 수칙, 학습 실행 전 과정을 다룹니다.
-
-예제 코드는 구체적인 참고 사례로 Llama-3.1-8B를 사용하지만, 워크플로는 Hugging Face와 호환되는 모든 모델에 똑같이 적용됩니다. 모델 식별자만 바꾸면 Mistral-7B, Qwen2-7B 등 용도에 맞는 어떤 오픈 웨이트 모델이든 파인튜닝할 수 있습니다.
-
-장기 계약 없이, 기존 클라우드 제공업체 요금의 극히 일부만으로 이 모든 작업을 할 수 있습니다.
-
-![원격 GPU 서버에 SSH로 접속한 터미널 창](../_images/terminal-ssh-connection.png)
-
-## 프라이빗 파인튜닝의 경제성
-
-기술적인 구현을 살펴보기 전에 비용 측면부터 정리하겠습니다.
-
-AWS에서 모델을 학습하려면 대형 인스턴스와 할당량 요청이 필요합니다. p4d.24xlarge 인스턴스(A100 GPU 8장)는 시간당 32.77달러이고, 신규 AWS 계정의 GPU 할당량은 0에서 시작합니다.
-
-GPU 마켓플레이스에서는 하드웨어 소유자에게서 컴퓨팅 자원을 직접 빌립니다. 그 차이는 상당합니다.
-
-**비용 절감:** 마켓플레이스에서 RTX 4090의 대여료는 시간당 약 0.30~0.46달러입니다(2026년 9월 기준). QLoRA로 8B 파라미터 모델을 학습하면 24GB VRAM을 갖춘 4090 한 장으로 데이터셋 크기에 따라 2~6시간이면 파인튜닝이 끝납니다. 총 컴퓨팅 비용은 3~8달러입니다.
-
-**데이터는 한 대의 머신에만 머뭅니다:** 데이터셋을 SSH로 대여 머신에 바로 복사하고, 학습하고, 결과물을 내려받은 뒤 모두 삭제합니다. 스토리지 버킷도, 세 번째 사본도 없습니다.
-
-**승인 절차가 없습니다:** 클라우드 제공업체 기업 영업팀의 승인이나 할당량 증설을 기다릴 필요가 없습니다. 선불 크레딧을 충전하고 하드웨어를 대여하면 됩니다.
-
-비교하자면, AWS에서 A10G 한 장(24GB VRAM을 갖춘 가장 저렴한 옵션인 g5.xlarge)은 us-east-1 리전에서 시간당 약 1.01달러입니다. 할당량 요청, 설정 시간, 환경을 구성하는 동안 놀고 있는 컴퓨팅 자원까지 고려하면 첫 학습의 실제 비용은 마켓플레이스에서 드는 몇 달러보다 훨씬 높아집니다.
-
-이러한 비용 구조는 [GPU 대여 가격 비교](/ko/gpu-rental-pricing-comparison-2026/)와 [GPU 대여의 실제 비용](/ko/hidden-fees-in-gpu-rental/)에서 자세히 다룹니다.
-
-## 사전 준비 사항
-
-이 튜토리얼은 Linux 명령줄에 익숙하다는 전제로 진행합니다. 머신러닝 학위가 필요하지는 않지만, 파일 시스템을 탐색하고 텍스트 파일을 편집하고 오류 메시지를 해석할 수 있어야 합니다.
-
-**하드웨어 요구 사항:**
-
-- **GPU:** 최소 24GB VRAM. RTX 3090, RTX 4090, A10G 모두 해당합니다. 70B 파라미터 모델에는 48GB 이상(A6000, A100 2장 또는 H100)이 필요합니다.
-- **시스템 RAM:** 32GB 이상. 모델을 불러올 때 가중치를 먼저 시스템 메모리에 올린 뒤 GPU로 옮기기 때문입니다.
-- **스토리지:** NVMe SSD 100GB 이상. Llama-3 8B 기본 가중치만 약 16GB를 차지합니다. 데이터셋, 체크포인트, 출력 어댑터가 여기에 더해집니다.
-
-**모델 선택에 관하여:** 이 튜토리얼에서 Meta의 Llama-3.1-8B를 예제로 쓰는 이유는 QLoRA 양자화를 적용했을 때 24GB GPU 한 장에 들어가는 가장 큰 급의 모델이기 때문입니다. Llama 제품군에는 이제 Llama 4 Scout와 Maverick도 있지만, 이들은 전체 파라미터가 각각 109B와 400B인 Mixture of Experts 아키텍처를 사용해 멀티 GPU 구성이 필요하므로 단일 노드 대여의 범위를 벗어납니다. 여기서 설명하는 워크플로는 Mistral-7B, Qwen2-7B, Gemma-2-9B를 비롯해 대여한 하드웨어의 VRAM에 들어가는 모든 Hugging Face 호환 모델에 똑같이 적용됩니다.
-
-**소프트웨어 요구 사항:**
-
-- Python 3.10 이상
-- PyTorch 기본 사용 능력
-- Hugging Face 계정(라이선스 동의가 필요한 Llama 같은 게이트 모델을 내려받는 데 필요)
-- SSH 접속이 가능한 머신 전체를 대여하는 GPU 마켓플레이스(Vast.ai, RunPod, TensorDock 등)의 선불 크레딧이 충전된 계정
-
-어디를 골라야 할지 모르겠다면 [GPU를 대여하려면 무엇이 필요한가](/ko/what-you-need-to-rent-a-gpu/)와 [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/ko/gpuflow-vs-vast-ai-vs-runpod/)를 참고하세요. GPUFlow 자체는 이 튜토리얼에 적합하지 않습니다. GPUFlow는 로그인할 수 있는 머신이 아니라 API를 통한 AI 모델 이용권을 대여하는 서비스입니다.
-
-## 1단계: 컴퓨팅 노드 확보
-
-첫 단계는 하드웨어를 확보하는 것입니다. 대형 클라우드 플랫폼에서는 계정을 만들고, GPU 할당량을 요청하고, 승인을 기다려야 합니다. 마켓플레이스에서는 훨씬 간단합니다.
-
-원하는 마켓플레이스에 접속해 크레딧을 충전합니다. 화면에 사용 가능한 머신이 사양, 시간당 요금, 신뢰도 점수와 함께 표시됩니다.
-
-다음 조건으로 머신을 필터링합니다.
-
-- **GPU:** RTX 4090(24GB VRAM) 또는 RTX 6000 Ada(48GB VRAM)
-- **RAM:** 최소 32GB
-- **스토리지:** 100GB 이상 여유 공간
-- **신뢰도:** 가동률 점수 95% 이상
-
-머신을 선택하고 대여를 시작합니다. CUDA와 PyTorch가 이미 설치된 이미지를 고르세요. 설정 시간이 줄어들고, 설정 시간도 요금이 청구되기 때문입니다.
-
-**공용 노드 보안 고려 사항:**
-
-원격 네트워크에서 머신을 대여한다는 것은 낯선 사람이 소유하고 물리적으로 관리하는 하드웨어에 접속한다는 뜻입니다. 가상화 계층이 상당한 수준의 격리를 제공하지만, 적절히 주의하며 작업해야 합니다.
-
-1. **원격 머신에 개인 키를 저장하지 마세요.** 다른 시스템용 SSH 키, 클라우드 자격 증명, 프로덕션 서비스의 API 토큰은 대여 노드에 절대 있어서는 안 됩니다.
-
-2. **파일 시스템을 적대적인 환경으로 간주하세요.** 디스크에 쓴 모든 것은 접속을 끊은 뒤 호스트가 이론적으로 복구할 수 있다고 가정해야 합니다. 안전한 삭제 절차는 6단계에서 다룹니다.
-
-3. **전송 중에는 민감한 데이터를 암호화하세요.** 3단계에서 다룹니다.
-
-4. **비밀번호를 재사용하지 마세요.** 대여 화면에서 기본 자격 증명을 제공한다면 즉시 변경하거나 새 SSH 키 쌍을 생성하세요.
-
-대여가 확정되면 대시보드에 접속 정보가 표시됩니다. 다음과 비슷한 SSH 명령어를 받게 됩니다.
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-로컬 터미널을 열고 이 명령어를 실행합니다. 호스트 키 지문을 확인하라는 메시지가 나오면 수락합니다. 이제 대여한 GPU 노드에 접속되었습니다.
-
-하드웨어가 주문한 사양과 일치하는지 확인합니다.
-
-```bash
-nvidia-smi
-```
-
-출력에는 대여한 GPU, 메모리 용량, 설치된 드라이버 버전이 표시되어야 합니다. GPU가 보이지 않거나 사양이 주문과 다르다면 즉시 접속을 끊고 마켓플레이스 고객 지원을 통해 문제를 신고하세요.
-
-## 2단계: 환경 구성
-
-SSH 접속을 확인했다면 다음은 깨끗한 Python 환경을 구성할 차례입니다. 대부분의 대여 노드에는 NVIDIA 드라이버와 CUDA 툴킷이 미리 설치되어 있지만, 호스트의 시스템 Python 패키지에 의존하면 의존성 충돌이 생겨 디버깅에 몇 시간을 허비하게 됩니다.
-
-재현성과 안정성을 위해 격리된 가상 환경을 만듭니다.
-
-다음 명령어로 작업 공간을 만듭니다.
-
-```bash
-mkdir ~/llama3-finetune
-cd ~/llama3-finetune
-python3 -m venv venv
-source venv/bin/activate
-```
-
-이제 터미널 프롬프트에 가상 환경이 활성화되었음을 뜻하는 `(venv)`가 표시되어야 합니다. 이후 설치하는 패키지는 모두 이 디렉터리 안에만 설치되며 호스트 시스템은 건드리지 않습니다.
-
-Python 패키지를 설치하기 전에 CUDA 툴킷에 접근할 수 있는지 확인합니다.
-
-```bash
-nvcc --version
-```
-
-CUDA 버전 번호를 기록해 두세요. PyTorch와의 호환성을 맞추는 데 필요합니다. 대부분의 대여 노드는 CUDA 11.8 또는 12.1을 사용합니다. `nvcc`를 찾을 수 없다면 CUDA 툴킷이 PATH에 없는 것일 수 있습니다. 보통 해당 환경 파일을 source로 불러오면 해결됩니다.
-
-```bash
-source /etc/profile.d/cuda.sh
-```
-
-이 파일이 없다면 해당 노드 구성에 관한 마켓플레이스 문서를 참고하세요.
-
-이제 PyTorch 생태계를 설치합니다. 다음 명령어는 CUDA 12.1을 지원하는 PyTorch를 설치합니다. 노드의 CUDA 버전이 다르다면 버전 접미사를 맞게 바꾸세요.
-
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-다음으로 효율적인 파인튜닝에 필요한 라이브러리를 설치합니다. Hugging Face 생태계와 함께 양자화를 위한 bitsandbytes, 파라미터 효율적 학습을 위한 PEFT를 사용합니다.
-
-```bash
-pip install transformers==4.40.0 datasets==2.19.0 peft==0.10.0 bitsandbytes==0.43.1 trl==0.8.6 accelerate==0.29.0
-```
-
-**버전 고정이 중요합니다.** 위 버전은 이 글을 쓰는 시점에 테스트를 거쳐 서로 호환되는 버전입니다. Hugging Face 생태계는 빠르게 바뀌며, 버전을 고정하지 않고 설치하면 호환성을 깨는 변경이 자주 들어옵니다. import 오류나 예상치 못한 동작이 발생한다면 버전 불일치가 가장 유력한 원인입니다.
-
-마지막으로 Hugging Face 인증을 합니다. Llama-3 가중치는 라이선스 동의를 거쳐야 받을 수 있으며, 이를 위해 Hugging Face 계정이 필요합니다. [Meta Llama-3 저장소](https://huggingface.co)로 이동해 라이선스 조건에 동의합니다. 그런 다음 Hugging Face 설정 페이지에서 액세스 토큰을 생성합니다.
-
-인증 명령어를 실행합니다.
-
-```bash
-huggingface-cli login
-```
-
-메시지가 나오면 액세스 토큰을 붙여 넣습니다. 토큰은 `~/.cache/huggingface/token`에 저장됩니다. 이제 게이트 모델의 가중치를 대여 노드로 직접 내려받을 권한이 생겼습니다.
-
-![Llama-3 모델 설정 파라미터가 담긴 Python 코드를 표시한 터미널](../_images/python-llama3-config.png)
-
-## 3단계: 안전한 데이터 전송
-
-이 단계는 API를 호출하는 대신 머신을 대여하는 가장 큰 이유, 즉 데이터 주권과 직결됩니다.
-
-일반적인 클라우드 워크플로에서는 데이터셋을 S3, Google Cloud Storage, Azure Blob 같은 스토리지 버킷에 업로드한 다음 컴퓨팅 인스턴스로 내려받습니다. 이렇게 하면 직접 통제할 수 없는 여러 시스템에 민감한 데이터의 사본이 여러 개 생깁니다. 스토리지 제공업체도, 컴퓨팅 제공업체도 데이터에 접근할 수 있습니다. 두 곳 모두 사용 기록을 로그로 남깁니다.
-
-여기서는 암호화된 직접 전송으로 이 과정을 아예 건너뜁니다.
-
-SSH 프로토콜에는 `scp`(Secure Copy Protocol)가 포함되어 있어, 터미널 접속에 쓰는 것과 같은 암호화 채널로 파일을 전송합니다. 데이터는 중간 스토리지를 전혀 거치지 않고 로컬 머신에서 대여 노드로 바로 이동합니다.
-
-**로컬 컴퓨터**에서 **새 터미널 창**을 엽니다. 대여 노드에 연결된 기존 SSH 세션은 닫지 마세요. 파일 경로와 접속 정보를 실제 값으로 바꿔 다음 명령어를 실행합니다.
-
-```bash
-scp -P 22345 /path/to/your/dataset.jsonl user@203.0.113.42:~/llama3-finetune/
-```
-
-`-P` 플래그는 포트 번호를 지정합니다(ssh의 소문자 `-p`와 달리 대문자 P입니다). 데이터셋이 크면 전송에 몇 분이 걸릴 수 있습니다. 전송된 바이트 수를 보여 주는 진행 상황이 출력됩니다.
-
-**데이터셋이 1GB를 넘는다면** 전송 전에 압축하는 것을 고려하세요.
-
-```bash
-# On your local machine
-gzip -k dataset.jsonl
-scp -P 22345 dataset.jsonl.gz user@203.0.113.42:~/llama3-finetune/
-
-# Then on the remote node
-cd ~/llama3-finetune
-gunzip dataset.jsonl.gz
-```
-
-**추가 보안 조치:**
-
-위협 모델에 고도화된 공격자가 포함된다면 전송 전에 GPG나 age로 데이터셋을 암호화할 수 있습니다. 이렇게 하면 방어가 한 겹 더 생깁니다. 만에 하나 전송이 가로채이더라도 내용은 읽을 수 없습니다.
-
-```bash
-# On your local machine (using age encryption)
-age -p dataset.jsonl > dataset.jsonl.age
-scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/llama3-finetune/
-
-# On the remote node
-age -d dataset.jsonl.age > dataset.jsonl
-rm dataset.jsonl.age
-```
-
-대부분의 사용자에게는 일반 SCP 전송만으로도 충분한 보호가 됩니다. SSH 프로토콜은 AES-256 암호화를 사용합니다. 중간자 공격은 호스트 키 검증으로 막습니다. 데이터는 제3자 스토리지 시스템을 전혀 거치지 않습니다.
-
-## 4단계: 파인튜닝 스크립트
-
-지도 파인튜닝에는 TRL(Transformer Reinforcement Learning) 라이브러리의 `SFTTrainer` 클래스를 사용합니다. 이 라이브러리는 복잡한 부분을 상당 부분 감춰 주면서도 프로덕션 워크로드에 맞게 세부 설정을 할 수 있습니다.
-
-학습 스크립트를 작성하기 전에 스크립트가 기대하는 데이터셋 형식을 알아야 합니다.
-
-**데이터셋 형식 요구 사항:**
-
-스크립트는 각 줄에 `text` 필드가 있는 유효한 JSON 객체가 들어 있는 JSONL(JSON Lines) 파일을 사용합니다. `text` 필드에는 학습 예제 전체를 하나의 문자열로 담아야 합니다.
-
-올바른 형식의 세 줄 예시는 다음과 같습니다.
+8B 오픈 웨이트 모델은 대여한 24 GB GPU 한 장에서 QLoRA로 내 데이터에 맞게 파인튜닝할 수 있고, 보통 한 번에 1달러도 들지 않습니다. 더 어려운 질문이 먼저입니다. 파인튜닝이 애초에 맞는 해결책인지(사실 지식이라면 대개 검색이 낫습니다), 그리고 남이 소유한 머신에서 내 데이터를 어떻게 비공개로 지킬지입니다.
+
+이 가이드는 둘 다 다룬 뒤, 모델 크기별 필요 VRAM, 현재 쓰이는 도구, 작동하는 학습 스크립트, 비용 계산, 결과물 서빙 방법을 설명합니다. 모든 내용은 2026년 9월에 확인했고, 출처는 글 끝에 있습니다.
+
+## 파인튜닝, RAG, 더 나은 프롬프트
+
+파인튜닝은 모델의 동작 방식을 바꿉니다. 사실을 가르치는 방법으로는 좋지 않습니다. Ovadia 외는 지식 주입 측면에서 둘을 비교해, RAG가 "학습 중 접한 기존 지식과 완전히 새로운 지식 모두에서" 비지도 파인튜닝보다 "일관되게 우수하다"는 결과를 얻었습니다. 이들의 결론은 LLM이 파인튜닝으로 새 사실을 배우는 데 어려움을 겪는다는 것입니다.
+
+그러니 무언가를 빌리기 전에 이 트리를 따라가 보세요.
+
+<figure>
+<svg viewBox="0 0 720 420" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">검색, 더 나은 프롬프트, 파인튜닝, 더 큰 모델 중 무엇을 고를지 정하는 결정 트리</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+<rect width="720" height="420" fill="#ffffff"/>
+<rect x="60" y="15" width="280" height="40" rx="8" fill="#1e1b4b"/>
+<text x="200" y="40" text-anchor="middle" fill="#ffffff">답변이 충분히 좋지 않다</text>
+<line x1="200" y1="55" x2="200" y2="83" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<rect x="20" y="85" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="115" text-anchor="middle" fill="#1e1b4b">사실이 빠졌거나, 자주 바뀌는 데이터인가?</text>
+<rect x="440" y="80" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="105" text-anchor="middle" fill="#1e1b4b" font-weight="600">RAG 사용</text>
+<text x="570" y="126" text-anchor="middle" fill="#64748b" font-size="13">요청마다 내 문서를 검색</text>
+<line x1="380" y1="110" x2="438" y2="110" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="102" text-anchor="middle" fill="#16a34a" font-size="13">예</text>
+<line x1="200" y1="135" x2="200" y2="173" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="160" fill="#64748b" font-size="13">아니요</text>
+<rect x="20" y="175" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="205" text-anchor="middle" fill="#1e1b4b">지시문과 예시로 해결되는가?</text>
+<rect x="440" y="170" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="195" text-anchor="middle" fill="#1e1b4b" font-weight="600">프롬프트 개선</text>
+<text x="570" y="216" text-anchor="middle" fill="#64748b" font-size="13">시스템 프롬프트, few-shot 예시</text>
+<line x1="380" y1="200" x2="438" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="192" text-anchor="middle" fill="#16a34a" font-size="13">예</text>
+<line x1="200" y1="225" x2="200" y2="263" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="250" fill="#64748b" font-size="13">아니요</text>
+<rect x="20" y="265" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="295" text-anchor="middle" fill="#1e1b4b">고정된 형식, 어조, 기능이 필요한가?</text>
+<rect x="440" y="260" width="260" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="570" y="285" text-anchor="middle" fill="#1e1b4b" font-weight="600">QLoRA로 파인튜닝</text>
+<text x="570" y="306" text-anchor="middle" fill="#64748b" font-size="13">좋은 예시 수백 개</text>
+<line x1="380" y1="290" x2="438" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="282" text-anchor="middle" fill="#16a34a" font-size="13">예</text>
+<line x1="200" y1="315" x2="200" y2="353" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="340" fill="#64748b" font-size="13">아니요</text>
+<rect x="60" y="355" width="280" height="50" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+<text x="200" y="385" text-anchor="middle" fill="#1e1b4b">더 큰 기본 모델 시도</text>
+<text x="570" y="370" text-anchor="middle" fill="#64748b" font-size="13">RAG와 파인튜닝은 함께 쓰기 좋습니다.</text>
+<text x="570" y="390" text-anchor="middle" fill="#64748b" font-size="13">동작은 튜닝으로, 사실은 검색으로</text>
+</svg>
+<figcaption>"모델이 우리 내용을 모른다"는 문제는 대부분 검색 문제입니다. 파인튜닝이 제값을 하는 것은 매번 같은 동작이 필요할 때입니다. JSON 스키마, 사내 문체, 분류 체계 같은 것입니다.</figcaption>
+</figure>
+
+파인튜닝할 만한 이유는 이렇습니다.
+
+- **엄격한 출력 형식.** 모든 프롬프트에 한 페이지짜리 지시문을 넣지 않고도, 호출할 때마다 내 스키마대로 필드를 추출합니다.
+- **문체와 어조.** 우리 팀처럼 들리는 고객 지원 답변이나, 정해진 구조의 보고서.
+- **작은 모델이 하는 좁은 작업.** 튜닝한 8B 모델이 한 가지 작업에서는 큰 범용 모델을 대신할 수 있고, 싼 하드웨어로 서빙할 때 이 점이 중요합니다.
+- **짧은 프롬프트.** 가중치에 학습된 동작은 요청마다 반복할 필요가 없습니다.
+
+## LoRA와 QLoRA
+
+전체 파인튜닝은 모든 가중치를 업데이트하므로, GPU는 모델 외에 모든 가중치의 그래디언트와 옵티마이저 상태까지 담아야 합니다. LoRA는 기본 모델을 고정하고 레이어 옆에 작은 저랭크 행렬을 붙여 학습합니다. 원 논문은 GPT-3 175B를 Adam으로 전체 파인튜닝할 때와 비교해 학습 파라미터가 10,000분의 1, GPU 메모리가 3분의 1로 줄었다고 보고했습니다.
+
+QLoRA는 한 걸음 더 나갑니다. 고정된 기본 모델을 4비트 NF4 정밀도로 불러오고, 어댑터만 16비트로 학습합니다. Dettmers 외는 이 방법으로 "16비트 전체 파인튜닝의 작업 성능을 유지하면서" 48 GB GPU 한 장으로 65B 모델을 파인튜닝했습니다. 이 논문은 지금도 도구들이 쓰는 세 가지를 도입했습니다. NF4 데이터 타입, 양자화 상수를 한 번 더 양자화하는 이중 양자화, 그리고 메모리 급증을 흡수하는 페이지드 옵티마이저입니다.
+
+어느 쪽이든 결과물은 어댑터, 즉 텐서 몇 개가 든 폴더이고, 바뀌지 않은 기본 모델 위에 적용합니다. 따로 두어도 되고 가중치에 병합해도 됩니다.
+
+## 필요한 VRAM
+
+Unsloth는 모델 크기별 파인튜닝 최소 VRAM 표를 공개합니다. 아래는 Unsloth의 메모리 최적화를 적용한 그 수치입니다. 일반 Hugging Face 학습은 더 많이 필요하고, 시퀀스가 길거나 배치가 크면 모든 행의 값이 올라갑니다.
+
+| 모델 크기 | QLoRA (4비트) | LoRA (16비트) | QLoRA에 여유 있는 대여 카드 |
+| --- | --- | --- | --- |
+| 3B | 3.5 GB | 8 GB | 12 GB 이상 아무 카드 |
+| 8B | 6 GB | 22 GB | RTX 3090 / 4090 (24 GB) |
+| 14B | 8.5 GB | 33 GB | RTX 3090 / 4090 (24 GB) |
+| 32B | 26 GB | 76 GB | 48 GB 카드 (RTX A6000, A40, L40S) |
+| 70B | 41 GB | 164 GB | 80 GB 카드 (A100, H100) |
+
+<figure>
+<svg viewBox="0 0 720 320" role="img" aria-labelledby="d2-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d2-title">8B, 14B, 32B, 70B 모델의 QLoRA와 16비트 LoRA 파인튜닝 최소 VRAM을 24, 48, 80 GB 카드와 비교한 막대 그래프</title>
+<rect width="720" height="320" fill="#ffffff"/>
+<rect x="200" y="12" width="14" height="14" fill="#6366f1"/>
+<text x="220" y="24" fill="#1e1b4b" font-size="13">QLoRA 4비트</text>
+<rect x="320" y="12" width="14" height="14" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="340" y="24" fill="#1e1b4b" font-size="13">LoRA 16비트</text>
+<line x1="262.1" y1="58" x2="262.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="262.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">24 GB</text>
+<line x1="324.2" y1="58" x2="324.2" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="324.2" y="52" text-anchor="middle" fill="#f97316" font-size="12">48 GB</text>
+<line x1="407.1" y1="58" x2="407.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="407.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">80 GB</text>
+<text x="190" y="88" text-anchor="end" fill="#1e1b4b">8B</text>
+<rect x="200" y="66" width="15.5" height="16" fill="#6366f1"/>
+<text x="221" y="79" fill="#1e1b4b" font-size="12">6</text>
+<rect x="200" y="84" width="56.9" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="268" y="97" fill="#1e1b4b" font-size="12">22</text>
+<text x="190" y="138" text-anchor="end" fill="#1e1b4b">14B</text>
+<rect x="200" y="116" width="22" height="16" fill="#6366f1"/>
+<text x="228" y="129" fill="#1e1b4b" font-size="12">8.5</text>
+<rect x="200" y="134" width="85.4" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="291" y="147" fill="#1e1b4b" font-size="12">33</text>
+<text x="190" y="188" text-anchor="end" fill="#1e1b4b">32B</text>
+<rect x="200" y="166" width="67.3" height="16" fill="#6366f1"/>
+<text x="273" y="179" fill="#1e1b4b" font-size="12">26</text>
+<rect x="200" y="184" width="196.7" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="425" y="197" fill="#1e1b4b" font-size="12">76</text>
+<text x="190" y="238" text-anchor="end" fill="#1e1b4b">70B</text>
+<rect x="200" y="216" width="106.1" height="16" fill="#6366f1"/>
+<text x="302" y="229" text-anchor="end" fill="#ffffff" font-size="12">41</text>
+<rect x="200" y="234" width="424.5" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="631" y="247" fill="#1e1b4b" font-size="12">164</text>
+<line x1="200" y1="265" x2="640" y2="265" stroke="#64748b" stroke-width="1"/>
+<text x="200" y="283" text-anchor="middle" fill="#64748b" font-size="12">0</text>
+<text x="303.5" y="283" text-anchor="middle" fill="#64748b" font-size="12">40</text>
+<text x="407.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">80</text>
+<text x="510.6" y="283" text-anchor="middle" fill="#64748b" font-size="12">120</text>
+<text x="614.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">160</text>
+<text x="420" y="306" text-anchor="middle" fill="#64748b" font-size="13">최소 VRAM, GB 단위 (Unsloth 요구 사항 표)</text>
+</svg>
+<figcaption>대여한 소비자용 카드가 여기서 쓸모 있는 것은 QLoRA 덕분입니다. 14B까지는 24 GB 카드에 여유 있게 들어가고, 32B는 48 GB 카드, 70B는 80 GB 카드가 필요합니다. 4비트로 불러오지 않으면 8B도 24 GB에 겨우 들어갑니다.</figcaption>
+</figure>
+
+제 기본 선택은 RTX 4090에서 8B나 14B 모델입니다. 2,048토큰 시퀀스와 적당한 배치를 담을 여유가 있는 가장 싼 대여 카드이고, 이 범위의 모델은 나중에 서빙하기도 쉽습니다. 서빙할 VRAM을 기준으로 기본 모델을 고르려면 [내 GPU VRAM에 맞는 AI 모델](/ko/which-ai-models-fit-your-gpu-vram/)을 보세요.
+
+## 도구 고르기: TRL, Unsloth, Axolotl
+
+셋 다 오픈 소스이고, 모두 LoRA와 QLoRA를 지원합니다.
+
+| 도구 | 사용 방식 | 장점 | 주의할 점 |
+| --- | --- | --- | --- |
+| Hugging Face TRL + PEFT | Python (`SFTTrainer`) | 기준 구현. 같은 API로 DPO, GRPO 등도 가능 | 같은 학습에서 Unsloth보다 메모리를 더 씀 |
+| Unsloth | Python 또는 Unsloth Studio 웹 UI | 2배 빠르고 VRAM 70% 절감을 주장, GGUF로 바로 내보내기 | Studio UI는 AGPL-3.0 (코어는 Apache 2.0) |
+| Axolotl | YAML 파일 하나, `axolotl train config.yml` | 멀티 GPU(FSDP, DeepSpeed), 다양한 레시피 | Python 3.11 이상, PyTorch 2.11 이상 필요 |
+
+2026년 9월 기준 TRL은 1.14, PEFT는 0.21 버전입니다. Unsloth는 Python 3.11~3.13과 CUDA capability 7.0 이상의 NVIDIA GPU(V100, T4, RTX 20 시리즈 이상)가 필요합니다. Axolotl은 Python 3.12와 PyTorch 2.12.1을 권장합니다.
+
+모든 줄을 이해하고 싶다면 TRL, VRAM이 빠듯하거나 호출 한 번으로 GGUF를 내보내고 싶다면 Unsloth, 설정을 바꿔 가며 학습을 반복하거나 여러 GPU로 옮길 계획이라면 Axolotl을 쓰세요. 아래 스크립트는 TRL을 씁니다. 움직이는 부품을 모두 보여 주는 가장 짧은 길이기 때문입니다.
+
+## 데이터 준비
+
+TRL의 `SFTTrainer`는 채팅 API 요청과 같은 형태의 대화를 읽습니다. `train.jsonl`에 한 줄에 JSON 객체 하나씩 적습니다.
 
 ```json
-{"text": "### Instruction: Summarize the following legal clause in plain English.\n\n### Input: Party A shall indemnify, defend, and hold harmless Party B from any claims, damages, or expenses arising from Party A's negligence or willful misconduct.\n\n### Response: Party A agrees to protect Party B from any legal claims or costs that result from Party A's mistakes or intentional wrongdoing."}
-{"text": "### Instruction: Extract the key financial metrics from this earnings report.\n\n### Input: Q3 revenue reached $4.2B, up 12% YoY. Operating margin improved to 23.5% from 21.2%. Free cash flow was $890M.\n\n### Response: Revenue: $4.2 billion (12% year-over-year growth). Operating margin: 23.5% (up from 21.2%). Free cash flow: $890 million."}
-{"text": "### Instruction: Identify potential HIPAA violations in this process description.\n\n### Input: Patient records are emailed to the billing department as PDF attachments. The billing staff prints these for manual review and shreds them after processing.\n\n### Response: Potential violations include: unencrypted email transmission of PHI, physical documents that may be visible to unauthorized personnel during processing, and lack of documented chain of custody. Recommend encrypted file transfer and on-screen review only."}
+{"messages": [{"role": "system", "content": "Extract the invoice fields as JSON."}, {"role": "user", "content": "Invoice 4471 from Norden AB, due 12 March, total 1,250 EUR"}, {"role": "assistant", "content": "{\"invoice_id\": \"4471\", \"supplier\": \"Norden AB\", \"due\": \"2026-03-12\", \"total\": 1250, \"currency\": \"EUR\"}"}]}
 ```
 
-**형식에 관한 중요 사항:**
+실전 원칙은 이렇습니다.
 
-1. 각 JSON 객체는 정확히 한 줄을 차지해야 합니다. 여러 줄에 걸친 JSON은 허용되지 않습니다.
-2. `text` 필드 안의 줄바꿈은 `\n`으로 이스케이프해야 합니다.
-3. 텍스트 안의 큰따옴표는 `\"`로 이스케이프해야 합니다.
-4. 파일은 UTF-8 인코딩이어야 합니다.
+- **양보다 질.** 일관되고 정확한 예시 수백~수천 개가 잡음 섞인 수만 개보다 낫습니다. 데이터의 실수 하나하나가 돈을 내고 가르치는 동작입니다.
+- **실제 환경에 맞추기.** 애플리케이션이 실제로 보낼 시스템 프롬프트와 입력 형식을 쓰세요.
+- **5~10%는 따로 떼어 두기.** 모델이 학습하지 않는 예시를 남겨 두고, 기본 모델과 튜닝한 모델을 나란히 비교하는 데 씁니다.
+- **필요 없는 것은 지우기.** 이름, 이메일, 계좌 번호, ID는 모델이 형식을 배우는 데 거의 도움이 되지 않습니다. 데이터가 내 컴퓨터를 떠나기 전에 그럴듯한 자리 표시자로 바꾸세요.
 
-원본 데이터가 다른 형식(CSV, Parquet, 지시문과 응답이 별도 열로 나뉜 형식 등)이라면 전송 전에 이 구조로 전처리해야 합니다. Python의 `json` 라이브러리가 이스케이프를 자동으로 처리합니다.
+마지막 원칙은 대여 머신만의 문제가 아닙니다. Carlini 외는 GPT-2에서 이름, 전화번호, 이메일 주소를 포함한 학습 시퀀스 수백 개를 원문 그대로 추출했고, 그중 일부는 학습 문서 단 하나에만 나온 것이었습니다. 파인튜닝한 모델은 학습한 내용을 나중에 그 모델을 쓰는 누구에게나 되풀이할 수 있습니다.
 
-```python
-import json
+## 대여 머신에서 데이터를 비공개로 지키기
 
-with open('dataset.jsonl', 'w') as f:
-    for example in your_data:
-        text = f"### Instruction: {example['instruction']}\n\n### Input: {example['input']}\n\n### Response: {example['output']}"
-        f.write(json.dumps({"text": text}) + '\n')
-```
+GPU 마켓플레이스에서는 컴퓨터의 주인이 따로 있습니다. Vast.ai는 이렇게 분명히 말합니다. "클라이언트는 비특권 Docker 컨테이너에 격리되며 자기 데이터에만 접근할 수 있다", 그리고 "제공자마다 보안 수준이 크게 다르다". 이 격리는 다른 대여자로부터 나를 보호합니다. 호스트에 물리적으로 접근할 수 있고 root 권한을 가진 사람으로부터는 보호하지 못합니다.
 
-데이터셋이 준비되었다면 원격 노드에서 학습 스크립트를 만듭니다.
+비공개 데이터라면 이렇게 하세요.
+
+1. **검증된 데이터센터 호스트를 고르세요.** Vast.ai의 Secure Cloud 제공자는 "ISO 27001 인증과 Tier 3/4 데이터센터 기준을 갖춘 검증된 데이터센터"이고, Vast는 민감한 작업에 이를 권합니다. RunPod의 Secure Cloud는 T3/T4 데이터센터에서 운영되고, Community Cloud는 개인 제공자와 연결합니다. 데이터센터 등급은 시간당 더 비싸지만 이 경우에는 그만한 값을 합니다.
+2. **정리한 데이터셋만 올리세요.** SSH(`rsync -avP`나 `scp`)로 올립니다. 중간에 공개 버킷이나 공유 링크에 올려 두지 마세요.
+3. **로그는 로컬에 두세요.** TRL 1.14에서 `report_to`의 기본값은 `"none"`이라, 직접 켜지 않는 한 실험 추적 도구로 아무것도 나가지 않습니다. 비공개 데이터로 학습한 어댑터에 `push_to_hub`를 호출하지 마세요.
+4. **결과물을 가져온 뒤 인스턴스를 삭제하세요.** 어댑터와 평가 결과를 내려받고, 토큰을 썼다면 Hugging Face에서 로그아웃하고(`hf auth logout`), 인스턴스와 볼륨을 삭제하세요. Vast.ai에서는 인스턴스를 정지만 해서는 안 되고 삭제해야 스토리지 과금과 보관이 끝납니다.
+
+컨테이너 안에서 파일을 지운다고 호스트 디스크가 지워진다는 보장은 없습니다. 그래서 진짜 보호는 1단계와 2단계입니다. 하드웨어를 누가 가지고 있는지 고르고, 그쪽에 최대한 적게 보내는 것입니다. 자세한 내용은 [공용 GPU 노드에서 데이터셋 보호하기](/ko/how-to-secure-dataset-on-public-gpu-node/)에 있습니다. 정책상 외부 하드웨어를 아예 쓸 수 없다면, 같은 스크립트가 내 24 GB 카드에서도 돌아갑니다.
+
+## 학습: TRL로 만든 QLoRA 스크립트
+
+RTX 3090이나 4090이 달린 대여 Linux 머신에서 다음을 실행합니다.
 
 ```bash
-cd ~/llama3-finetune
-nano train.py
+python -m venv venv && source venv/bin/activate
+pip install torch trl peft bitsandbytes datasets
 ```
 
-다음 설정을 붙여 넣습니다. 이 스크립트는 QLoRA를 사용해 24GB GPU의 메모리 한도 안에서 8B 파라미터 모델을 파인튜닝합니다. 예제는 Llama-3.1-8B를 사용하지만, MODEL_NAME 변수를 바꾸면 호환되는 다른 모델로 대체할 수 있습니다.
+그다음 TRL PEFT 문서의 QLoRA 패턴을 따른 `train.py`입니다. Qwen3-8B는 Apache 2.0이고 게이트가 없으므로 Hugging Face 토큰이 필요 없습니다.
 
 ```python
 import torch
 from datasets import load_dataset
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    TrainingArguments,
-)
 from peft import LoraConfig
-from trl import SFTTrainer
+from transformers import BitsAndBytesConfig
+from trl import SFTConfig, SFTTrainer
 
-# ============================================
-# CONFIGURATION - Modify these values as needed
-# ============================================
-
-# Base model identifier on Hugging Face
-# Change this to fine-tune a different model (e.g., "mistralai/Mistral-7B-v0.1")
-MODEL_NAME = "meta-llama/Llama-3.1-8B"
-
-# Name for your fine-tuned adapter
-OUTPUT_NAME = "llama-3-8b-custom"
-
-# Path to your dataset
-DATASET_PATH = "dataset.jsonl"
-
-# Training hyperparameters
-NUM_EPOCHS = 1
-BATCH_SIZE = 4
-LEARNING_RATE = 2e-4
-MAX_SEQ_LENGTH = 512
-
-# LoRA hyperparameters
-LORA_RANK = 16
-LORA_ALPHA = 16
-LORA_DROPOUT = 0.05
-
-# ============================================
-# QUANTIZATION CONFIGURATION
-# ============================================
+dataset = load_dataset("json", data_files="train.jsonl", split="train")
 
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_compute_dtype=torch.bfloat16,
     bnb_4bit_use_double_quant=True,
 )
 
-# ============================================
-# MODEL LOADING
-# ============================================
-
-print("Loading base model...")
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True,
-)
-model.config.use_cache = False
-
-print("Loading tokenizer...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
-
-# ============================================
-# DATASET LOADING
-# ============================================
-
-print(f"Loading dataset from {DATASET_PATH}...")
-dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
-print(f"Dataset contains {len(dataset)} examples")
-
-# ============================================
-# LORA CONFIGURATION
-# ============================================
-
 peft_config = LoraConfig(
-    r=LORA_RANK,
-    lora_alpha=LORA_ALPHA,
-    lora_dropout=LORA_DROPOUT,
-    bias="none",
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    target_modules="all-linear",
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
 )
 
-# ============================================
-# TRAINING ARGUMENTS
-# ============================================
-
-training_args = TrainingArguments(
-    output_dir="./results",
-    num_train_epochs=NUM_EPOCHS,
-    per_device_train_batch_size=BATCH_SIZE,
-    gradient_accumulation_steps=1,
-    learning_rate=LEARNING_RATE,
-    weight_decay=0.001,
-    fp16=True,
-    logging_steps=10,
-    save_steps=100,
-    save_total_limit=3,
-    optim="paged_adamw_32bit",
+args = SFTConfig(
+    output_dir="out",
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=2e-4,
     lr_scheduler_type="cosine",
-    warmup_ratio=0.03,
-    report_to="none",
+    warmup_steps=20,
+    max_length=2048,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="epoch",
+    model_init_kwargs={"dtype": torch.bfloat16},
 )
 
-# ============================================
-# TRAINER INITIALIZATION AND EXECUTION
-# ============================================
-
-print("Initializing trainer...")
 trainer = SFTTrainer(
-    model=model,
+    model="Qwen/Qwen3-8B",
+    args=args,
     train_dataset=dataset,
+    quantization_config=bnb_config,
     peft_config=peft_config,
-    dataset_text_field="text",
-    max_seq_length=MAX_SEQ_LENGTH,
-    tokenizer=tokenizer,
-    args=training_args,
 )
-
-print("Starting training...")
 trainer.train()
-
-print(f"Saving adapter to {OUTPUT_NAME}...")
-trainer.model.save_pretrained(OUTPUT_NAME)
-tokenizer.save_pretrained(OUTPUT_NAME)
-
-print("Training complete.")
+trainer.save_model("out/adapter")
 ```
 
-`Ctrl+O`로 파일을 저장한 뒤 `Ctrl+X`로 편집기를 종료합니다.
+중요한 선택은 이렇습니다.
 
-**주요 파라미터 이해하기:**
+- **`learning_rate=2e-4`.** TRL 문서는 QLoRA에 일반 파인튜닝 학습률의 약 10배를 권합니다. 학습 손실은 떨어지는데 평가 손실이 오르면 과적합입니다. 에폭을 줄이세요.
+- **`r=16`, `target_modules="all-linear"`.** 모든 선형 레이어에 어댑터를 붙이는 구성으로, Unsloth 벤치마크가 쓰는 설정입니다. 형식과 문체에는 랭크 16이면 충분하고, 더 어려운 작업이라면 올리세요.
+- **`max_length=2048`.** 더 긴 예시는 잘립니다. 데이터의 토큰 길이를 확인하세요. 한도를 늘리면 VRAM이 더 필요합니다.
+- **유효 배치 16** (4 × 누적 4스텝). 메모리가 부족하면 `per_device_train_batch_size`를 낮추고 누적 스텝을 올려 곱을 유지하세요.
 
-- **LORA_RANK (r=16):** 파인튜닝된 어댑터의 표현력을 결정합니다. 값이 클수록 더 많이 학습하지만 메모리를 더 많이 사용합니다. 보통 8에서 64 사이의 값을 씁니다.
+머신을 끄기 전에 떼어 둔 예시를 기본 모델과 튜닝한 모델에 넣어 비교하세요. 돈을 쓴 효과가 있었는지 알려 주는 테스트는 그것뿐입니다.
 
-- **LORA_ALPHA (16):** LoRA 가중치의 스케일링 계수입니다. 흔히 랭크와 같은 값으로 설정합니다.
+## 비용
 
-- **MAX_SEQ_LENGTH (512):** 학습 예제의 최대 토큰 길이입니다. 시퀀스가 길수록 메모리를 더 많이 사용합니다. OOM 오류가 발생하면 이 값부터 줄이세요.
+학습 시간은 전체 토큰 수 ÷ 처리량입니다. 호스팅 업체 GigaGPU는 RTX 4090에서 Llama 3.1 8B를 QLoRA로 학습할 때 초당 약 3,500 학습 토큰을 측정해 공개했습니다. Qwen3-8B도 비슷한 속도라고 가정하면 다음과 같습니다.
 
-- **BATCH_SIZE (4):** 한 번에 처리하는 예제 수입니다. 메모리가 부족하면 2나 1로 줄이세요.
+**작은 학습:** 예시 2,000개 × 600토큰 × 3에폭 = 360만 토큰. 3,600,000 ÷ 3,500 = 1,029초, 약 17분.
 
-- **target_modules:** LoRA 어댑터를 삽입할 레이어입니다. Llama-3에서는 어텐션 프로젝션 레이어(q, k, v, o)가 가장 좋은 결과를 냅니다.
+| 단계 | 시간 |
+| --- | --- |
+| 환경 준비 | 10분 |
+| Qwen3-8B 다운로드(가중치 16.4 GB), 데이터 업로드 | 10분 |
+| 학습 | 17분 |
+| 떼어 둔 데이터로 기본 모델과 튜닝 모델 비교 | 15분 |
+| 병합, 내보내기, 다운로드, 인스턴스 삭제 | 15분 |
+| **합계** | **67분 (1.12시간)** |
 
-학습을 시작하려면 다음을 실행합니다.
+- Vast.ai RTX 4090 시간당 $0.31: 1.12 × $0.31 = **$0.35**
+- RunPod RTX 4090 시간당 $0.74(가격 페이지 정가): 1.12 × $0.74 = **$0.83**
+
+**큰 학습:** 예시 20,000개 × 1,000토큰 × 2에폭 = 4,000만 토큰 ÷ 3,500 = 11,429초, 약 3.2시간. 같은 부대 작업 50분을 더하면 4.0시간으로, Vast.ai에서 **$1.24**, RunPod에서 **$2.97**입니다.
+
+32B 모델이라면 2026년 9월 기준 RunPod의 48 GB 카드는 시간당 $0.49(A40), $0.53(RTX A6000), $1.09(L40S)입니다. 이 카드들에서 32B QLoRA의 공개된 처리량은 찾지 못했으니, 긴 학습에 들어가기 전에 50스텝을 돌려 로그에서 스텝 시간을 읽고 같은 곱셈을 해 보세요.
+
+가격은 2026년 9월 RunPod 가격 페이지와 Vast.ai에 대한 getdeploying.com 추적기의 수치입니다. Secure/데이터센터 등급은 가장 싼 커뮤니티 오퍼보다 비쌉니다. 전체적인 비교는 [GPU 대여 가격 비교](/ko/gpu-rental-pricing-comparison-2026/)에 있습니다.
+
+## 결과물 서빙
+
+방법은 두 가지입니다. 어댑터를 따로 두거나, 모델에 병합하는 것입니다.
+
+**vLLM으로 따로 두기.** vLLM은 기본 모델 옆에 LoRA 어댑터를 불러오고, OpenAI 호환 서버에서 각 어댑터를 모델 이름 하나로 노출합니다.
 
 ```bash
-python train.py
+vllm serve Qwen/Qwen3-8B --enable-lora --lora-modules invoices=./out/adapter
 ```
 
-스크립트는 먼저 기본 모델 가중치를 내려받습니다(8B 모델 기준 약 16GB). 다운로드는 처음 한 번만 하며, 이후 실행에서는 캐시된 가중치를 사용합니다. 로딩이 끝나면 10스텝마다 손실 값이 출력되며 학습 진행 상황을 확인할 수 있습니다.
+그러면 클라이언트는 `"model": "invoices"`를 보냅니다. GPU 하나에서 어댑터 여러 개가 기본 모델 하나를 공유할 수 있습니다.
 
-## 5단계: 학습 모니터링
-
-학습 스크립트가 실행되는 동안 GPU 상태를 지켜봐야 합니다. VRAM이 가득 차거나 온도가 안전 범위를 넘으면 프로세스가 중단되어 체크포인트가 손상되고 대여 시간을 낭비할 수 있습니다.
-
-로컬 머신에서 두 번째 터미널 창을 열고 대여 노드에 SSH로 한 번 더 접속합니다.
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-다음 명령어로 GPU 통계를 실시간으로 확인합니다.
-
-```bash
-watch -n 1 nvidia-smi
-```
-
-![GPU 메모리 사용량과 온도 통계가 담긴 nvidia-smi 출력을 표시한 터미널](../_images/nvidia-smi-monitoring.png)
-
-이 도구는 1초마다 화면을 새로 고치며 메모리 사용량, GPU 사용률, 온도를 보여 줍니다. 이 가이드의 설정으로 RTX 4090에서 학습하면 다음과 같은 수치가 나와야 합니다.
-
-- **메모리 사용량:** 전체 24GB 중 18~22GB
-- **GPU 사용률:** 학습 스텝 진행 중 90~100%
-- **온도:** 호스트의 냉각 방식에 따라 60~80°C
-
-**자주 발생하는 문제 해결:**
-
-**메모리가 24GB에 근접하는 경우:** 메모리 사용량이 계속 한계에 닿는다면 학습 스크립트의 `BATCH_SIZE` 파라미터를 2나 1로 줄이세요. 또는 `MAX_SEQ_LENGTH`를 256으로 줄이는 방법도 있습니다. 어느 쪽이든 학습을 다시 시작해야 합니다.
-
-**GPU 사용률이 0%에 가까운 경우:** 대개 데이터 로딩 병목을 뜻합니다. CPU가 GPU에 예제를 충분히 빠르게 공급하지 못하는 상태입니다. NVMe를 갖춘 노드에서는 드물지만, 데이터셋이 매우 크면 발생할 수 있습니다. 전송 전에 데이터셋을 더 효율적인 형식(Arrow/Parquet)으로 전처리하는 것을 고려하세요.
-
-**온도가 85°C를 넘는 경우:** 일부 호스트는 통풍이 잘 안 되는 케이스에서 GPU를 운영합니다. 고온이 계속되면 서멀 스로틀링이 걸려 학습이 느려질 수 있습니다. 온도가 계속 85°C를 넘는다면 대여를 종료하고 다른 노드를 선택하는 것을 고려하세요. 하드웨어 손상은 호스트의 문제지만, 잃어버린 시간과 손상된 체크포인트는 여러분의 손해입니다.
-
-**손실 곡선 해석하기:**
-
-학습 스크립트는 10스텝마다 손실 값을 출력합니다. 이 숫자는 모델의 예측이 얼마나 '틀렸는지'를 나타내며, 낮을수록 좋습니다. 다음과 같은 흐름이 나타나야 합니다.
-
-- **초기 손실:** 데이터셋에 따라 보통 1.5~3.0
-- **추세:** 처음 수백 스텝 동안 꾸준히 감소
-- **최종 손실:** 설정이 잘된 학습이라면 보통 0.5~1.5
-
-손실이 처음부터 정체된다면(100스텝이 지나도 줄지 않는다면) 학습률이 너무 낮을 수 있습니다. 손실이 크게 요동치거나 증가한다면 학습률이 너무 높은 것입니다. 기본값 `2e-4`는 대부분의 데이터셋에 잘 맞지만, 조정이 필요할 수도 있습니다.
-
-손실이 순조롭게 줄다가 갑자기 매우 높은 값(10 이상)으로 치솟는다면 데이터셋에 형식이 잘못된 예제가 있을 가능성이 높습니다. 학습을 멈추고 JSONL 파일에서 인코딩 오류나 잘못 이스케이프된 문자가 있는지 확인한 뒤 다시 시작하세요.
-
-예제 1,000개로 파인튜닝하면 RTX 4090에서 보통 30~60분 안에 끝납니다. 데이터셋이 커지면 시간도 거의 비례해서 늘어나, 예제 10,000개라면 5~10시간이 필요합니다.
-
-## 6단계: 모델 회수와 환경 정리
-
-학습이 끝나면 파인튜닝된 가중치가 `OUTPUT_NAME`으로 지정한 디렉터리에 LoRA 어댑터 형태로 저장됩니다. 이 어댑터는 16GB에 달하는 기본 모델 전체와 비교하면 보통 100~500MB로 작습니다.
-
-먼저 어댑터 파일이 있는지 확인합니다.
-
-```bash
-ls -la ~/llama3-finetune/llama-3-8b-custom/
-```
-
-`adapter_config.json`, `adapter_model.safetensors`와 토크나이저 파일들이 보여야 합니다.
-
-**대여 노드에서 어댑터를 병합하지 마세요.** 병합은 LoRA 가중치를 기본 모델과 합쳐 독립적인 파인튜닝 모델을 만드는 작업입니다. 이 작업은 16비트 기본 모델 전체를 메모리에 올려야 하므로 24GB 카드의 VRAM을 넘을 수 있습니다. 병합은 자체 인프라에서 하거나, 추론할 때 기본 모델과 어댑터를 함께 불러오면 됩니다. PEFT 라이브러리가 이를 매끄럽게 처리합니다.
-
-```python
-from peft import PeftModel
-from transformers import AutoModelForCausalLM
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    device_map="auto",
-)
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-```
-
-어댑터를 내려받으려면 SSH 세션이 아닌 **로컬 터미널**로 돌아가 다음을 실행합니다.
-
-```bash
-scp -r -P 22345 user@203.0.113.42:~/llama3-finetune/llama-3-8b-custom ./
-```
-
-`-r` 플래그는 디렉터리 전체를 재귀적으로 복사합니다. 로컬 파일 크기가 원격 파일 크기와 같은지 확인해 전송이 제대로 끝났는지 점검하세요.
-
-**원격 환경 정리하기:**
-
-이 단계가 전문가와 아마추어를 가릅니다. 지금 대여 노드에는 사내 데이터셋, 학습 코드, 캐시된 모델 가중치가 남아 있습니다. 통제할 수 없는 머신에 이런 자료를 남겨 두는 것은 기본적인 운영 보안 원칙에 어긋납니다.
-
-대여 노드의 SSH 세션으로 돌아가 다음 명령어를 실행합니다.
-
-```bash
-# Remove your working directory and all contents
-rm -rf ~/llama3-finetune
-
-# Clear the Hugging Face cache (contains downloaded model weights)
-rm -rf ~/.cache/huggingface
-
-# Clear Python package cache
-rm -rf ~/.cache/pip
-
-# Clear bash history
-history -c
-cat /dev/null > ~/.bash_history
-
-# Clear any potential swap residue (may require sudo depending on node config)
-sync
-```
-
-노드에 `shred`가 있고, 삭제한 파일을 복구할 수 없다는 확신을 더 얻고 싶다면 다음을 실행합니다.
-
-```bash
-# Secure deletion (slower but more thorough)
-find ~/llama3-finetune -type f -exec shred -u {} \;
-rm -rf ~/llama3-finetune
-```
-
-SSH 세션 접속을 끊습니다.
-
-```bash
-exit
-```
-
-마켓플레이스 대시보드로 돌아가 스토리지 볼륨을 포함해 대여를 종료해야 더 이상 요금이 청구되지 않습니다.
-
-## 파인튜닝한 모델로 추론 실행하기
-
-어댑터를 로컬 머신에 내려받았다면 클라우드에 전혀 의존하지 않고 추론을 실행할 수 있습니다. 최소한의 예시는 다음과 같습니다.
+**병합해서 Ollama로 돌리기.** 어댑터를 전체 정밀도 가중치에 병합하고, llama.cpp로 GGUF로 변환하고, 양자화한 뒤 가져옵니다.
 
 ```python
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer
 
-# Quantization config (same as training)
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
-)
-
-# Load base model
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    quantization_config=bnb_config,
-    device_map="auto",
-)
-
-# Load your fine-tuned adapter
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
-
-# Generate a response
-prompt = "### Instruction: Summarize the contract clause.\n\n### Input: The Licensee shall not reverse engineer, decompile, or disassemble the Software.\n\n### Response:"
-
-inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.7)
-response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-print(response)
+model = AutoPeftModelForCausalLM.from_pretrained("out/adapter", dtype=torch.bfloat16)
+model.merge_and_unload().save_pretrained("merged")
+AutoTokenizer.from_pretrained("Qwen/Qwen3-8B").save_pretrained("merged")
 ```
 
-프로덕션 배포에는 FastAPI나 Flask로 API를 감싸거나, vLLM이나 Text Generation Inference(TGI) 같은 추론 서버로 배포하는 방법을 고려하세요. 이들 서버의 비교는 [RTX 4090에서 Ollama vs vLLM vs TGI](/ko/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/)에서 다룹니다.
+```bash
+python llama.cpp/convert_hf_to_gguf.py merged --outfile invoices-bf16.gguf --outtype bf16
+./llama.cpp/build/bin/llama-quantize invoices-bf16.gguf invoices-Q4_K_M.gguf Q4_K_M
+echo "FROM ./invoices-Q4_K_M.gguf" > Modelfile
+ollama create invoices -f Modelfile
+```
 
-## 마치며
+Unsloth는 병합과 GGUF 내보내기를 호출 한 번으로 처리합니다(`model.save_pretrained_gguf("dir", tokenizer, quantization_method="q4_k_m")`). 문서에 따르면 내보낸 뒤 답변이 이상해지는 가장 흔한 원인은 잘못된 채팅 템플릿이니, 학습할 때 쓴 템플릿으로 서빙하세요. Ollama, vLLM, TGI 간의 장단점은 [RTX 4090 추론 벤치마크](/ko/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/)에 있습니다.
 
-사내 데이터로 대규모 언어 모델을 파인튜닝하면서, 그 데이터가 한 대의 머신에 가능한 한 짧은 시간만 머물도록 했습니다. 기업 계약을 맺지도, 기술 기업에 지식 자산에 대한 접근 권한을 넘기지도 않았습니다.
+### GPUFlow는 어디에 맞는가
 
-RTX 4090을 시간당 0.45달러에 2시간 학습했다고 가정하면 이 작업의 총비용은 90센트였습니다. AWS의 A10G 한 장도 시간당 약 1.01달러이므로 학습 자체가 비싼 것은 아닙니다. 차이는 할당량 요청과 설정 과정에 있습니다.
+GPUFlow로는 학습할 수 없습니다. 제공자의 GPU에서 돌아가는 OpenAI 호환 API를 빌려주는 것이고, 셸, SSH, 파일 접근이 없습니다. 파인튜닝한 모델을 서빙할 수도 없습니다. 대여자는 모델을 올릴 수 없고, 제공되는 모델은 각 제공자가 (보통 Ollama로) 설치한 `qwen2.5:7b`나 `llama3.1:8b` 같은 것들입니다.
 
-더 중요한 점은 데이터셋이 어떤 스토리지 서비스도 거치지 않았고, 작업을 마친 뒤 대여 머신에서 삭제되었다는 것입니다.
+도움이 되는 곳은 이 모든 것의 앞 단계입니다. 몇 센트로, 기성 오픈 모델에 좋은 프롬프트만 주면 이미 일이 되는지 확인하는 것입니다. 결정 트리에서 가장 싼 결론입니다. 이때는 이 가이드에서 다루는 비공개 데이터가 아니라 테스트 데이터를 쓰세요. 대여가 진행되는 동안 프롬프트와 답변은 제공자의 머신을 평문으로 거칩니다. 사용 방법은 [API 빠른 시작](https://docs.gpuflow.app/ko/renters/api-quickstart/)에, 기존 도구에 연결하는 방법은 [앱에서 키 쓰는 법](/ko/use-openai-compatible-api-key-in-apps/)에 있습니다.
 
-폐쇄형 API에 의존하던 시대는 저물고 있습니다. 프라이버시가 필요한 조직, 데이터 주권을 중시하는 연구자, 통제권을 원하는 개발자에게는 대안이 있습니다. GPU 대여로 인프라와 비용, 데이터를 다시 직접 관리할 수 있습니다.
+## 출처
 
-파인튜닝한 모델은 이제 여러분이 통제하는 하드웨어에 있습니다. 어떻게 배포할지, 누가 접근할지, 어떤 목적으로 쓸지는 전적으로 여러분이 결정합니다.
+모두 2026년 9월에 확인했습니다.
 
----
-
-## 더 읽어 보기
-
-이 가이드에서는 프라이빗 LLM 파인튜닝의 핵심 워크플로를 다뤘습니다. 다음 글에서 관련 주제를 더 깊이 다룹니다.
-
-**비용 이해하기:**
-
-- [2026년 GPU 대여 가격 비교](/ko/gpu-rental-pricing-comparison-2026/) — 마켓플레이스와 대형 클라우드의 비용 분석
-- [GPU 대여의 실제 비용](/ko/hidden-fees-in-gpu-rental/) — 가격 페이지에는 나오지 않는 비용 요소
-
-**시작하기:**
-
-- [2026년 GPU를 대여하려면 무엇이 필요한가](/ko/what-you-need-to-rent-a-gpu/) — 플랫폼별 가입, 인증, 결제 방법
-- [공용 GPU 노드에서 데이터셋을 보호하는 방법](/ko/how-to-secure-dataset-on-public-gpu-node/) — 학습 전, 학습 중, 학습 후의 보안 수칙
-
-**선택지 비교하기:**
-
-- [RunPod vs Vast.ai 비교](/ko/runpod-vs-vastapi-comparison/) — 두 대형 마켓플레이스의 차이
-- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/ko/gpuflow-vs-vast-ai-vs-runpod/) — 머신, 컨테이너, API 키 방식 비교
+- 논문: [Hu 외, LoRA](https://arxiv.org/abs/2106.09685); [Dettmers 외, QLoRA](https://arxiv.org/abs/2305.14314); [Ovadia 외, Fine-Tuning or Retrieval?](https://arxiv.org/abs/2312.05934); [Carlini 외, Extracting Training Data from Large Language Models](https://arxiv.org/abs/2012.07805)
+- Hugging Face TRL: [SFT Trainer](https://huggingface.co/docs/trl/sft_trainer), [PEFT 연동과 QLoRA](https://huggingface.co/docs/trl/peft_integration)
+- Unsloth: [요구 사항과 VRAM 표](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements.md), [벤치마크](https://unsloth.ai/docs/basics/unsloth-benchmarks.md), [GGUF로 저장](https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-gguf.md), [GitHub](https://github.com/unslothai/unsloth)
+- [GitHub의 Axolotl](https://github.com/axolotl-ai-cloud/axolotl)
+- 모델: [Qwen3-8B 모델 카드](https://huggingface.co/Qwen/Qwen3-8B)
+- 학습 처리량: [GigaGPU, RTX 4090에서 파인튜닝하기](https://gigagpu.com/rtx-4090-fine-tuning-guide/)
+- 호스트와 보안: [Vast.ai 보안 FAQ](https://docs.vast.ai/documentation/reference/faq/security), [Vast.ai 가격](https://docs.vast.ai/guides/instances/pricing.md), [RunPod 포드 개요](https://docs.runpod.io/pods/overview)
+- 가격: [RunPod 가격](https://www.runpod.io/pricing), getdeploying.com의 [Vast.ai](https://getdeploying.com/vast-ai), [RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090)
+- 서빙: [vLLM LoRA 어댑터](https://docs.vllm.ai/en/latest/features/lora.html), [llama.cpp quantize](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md), [Ollama 가져오기](https://docs.ollama.com/import)
+- GPUFlow: [API 빠른 시작](https://docs.gpuflow.app/ko/renters/api-quickstart/)

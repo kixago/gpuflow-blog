@@ -1,9 +1,9 @@
 ---
-title: "पब्लिक GPU node पर अपना डेटासेट सुरक्षित कैसे रखें"
-description: "किराए के या decentralized GPU इन्फ़्रास्ट्रक्चर पर AI मॉडल ट्रेन करते समय अपने proprietary डेटासेट को सुरक्षित रखने की पूरी गाइड। इसमें encryption, virtualization की सीमाएं, compliance से जुड़ी बातें और एनवायरनमेंट को सुरक्षित तरीके से साफ़ करना शामिल है।"
-excerpt: "पब्लिक GPU पर ट्रेनिंग के लिए डेटा सुरक्षा से समझौता करना ज़रूरी नहीं। जानें कि किराए के इन्फ़्रास्ट्रक्चर पर AI वर्कलोड से पहले, उसके दौरान और उसके बाद संवेदनशील डेटासेट को कैसे सुरक्षित रखें।"
+title: "किराये के या public GPU node पर अपना dataset कैसे सुरक्षित रखें"
+description: "किराये के GPU का host वह सब पढ़ सकता है जो आपका job decrypt करता है। encryption, secure cloud और H100 confidential computing क्या ठीक करते हैं, और बाद में सफ़ाई कैसे करें।"
+excerpt: "GPU किराये पर लेने का मतलब है कि जिस मशीन पर आपका डेटा है, उस पर root किसी और के पास है। यहाँ threat model है, हर बचाव असल में क्या कवर करता है, और सफ़ाई का ऐसा तरीका जो आज की डिस्क पर काम करता है।"
 pubDate: 2026-02-26
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "hi"
 category: "guides"
 featured: false
@@ -11,358 +11,241 @@ draft: false
 author: "GPUFlow Team"
 authorUrl: "https://gpuflow.app"
 heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "सुरक्षित AI डेटा प्रोसेसिंग को दर्शाता एक abstract सुरक्षित सर्वर एनवायरनमेंट"
+heroImageAlt: "सुरक्षित server environment का abstract चित्र, जो AI डेटा की सुरक्षित processing दिखाता है"
 faq:
-  - question: "क्या किराए के GPU पर proprietary डेटा अपलोड करना सुरक्षित है?"
-    answer: "हां, बशर्ते आप ऑपरेशनल सुरक्षा के नियमों का अनुशासन से पालन करें। Encrypted ट्रांसफ़र इस्तेमाल करें, node पर credentials न रखें, ट्रेनिंग के बाद डेटासेट सुरक्षित तरीके से डिलीट करें और रेंटल सेशन ठीक से बंद करें।"
-  - question: "पब्लिक GPU node पर डेटासेट भेजने का सबसे सुरक्षित तरीका क्या है?"
-    answer: "SSH पर SCP या SFTP जैसे encrypted प्रोटोकॉल इस्तेमाल करें। बहुत संवेदनशील डेटासेट के लिए भेजने से पहले फ़ाइल को age या GPG जैसे टूल से अपनी मशीन पर ही encrypt कर लें।"
-  - question: "क्या होस्ट रेंटल node से डिलीट की गई फ़ाइलें वापस निकाल सकता है?"
-    answer: "सामान्य डिलीट से डेटा के पूरी तरह मिटने की गारंटी नहीं मिलती। Virtualized एनवायरनमेंट में फ़ाइलें वापस निकालना आम नहीं है, फिर भी shred जैसे secure deletion टूल और पूरी डायरेक्टरी हटाने से बचा हुआ जोखिम काफ़ी घट जाता है।"
-  - question: "क्या किराए के इन्फ़्रास्ट्रक्चर पर API keys या private keys रखनी चाहिए?"
-    answer: "नहीं। अस्थायी compute nodes पर कभी भी स्थायी credentials, wallet seed phrases या प्रोडक्शन access tokens नहीं होने चाहिए।"
-  - question: "क्या decentralized GPU इन्फ़्रास्ट्रक्चर AWS से कम सुरक्षित है?"
-    answer: "अपने आप में नहीं। सुरक्षा कॉन्फ़िगरेशन और ऑपरेशनल अनुशासन पर निर्भर करती है। सेंट्रलाइज़्ड क्लाउड बहुत ज़्यादा लॉग रखते हैं और हर गतिविधि को वेरिफ़ाइड पहचान से जोड़ते हैं, जबकि decentralized रेंटल में संस्थागत निगरानी कम होती है, लेकिन सही सावधानियां ज़रूरी हैं।"
+  - question: "क्या किराये के GPU का host मेरा डेटा देख सकता है?"
+    answer: "तकनीकी रूप से हाँ। physical मशीन पर host के पास root है, और मॉडल train करने या चलाने के लिए आपके डेटा को मेमोरी में decrypt होना ही पड़ता है। सिर्फ़ confidential computing, जैसे Azure या Google Cloud पर H100 confidential VMs, host को इस तस्वीर से बाहर करती है।"
+  - question: "क्या cloud GPU instance पर shred फ़ाइलों को सुरक्षित ढंग से मिटाता है?"
+    answer: "भरोसे से नहीं। GNU shred का manual कहता है कि यह तभी काम करता है जब file system और hardware डेटा को उसी जगह overwrite करें, और journaled व copy-on-write file systems, snapshots और SSDs इसकी गारंटी नहीं देते। डेटा को डिस्क पर पहुँचने से पहले encrypt करें और उसकी जगह instance को destroy करें।"
+  - question: "RunPod Secure Cloud और Community Cloud में क्या फ़र्क़ है?"
+    answer: "RunPod के docs बताते हैं कि Secure Cloud T3/T4 data centers में चलता है और production व संवेदनशील डेटा के लिए ठीक है, जबकि Community Cloud में peer-to-peer providers हैं जिनकी reliability बदलती रहती है। RunPod अब Community Cloud के लिए नए hosts स्वीकार नहीं कर रहा।"
+  - question: "कौन-से cloud GPUs confidential computing support करते हैं?"
+    answer: "सितंबर 2026 तक Azure AMD SEV-SNP पर एक H100 NVL GPU वाले NCCads H100 v5 confidential VMs देता है, और Google Cloud confidential a3-highgpu-1g (एक H100, Intel TDX) और G4 (RTX PRO 6000, AMD SEV) देता है। consumer GeForce कार्ड इन सूचियों में नहीं हैं।"
+  - question: "क्या GDPR के तहत किराये के GPU पर personal data रखना सुरक्षित है?"
+    answer: "सिर्फ़ तब, जब provider एक processor हो जिसके साथ GDPR के Article 28 की शर्तें पूरी करने वाला अनुबंध हो, और मशीन EU से बाहर हो तो transfer का क़ानूनी रास्ता हो। ज़्यादातर peer-to-peer hosts का आपके साथ ऐसा कोई अनुबंध नहीं होता, इसलिए पहले डेटा से पहचान हटाएँ या ऐसा data-center provider लें जो DPA पर दस्तख़त करे।"
+  - question: "क्या मैं GPUFlow पर मॉडल train या fine-tune कर सकता हूँ?"
+    answer: "नहीं। GPUFlow सिर्फ़ inference के लिए है: आपको provider के कंप्यूटर पर चल रहे मॉडल के लिए OpenAI-compatible API key मिलती है, बिना SSH, shell या फ़ाइल access के। prompts उस कंप्यूटर तक सादे टेक्स्ट में पहुँचते हैं, इसलिए इसके ज़रिए गोपनीय रिकॉर्ड न भेजें।"
 ---
 
-अगर आप ऐसे हार्डवेयर पर ट्रेनिंग कर रहे हैं जो आपके फ़िज़िकल नियंत्रण में नहीं है, तो सुरक्षा अब सिर्फ़ सैद्धांतिक सवाल नहीं रह जाती। वह एक प्रक्रिया बन जाती है।
+जब आप GPU किराये पर लेते हैं, तो जिस मशीन पर आपका डेटा है, उस पर root किसी और के पास होता है। encryption dataset को वहाँ पहुँचते समय और डिस्क पर पड़े रहते समय बचाता है, लेकिन इस्तेमाल करने के लिए आपके training job को उसे मेमोरी में decrypt करना ही पड़ता है, और उस वक़्त कोई ठान ले तो host उसे पढ़ सकता है। इसलिए असली फ़ैसले ये हैं: आप किस पर भरोसा करते हैं (जाँचा-परखा data center या कोई गुमनाम घरेलू server), कितना कम डेटा भेजते हैं, और क्या आपको confidential computing चाहिए, जो अकेला विकल्प है जो host संचालक को भरोसे की कड़ी से बाहर करता है।
 
-पब्लिक GPU मार्केटप्लेस, चाहे सेंट्रलाइज़्ड प्रोवाइडर हों या decentralized नेटवर्क, बिना बड़े निवेश के हाई-परफ़ॉर्मेंस compute तक पहुंच देते हैं। यह बड़ा फ़ायदा है। लेकिन इसकी क़ीमत भी साफ़ है: आपका डेटासेट अब किसी और की मशीन पर है।
+यह guide उन मशीनों के बारे में है जिनमें आप login करते हैं, जैसे Vast.ai या RunPod के instances। यह threat model, हर बचाव क्या कवर करता है, और सफ़ाई का ऐसा तरीका देखती है जो आज के storage पर टिकता है। स्रोत आख़िर में हैं; सब कुछ सितंबर 2026 में जाँचा गया।
 
-जो संस्थाएं proprietary रिसर्च, सोर्स कोड, फ़ाइनेंशियल मॉडल, मेडिकल रिकॉर्ड या नियमों के दायरे में आने वाला ग्राहक डेटा संभालती हैं, उनके लिए इस सच्चाई का मतलब है पूरी सख़्ती।
+## Threat model
 
-अच्छी ख़बर यह है कि किराए के इन्फ़्रास्ट्रक्चर का मतलब कमज़ोर सुरक्षा नहीं है। सही तरीके से संभाला जाए तो यह मज़बूत आइसोलेशन और नियंत्रित जोखिम देता है, और कुछ मामलों में hyperscaler प्लेटफ़ॉर्म से भी ज़्यादा प्राइवेसी।
+शुरुआत यह तय करने से करें कि डेटा तक कौन और कैसे पहुँच सकता है। किराये के GPU instance पर सात असली रास्ते हैं।
 
-यह गाइड बताती है कि पब्लिक GPU node पर ट्रेनिंग से पहले, उसके दौरान और उसके बाद अपना डेटासेट कैसे सुरक्षित रखें। यह मानकर चलती है कि आप हमारी [Private LLM Fine‑Tuning गाइड](/hi/private-llm-fine-tuning-guide/) में बताए गए fine‑tuning वर्कफ़्लो से पहले से परिचित हैं।
+<figure>
+<svg viewBox="0 0 720 430" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">किराये के GPU instance पर dataset का threat model: डेटा तक पहुँचने के सात रास्ते और हर एक का मुख्य बचाव</title>
+<rect x="0" y="0" width="720" height="430" fill="#ffffff"/>
+<line x1="220" y1="75" x2="240" y2="170" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="220" y1="220" x2="240" y2="215" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="220" y1="365" x2="240" y2="270" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="500" y1="75" x2="480" y2="170" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="500" y1="220" x2="480" y2="215" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="500" y1="365" x2="480" y2="270" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="360" y1="330" x2="360" y2="290" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="240" y="140" width="240" height="150" rx="12" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="360" y="170" text-anchor="middle" fill="#1e1b4b" font-weight="bold">आपका किराये का instance</text>
+<text x="360" y="205" text-anchor="middle" fill="#1e1b4b">Dataset</text>
+<text x="360" y="235" text-anchor="middle" fill="#1e1b4b">Weights और checkpoints</text>
+<text x="360" y="265" text-anchor="middle" fill="#1e1b4b">Tokens और keys</text>
+<rect x="20" y="40" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="120" y="68" text-anchor="middle" fill="#1e1b4b">host संचालक</text>
+<text x="120" y="92" text-anchor="middle" fill="#64748b" font-size="13">उपाय: भरोसेमंद host या CC</text>
+<rect x="20" y="185" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="120" y="213" text-anchor="middle" fill="#1e1b4b">नेटवर्क का रास्ता</text>
+<text x="120" y="237" text-anchor="middle" fill="#64748b" font-size="13">उपाय: SSH, खुले ports नहीं</text>
+<rect x="20" y="330" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="120" y="358" text-anchor="middle" fill="#1e1b4b">डिस्क पर बचा डेटा</text>
+<text x="120" y="382" text-anchor="middle" fill="#64748b" font-size="13">उपाय: encrypt, फिर destroy</text>
+<rect x="500" y="40" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="600" y="68" text-anchor="middle" fill="#1e1b4b">मार्केटप्लेस प्लेटफ़ॉर्म</text>
+<text x="600" y="92" text-anchor="middle" fill="#64748b" font-size="13">उपाय: अनुबंध और DPA</text>
+<rect x="500" y="185" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="600" y="213" text-anchor="middle" fill="#1e1b4b">दूसरे किरायेदार</text>
+<text x="600" y="237" text-anchor="middle" fill="#64748b" font-size="13">उपाय: VM या पूरी मशीन</text>
+<rect x="500" y="330" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="600" y="358" text-anchor="middle" fill="#1e1b4b">Snapshots, volumes</text>
+<text x="600" y="382" text-anchor="middle" fill="#64748b" font-size="13">उपाय: कोई स्थायी कॉपी नहीं</text>
+<rect x="260" y="330" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="360" y="358" text-anchor="middle" fill="#1e1b4b">आपकी अपनी छूटी चीज़ें</text>
+<text x="360" y="382" text-anchor="middle" fill="#64748b" font-size="13">उपाय: सीमित, बदलते tokens</text>
+</svg>
+<figcaption>job चलते समय instance पर सब कुछ host संचालक की पहुँच में है। बाक़ी रास्ते सामान्य सावधानी से बंद हो जाते हैं; इस एक के लिए या तो भरोसेमंद host चाहिए या confidential computing।</figcaption>
+</figure>
 
-यह गाइड उन रेंटल के लिए है जिनमें आप मशीन में लॉग इन करते हैं, जैसे Vast.ai, RunPod या TensorDock। GPUFlow अलग तरह से काम करता है: आपको एक AI मॉडल के लिए API key मिलती है, और प्रोवाइडर की मशीन पर कुछ भी अपलोड या स्टोर नहीं होता। फिर भी आपके prompts और जवाब उसी मशीन से होकर गुज़रते हैं, इसलिए वहां नियम और आसान है: ऐसा कुछ न भेजें जो आप किसी अजनबी के साथ साझा न करें।
+**host संचालक।** physical मशीन जिसकी है, उसके पास उस पर root है। Vast.ai जैसे container मार्केटप्लेस पर clients unprivileged Docker containers में चलते हैं, जो आपको दूसरे किरायेदारों से अलग रखता है, host से नहीं: host पर root container की फ़ाइलें और मेमोरी पढ़ सकता है। हर प्लेटफ़ॉर्म पर containers ऐसे ही काम करते हैं।
 
-इस संदर्भ में सुरक्षा का मतलब डर नहीं, अनुशासन है।
+**नेटवर्क का रास्ता।** आपके laptop या bucket से node तक जाता डेटा। यह रास्ता बंद करना सबसे आसान है।
 
----
+**मार्केटप्लेस प्लेटफ़ॉर्म।** आपके और host के बीच की कंपनी के पास आपका खाता, आपकी SSH keys और उसके अपने logs में जो कुछ रहता है, वह है। वह इनके साथ क्या कर सकती है, यह उसकी शर्तें तय करती हैं, इसीलिए आगे का अनुबंध वाला हिस्सा मायने रखता है।
 
-## पहले threat model तय करें
+**डिस्क पर बचा डेटा।** आपकी मिटाई फ़ाइलें किराया ख़त्म होने के बाद भी डिस्क पर रह सकती हैं, जहाँ अगला किरायेदार या host उन्हें पा सकता है।
 
-सुरक्षा के इंतज़ाम करने से पहले तय करें कि आप किस चीज़ से बचाव कर रहे हैं।
+**Snapshots और persistent volumes।** आपकी माँगी कॉपियाँ (network volume, रुका हुआ instance) या host की बनाई कॉपियाँ (backups) job के बाद भी बनी रहती हैं।
 
-GPU node किराए पर लेते समय आम तौर पर आपका वास्ता इनसे होता है:
+**दूसरे किरायेदार।** उसी मशीन पर दूसरे ग्राहक। VM isolation के साथ या पूरी मशीन अपने पास हो तो यह जोखिम छोटा है, लेकिन GPUs में यहाँ असली bugs रहे हैं। LeftoverLocals (CVE-2023-4969) से कुछ Apple, AMD और Qualcomm GPUs पर एक process दूसरे की GPU local memory पढ़ सकता था; Trail of Bits ने AMD Radeon RX 7900 XT पर हर LLM query से लगभग 181 MB निकाल लिए, जो मॉडल का जवाब दोबारा बनाने के लिए काफ़ी था। Trail of Bits को NVIDIA, ARM या Intel GPUs पर इसका कोई निशान नहीं मिला।
 
-- एक virtualization या container isolation परत
-- एक होस्ट ऑपरेटर, जो फ़िज़िकल हार्डवेयर का मालिक है
-- एक मार्केटप्लेस प्लेटफ़ॉर्म, जो scheduling और पेमेंट संभालता है
+**आपकी अपनी छूटी चीज़ें।** node पर छूटा Hugging Face token, cloud keys या SSH private key। असल में ज़्यादातर leaks ऐसे ही शुरू होते हैं।
 
-सबसे वास्तविक जोखिम ये हैं:
+## encryption क्या कवर करता है, और क्या नहीं कर सकता
 
-1. आपके सेशन के बाद डिस्क पर बचा रह गया डेटा
-2. Credentials को ग़लत तरीके से संभालना, जिससे दूसरे सिस्टम भी ख़तरे में पड़ जाएं
-3. बिना encryption के फ़ाइल ट्रांसफ़र, जिससे रास्ते में डेटा उजागर हो
-4. ग़लत नेटवर्क कॉन्फ़िगरेशन, जिससे सर्विसेज़ पब्लिक रूप से खुल जाएं
+encryption के तीन काम हैं, और किराये के GPU पर इनमें से दो आप ख़ुद कर सकते हैं।
 
-कम वास्तविक, हालांकि अक्सर बढ़ा-चढ़ाकर बताए जाने वाले, जोखिम ये हैं:
+**रास्ते में (in transit):** आसान। SSH (`scp`, `sftp`, `rsync -e ssh`) या bucket से HTTPS इस्तेमाल करें। Vast.ai बताता है कि SSH connections और उसका API encrypted हैं। सादे HTTP links या बिना authentication वाली file-sharing सेवाएँ कभी इस्तेमाल न करें।
 
-- होस्ट द्वारा आपके ट्रेनिंग डेटा की रियल-टाइम निगरानी
-- चलते वर्कलोड के दौरान GPU मेमोरी से डेटा निकालना
-- सही तरीके से कॉन्फ़िगर किए गए SSH ट्रैफ़िक को किसी जटिल तरीके से बीच में पकड़ना
-
-किराए के compute एनवायरनमेंट में सुरक्षा की चूक लगभग हमेशा ऑपरेशनल होती है, आर्किटेक्चर से जुड़ी नहीं।
-
-शुरुआत इसी समझ से करें।
-
----
-
-## जितना कम हो सके, उतना ही अपलोड करें
-
-सबसे सुरक्षित डेटासेट वह है जो कभी आपकी लोकल मशीन से बाहर ही नहीं जाता।
-
-किराए के GPU पर कुछ भी भेजने से पहले:
-
-- जो कॉलम इस्तेमाल नहीं होते, उन्हें हटाएं
-- इंटरनल identifiers निकाल दें
-- ग़ैर-ज़रूरी निजी जानकारी को hash या tokenize करें
-- कच्चे प्रोडक्शन लॉग हटा दें
-- डेटा को ट्रेनिंग के लिए ज़रूरी न्यूनतम corpus तक सीमित करें
-
-अगर आप QLoRA या कोई और parameter-efficient fine-tuning तरीका इस्तेमाल कर रहे हैं, तो आप foundation model को शुरू से दोबारा ट्रेन नहीं कर रहे। आप सिर्फ़ deltas बदल रहे हैं। इसके लिए पूरे ऑपरेशनल डेटाबेस की ज़रूरत शायद ही कभी पड़ती है।
-
-छोटे डेटासेट से ये चीज़ें घटती हैं:
-
-- जोखिम का दायरा
-- ट्रांसफ़र का समय
-- स्टोरेज की जगह
-- ट्रेनिंग की लागत
-
-सुरक्षा और कुशलता लोगों की सोच से कहीं ज़्यादा बार साथ-साथ चलती हैं।
-
----
-
-## Encrypted ट्रांसफ़र पर कोई समझौता नहीं
-
-संवेदनशील डेटासेट कभी भी ब्राउज़र वाले फ़ाइल पोर्टल, असुरक्षित FTP या अस्थायी शेयरिंग लिंक से अपलोड न करें।
-
-SSH-आधारित ट्रांसफ़र इस्तेमाल करें:
+**डिस्क पर (at rest):** अपलोड से पहले encrypt करें, ताकि host की डिस्क पर पड़ी फ़ाइल key के बिना बेकार हो। इसके लिए [age](https://github.com/FiloSottile/age) सबसे आसान टूल है:
 
 ```bash
-scp -P 22345 dataset.jsonl user@203.0.113.42:~/workspace/
+# on your own machine
+tar -cf - train/ | age -p > train.tar.age
+scp -P 22345 train.tar.age user@203.0.113.42:/workspace/
 ```
 
-SCP और SFTP आधुनिक cryptographic मानकों से ट्रांसफ़र के दौरान डेटा encrypt करते हैं। सही कॉन्फ़िगरेशन के साथ बीच में डेटा पकड़े जाने का जोखिम नगण्य है।
-
-बहुत संवेदनशील सामग्री के लिए भेजने से पहले फ़ाइल को अपनी मशीन पर ही encrypt करें:
+node पर सीधे मेमोरी में decrypt करें, ताकि सादा टेक्स्ट कभी डिस्क को न छुए:
 
 ```bash
-age -p dataset.jsonl > dataset.jsonl.age
-scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/workspace/
+mkdir -p /dev/shm/train
+age -d /workspace/train.tar.age | tar -xf - -C /dev/shm/train
 ```
 
-Remote node पर decrypt सिर्फ़ तभी करें जब ज़रूरी हो।
+`age -d` terminal पर passphrase माँगता है, इसलिए key कभी node पर लिखी नहीं जाती। `/dev/shm` RAM पर चलने वाला file system है; पहले `df -h /dev/shm` से उसका साइज़ देख लें, क्योंकि container setups में यह अक्सर छोटा होता है। अगर डेटा RAM में नहीं आता, तो डिस्क पर decrypted कॉपी रखनी पड़ेगी, और तब आगे का सफ़ाई वाला हिस्सा और अहम हो जाता है।
 
-जब तक compliance के लिए ज़रूरी न हो, डेटासेट को किसी थर्ड-पार्टी स्टोरेज सिस्टम में बीच में न रखें। आपका डेटा रखने वाला हर अतिरिक्त सिस्टम संस्थागत निगरानी और डेटा के लंबे समय तक रखे जाने का जोखिम बढ़ाता है।
+अपने servers पर आम जवाब LUKS से full-disk encryption है, लेकिन unprivileged container के अंदर आप आमतौर पर dm-crypt सेट नहीं कर सकते, और चालू key वैसे भी host के पास होती।
 
-अगर प्राइवेसी आपका लक्ष्य है, तो डेटा सीधे और सोच-समझकर भेजें।
+**इस्तेमाल के दौरान (in use):** यही कमी है। training के लिए GPU को सादे tensors चाहिए, और उसे डेटा देने वाली CPU मेमोरी में भी सादा टेक्स्ट होता है। host पर root वाला कोई भी, सिद्धांत रूप में, वह मेमोरी dump कर सकता है। चालू और बदनीयत host के सामने at-rest encryption कुछ नहीं करता। इसका इलाज सिर्फ़ hardware पर आधारित confidential computing करती है।
 
----
+## Secure cloud या community cloud
 
-## अस्थायी nodes पर कभी लंबे समय वाले credentials न रखें
+host ही वह एक जोखिम है जिसे सावधानी से नहीं हटाया जा सकता, इसलिए host चुनना आपका सबसे बड़ा फ़ैसला है। दोनों बड़े मार्केटप्लेस इसी वजह से अपनी supply को बाँटते हैं।
 
-यहीं कई प्रोफ़ेशनल ऐसी ग़लतियां करते हैं जिनसे बचा जा सकता था।
+| विकल्प | hardware कौन चलाता है | प्लेटफ़ॉर्म क्या कहता है |
+| --- | --- | --- |
+| RunPod Secure Cloud | T3/T4 data centers | "production, संवेदनशील डेटा" के लिए |
+| RunPod Community Cloud | Peer-to-peer providers | "लागत को लेकर संवेदनशील workloads" के लिए; नए hosts स्वीकार नहीं |
+| Vast.ai Secure Cloud | जाँचे-परखे data centers | ISO 27001, Tier 3/4 मानक, जाँची हुई physical सुरक्षा |
+| Vast.ai के दूसरे hosts | data centers से लेकर व्यक्तियों तक | व्यक्तिगत hosts के "सुरक्षा उपाय कम औपचारिक हो सकते हैं" |
 
-ये चीज़ें न रखें:
+संवेदनशील डेटा के लिए Vast.ai की अपनी सलाह है: सिर्फ़ Secure Cloud providers इस्तेमाल करें, डेटा को at rest encrypt करें, credentials instances पर न रखें और बाहरी key management इस्तेमाल करें। मैं भी किसी को यही बताऊँगा।
 
-- Wallet seed phrases
-- दूसरी जगहों पर इस्तेमाल होने वाली SSH private keys
-- प्रोडक्शन API tokens
-- क्लाउड प्रोवाइडर के root credentials
-- डेटाबेस पासवर्ड
+certified data center में भी दो सीमाएँ लागू रहती हैं। पहली, ISO 27001 संचालक की प्रक्रियाओं को certify करता है; वह किसी बेईमान अंदरूनी व्यक्ति की संभावना ख़त्म नहीं कर सकता। दूसरी, जो host आपके लिए personal data process करता है, वह GDPR के तहत processor है, और Article 28 इसके लिए अनुबंध चाहता है, जबकि मार्केटप्लेस आपके और host के बीच बैठा है। पढ़ें कि आपका अनुबंध असल में किस कंपनी से है और वह अपने hosts के बारे में क्या वादा करती है।
 
-अस्थायी compute इन्फ़्रास्ट्रक्चर पर सिर्फ़ वही होना चाहिए जो वर्कलोड के लिए ज़रूरी है।
+सच में संवेदनशील काम के लिए अगला क़दम किसी ऐसे hyperscaler खाते में GPU instance है जिसके साथ आपका पहले से DPA और शायद BAA है। यह आपको मार्केटप्लेस के दायरे से बाहर ले जाता है और प्रति घंटा महँगा है। हमारी [GPU किराये की कीमतों की तुलना](/hi/gpu-rental-pricing-comparison-2026/) कीमतों की range दिखाती है।
 
-अगर gated मॉडल डाउनलोड करने के लिए आप Hugging Face में authenticate करते हैं, तो सीमित अधिकारों वाला (scoped) token इस्तेमाल करें। ट्रेनिंग के बाद cache में रखे credentials हटा दें:
+## H100 GPUs पर confidential computing
 
-```bash
-rm -rf ~/.cache/huggingface
-```
+confidential computing (CC) यहाँ अकेली technology है जो job चलते समय डेटा को host संचालक से बचाने के लिए बनी है। NVIDIA Hopper और Blackwell data center GPUs पर यह ऐसे काम करती है:
 
-काम पूरा होने के बाद tokens rotate करने पर विचार करें।
+- workload एक confidential VM (CVM) में चलता है, जिसके पीछे CPU पर AMD SEV-SNP या Intel TDX है। NVIDIA का डिज़ाइन मानकर चलता है कि hypervisor और host OS compromised हो सकते हैं; hypervisor "या ख़ुद सिस्टम" तक पहुँच वाला संचालक भी CVM की मेमोरी न पढ़ पाए।
+- इस्तेमाल से पहले VM जाँचता है कि GPU असली है और signed device certificate के साथ CC mode में है, जिसे NVIDIA की Remote Attestation Service (NRAS) से जाँचा जा सकता है।
+- PCIe पार करने वाले डेटा, command buffers और CUDA kernels encrypted और signed होते हैं, और shared memory में एक encrypted bounce buffer से होकर जाते हैं।
 
-सुरक्षा से जुड़ी घटनाएं शायद ही कभी GPU exploit से शुरू होती हैं। वे उजागर हुए credentials से शुरू होती हैं।
+NVIDIA ने अप्रैल 2024 में CUDA 12.4 के साथ H100 पर single-GPU CC सबके लिए उपलब्ध किया। सितंबर 2026 तक आप इसे असल में कहाँ किराये पर ले सकते हैं:
 
----
+| Cloud | Instance | GPU | CPU TEE |
+| --- | --- | --- | --- |
+| Azure | NCCads H100 v5 | 1 × H100 NVL, 94 GB | AMD SEV-SNP (EPYC Genoa) |
+| Google Cloud | a3-highgpu-1g, Confidential VM | 1 × H100 | Intel TDX |
+| Google Cloud | g4-standard-48, Confidential VM | RTX PRO 6000 | AMD SEV |
 
-## मानकर चलें कि फ़ाइलसिस्टम से डेटा वापस निकाला जा सकता है
+इस पर कुछ बनाने से पहले सीमाएँ जान लें:
 
-फ़ाइल डिलीट करने की सामान्य कमांड:
+- **हर VM में एक GPU।** Azure की series में एक GPU है, और Google के confidential GPU VMs multi-node clusters support नहीं करते। बड़े multi-GPU training runs इससे बाहर हैं।
+- **उपलब्धता।** Google Cloud पर confidential A3 High सिर्फ़ Spot या flex-start के रूप में चलता है और reservations support नहीं करता।
+- **transfer की speed।** NVIDIA के 2023 के technical लेख में CC mode में CPU से GPU तक bandwidth लगभग 4 GB/s बताई गई, जिसे CPU encryption सीमित करता है। यानी 16 GB checkpoint load करने में सिर्फ़ transfer के लगभग 16 ÷ 4 = 4 सेकंड लगते हैं, जो inference के लिए ठीक है, लेकिन जो data pipeline हर step में कई gigabytes stream करती है, उसे यह महसूस होगा। बाद के driver releases में performance पर काम का ज़िक्र है, इसलिए अपना job ख़ुद मापें।
+- **GPU मेमोरी encrypted नहीं है।** NVIDIA on-package HBM को सादा रखता है, इस तर्क पर कि आम physical attack टूल उस तक नहीं पहुँच सकते।
+- **मार्केटप्लेस पर नहीं।** Vast.ai और RunPod के community hosts पर आम consumer GeForce कार्ड इनमें से किसी supported सूची में नहीं हैं।
 
-```bash
-rm dataset.jsonl
-```
+CC यह बदलता है कि आपको किस पर भरोसा करना है: host के कर्मचारियों की जगह NVIDIA का hardware और attestation, CPU vendor, और आपकी अपनी VM image। regulated डेटा के लिए, जहाँ "cloud provider के admins इसे नहीं पढ़ सकते" वाला जवाब मायने रखता है, किराये के hardware पर वहाँ तक पहुँचाने वाला यही अकेला विकल्प है।
 
-सिर्फ़ डायरेक्टरी के रेफ़रेंस हटाती है। इससे डिस्क के नीचे के blocks के मिटने की गारंटी नहीं मिलती।
+## job से पहले और उसके दौरान
 
-Virtualized रेंटल एनवायरनमेंट में डेटा के वापस निकाले जाने का असली जोखिम कम है, लेकिन शून्य नहीं। ज़िम्मेदार तरीका यही है कि मानकर चलें कि डेटा वापस निकाला जा सकता है।
+### अपलोड से पहले घटाएँ
 
-संवेदनशील फ़ाइलों के लिए:
+सबसे सस्ती सुरक्षा वह डेटा है जो कभी आपकी मशीन से बाहर न जाए। transfer से पहले:
 
-```bash
-shred -u dataset.jsonl
-```
+- जिन columns की मॉडल को ज़रूरत नहीं, उन्हें हटाएँ, ख़ासकर नाम, emails, खाता नंबर और free-text notes।
+- सीधी पहचान वाली चीज़ों की जगह random tokens रखें और lookup table घर पर रखें।
+- corpus को उतना ही रखें जितना तरीके को चाहिए। LoRA या QLoRA fine-tune अतिरिक्त weights के एक छोटे सेट को बदलता है और उसे शायद ही पूरे production database की ज़रूरत होती है; हमारी [fine-tuning guide](/hi/private-llm-fine-tuning-guide/) एक असली जैसा setup दिखाती है।
+- याद रखें कि model weights में जानकारी होती है। संवेदनशील टेक्स्ट पर fine-tune किया मॉडल उसके टुकड़े दोहरा सकता है, इसलिए adapter को भी संवेदनशील मानें।
 
-फिर अपनी पूरी वर्किंग डायरेक्टरी हटा दें:
+पहचान हटाया हुआ डेटा ही आगे के ज़्यादातर क़ानूनी सवालों को भी ख़त्म करता है।
 
-```bash
-rm -rf ~/workspace
-```
+### node पर credentials और नेटवर्क
 
-Caches साफ़ करें:
+मानकर चलें कि node पर रखी कोई भी चीज़ कॉपी हो सकती है।
 
-```bash
-rm -rf ~/.cache/pip
-rm -rf ~/.cache/huggingface
-```
+- fine-grained Hugging Face token इस्तेमाल करें, जिसकी read access सिर्फ़ उस एक repo तक हो जो आपको चाहिए, और job ख़त्म होते ही उसे revoke करें।
+- अपनी मुख्य SSH private key, cloud root credentials या production database के passwords कभी किराये की मशीन पर कॉपी न करें। अगर job को नतीजे किसी bucket में लिखने हैं, तो ऐसी key बनाएँ जो सिर्फ़ एक prefix में लिख सके और एक दिन के अंदर expire हो जाए।
+- नतीजों को node से लंबे समय वाली keys के साथ push करने की जगह SSH से वापस खींचें।
+- `ss -tulnp` से देखें कि क्या listen कर रहा है। Jupyter, TensorBoard और inference servers को `127.0.0.1` पर bind करें और public port खोलने की जगह SSH tunnel (`ssh -L 8888:127.0.0.1:8888 ...`) से उन तक पहुँचें।
 
-Shell history साफ़ करें:
+## सफ़ाई जो आज की डिस्क पर टिके
 
-```bash
-history -c
-cat /dev/null > ~/.bash_history
-```
+आम सलाह है कि काम ख़त्म होने पर dataset को `shred` कर दें। यह वह नहीं करता जो लोग सोचते हैं। GNU coreutils का manual कहता है कि `shred` इस पर निर्भर है कि file system और hardware डेटा को उसी जगह overwrite करें, और वे मामले गिनाता है जहाँ यह नाकाम होता है: journaled और log-structured file systems जैसे `data=journal` mode में ext4, Btrfs, XFS और ZFS, RAID, snapshots वाले file systems, compressed file systems, और SSDs, जिनका wear levelling नया डेटा कहीं और लिखता है। किराये का GPU node बहुत संभव है कि इनमें से कई एक साथ हो।
 
-मार्केटप्लेस के डैशबोर्ड से रेंटल सेशन को औपचारिक रूप से बंद करें, ताकि मशीन ठीक से deprovision हो जाए।
+इसकी जगह जो काम करता है:
 
-इन कदमों में कुछ ही मिनट लगते हैं। इनसे बचा हुआ जोखिम काफ़ी घट जाता है।
+1. **डिस्क की कॉपी को बेकार बनाएँ।** अगर डिस्क को सिर्फ़ age से encrypted archive ने छुआ, तो उसे मिटाना काफ़ी है; passphrase के बिना वह बस noise है। NIST की media sanitisation guide (SP 800-88 Rev. 2, सितंबर 2025) इस तरीके, cryptographic erase, को एक मानक तकनीक मानती है।
+2. **रोकें नहीं, destroy करें।** Vast.ai पर instance रोकने से उसका डेटा बना रहता है (और storage का बिल बनता रहता है); destroy करने से वह "instance और सारा डेटा हमेशा के लिए मिट जाता है"। RunPod पर pod रुकते ही container disk साफ़ हो जाती है, `/workspace` volume रुकने पर बचा रहता है और terminate पर मिटता है, और network volume तब तक सब कुछ झेल जाता है जब तक आप उसे delete न करें।
+3. **अपने बनाए network volumes delete करें।** वे डिज़ाइन के मुताबिक़ pods के बाद भी रहते हैं।
+4. **जो इस्तेमाल किया, उसे revoke करें।** Hugging Face token, bucket keys, और इस job के लिए मार्केटप्लेस में जोड़ी गई कोई भी एक बार वाली SSH public key हटाएँ।
 
----
+किरायेदारों के बीच host डिस्क कैसे साफ़ करता है, यह मेरे पढ़े किसी मार्केटप्लेस के docs में नहीं बताया गया। ऐसे योजना बनाएँ जैसे यह होता ही नहीं, और क़दम 1 हर हाल में आपको बचाता है।
 
-## नेटवर्क पर क्या खुला है, इस पर नज़र रखें
+## अनुबंध और नियम
 
-Node से कनेक्ट होने के बाद खुले ports जांचें:
+technical controls एक क़ानूनी तथ्य से कम मायने रखते हैं: किसी की मशीन पर डेटा रखने से वह उसमें एक पक्ष बन जाता है।
 
-```bash
-ss -tulnp
-```
+- **GDPR।** आपके लिए personal data process करने वाला GPU host एक processor है। Article 28 ऐसा processor माँगता है जो "पर्याप्त गारंटी" दे, और एक बाध्यकारी अनुबंध। जिस peer-to-peer host के साथ आपने कभी किसी चीज़ पर दस्तख़त नहीं किए, वह यह पूरा नहीं करता, और मशीन EU से बाहर भी हो सकती है। पहचान हटाएँ, या ऐसा provider लें जो DPA पर दस्तख़त करे।
+- **HIPAA।** HHS कहता है कि electronic health डेटा रखने वाला cloud provider business associate है, भले डेटा encrypted हो और उसके पास key न हो। स्वास्थ्य रिकॉर्ड किसी बिना जाँचे host को भेजने से पहले encrypt कर देने से BAA की ज़रूरत ख़त्म नहीं होती।
+- **आपके ग्राहकों के अनुबंध।** कई enterprise agreements subprocessors और डेटा की जगह पर पाबंदी लगाते हैं। पहले अपलोड से पहले इन्हें जाँचें। क़ानूनी जोखिम अक्सर technical जोखिम से बड़ा होता है।
 
-आपके ट्रेनिंग वर्कलोड को पब्लिक रूप से खुले inbound ports की ज़रूरत नहीं है।
+साथ वाला लेख, [कंपनियाँ public AI टूल पर रोक क्यों लगाती हैं](/hi/why-corporate-policies-banning-chatgpt/), यही नियम chat वाले पक्ष से देखता है।
 
-अगर आप inference endpoints के साथ प्रयोग करते हैं, तो जब तक remote एक्सेस ज़रूरी न हो, उन्हें localhost पर ही bind करें।
+## GPUFlow पर inference: एक अलग सौदा
 
-Decentralized और hyperscaler, दोनों तरह के एनवायरनमेंट में ग़लत नेटवर्क कॉन्फ़िगरेशन डेटा उजागर होने की सबसे आम वजहों में से एक है।
+GPUFlow dataset रखने की जगह नहीं है। यह एक inference मार्केटप्लेस है: आप घंटे के हिसाब से GPU किराये पर लेते हैं और उस open मॉडल के लिए OpenAI-compatible API key (base URL `https://gpuflow.app/v1`) पाते हैं जिसे provider अपने कंप्यूटर पर (आमतौर पर Ollama से) चलाता है। वहाँ न SSH है, न shell, न फ़ाइल access, और आप उस पर train या fine-tune नहीं कर सकते। आपका अपलोड किया कुछ भी provider की डिस्क पर नहीं रहता, क्योंकि आप कुछ अपलोड कर ही नहीं सकते।
 
----
+इससे इस guide की डिस्क और credentials वाली समस्याएँ हट जाती हैं। host वाली समस्या नहीं हटती। किराये के दौरान हर prompt और जवाब provider की मशीन से सादे टेक्स्ट में होकर गुज़रता है। GPUFlow की शर्तें provider को इन्हें रिकॉर्ड करने, पढ़ने, रखने या साझा करने से मना करती हैं, और GPUFlow ख़ुद टेक्स्ट नहीं सहेजता, लेकिन मशीन पर provider के पास root है, इसलिए यह नियम सिर्फ़ अनुबंध से लागू होता है। अगर आप इससे एक dataset को हर prompt में एक रिकॉर्ड करके चलाते हैं, तो हर रिकॉर्ड उस कंप्यूटर तक पहुँचता है।
 
-## Bare metal बनाम virtualized GPU nodes
+इसलिए इसे public, synthetic या ठीक से पहचान हटाए गए डेटा के लिए इस्तेमाल करें, और किसी open मॉडल या ऐप को OpenAI-style API पर टेस्ट करने के लिए। regulated और गोपनीय रिकॉर्ड अपने hardware पर, किसी ऐसे provider के पास जिससे आपका अनुबंध है, या confidential VM में रखें। [API quickstart](https://docs.gpuflow.app/hi/renters/api-quickstart/) यही बात एक लाइन में कहता है: passwords, कार्ड नंबर या ऐसे दूसरे secrets न भेजें जो आप किसी अजनबी को न बताते। यही व्यवस्था provider की तरफ़ से [क्या अपना GPU किराये पर देना सुरक्षित है](/hi/is-it-safe-to-rent-out-your-gpu/) में है।
 
-कई यूज़र मानते हैं कि bare metal हार्डवेयर किराए पर लेना hyperscaler VM के अंदर काम करने से अपने आप कम सुरक्षित है। असलियत इससे ज़्यादा पेचीदा है।
+## Checklist
 
-ज़्यादातर GPU मार्केटप्लेस इनमें से किसी एक तरीके से आइसोलेशन देते हैं:
+पहले:
 
-- Virtual machines (KVM, Xen या इसी तरह के hypervisors)
-- कंटेनर-आधारित आइसोलेशन
-- डेडिकेटेड single-tenant इंस्टेंस
+- डेटा की श्रेणी तय करें। regulated या client का गोपनीय डेटा अनुबंध वाले provider या confidential VM पर जाता है, community host पर नहीं।
+- डेटा घटाएँ और पहचान हटाएँ।
+- age से encrypt करें; passphrase node पर न रखें।
 
-सही तरीके से कॉन्फ़िगर किए गए hypervisors में tenants के बीच मेमोरी आइसोलेशन हार्डवेयर के स्तर पर लागू होता है। आपका प्रोसेस किसी दूसरे tenant की मेमोरी नहीं पढ़ सकता।
+दौरान:
 
-जोखिम एनवायरनमेंट के हिसाब से अलग होते हैं:
+- जहाँ फ़िट हो, `/dev/shm` में decrypt करें।
+- सिर्फ़ सीमित दायरे वाले, कम समय के tokens।
+- सेवाएँ localhost पर bind हों, SSH tunnels से पहुँचें।
 
-**Virtualized एनवायरनमेंट:**
+बाद में:
 
-- प्रोसेस का मज़बूत आइसोलेशन
-- होस्ट के स्तर पर साझा फ़िज़िकल डिस्क
-- हार्डवेयर के ज़रिए एक-दूसरे तक पहुंच का कम जोखिम
-- Hypervisor की मज़बूती पर ज़्यादा निर्भरता
+- नतीजे SSH से खींचें; fine-tune किए weights को संवेदनशील मानें।
+- instance और हर network volume destroy करें।
+- tokens और एक बार वाली keys revoke करें।
 
-**Bare metal रेंटल:**
+## स्रोत
 
-- साथ के tenants से मेमोरी उजागर होने का जोखिम नहीं
-- हार्डवेयर तक सीधी पहुंच
-- सेशन के बीच डिस्क साफ़ न की जाए तो डेटा बचा रह सकता है
+- Vast.ai पर container isolation और Secure Cloud: [Vast.ai Security FAQ](https://docs.vast.ai/guides/reference/faq/security); stop बनाम destroy: [Instances का प्रबंधन](https://docs.vast.ai/guides/instances/manage-instances)
+- RunPod Secure बनाम Community Cloud: [Pod चुनना](https://docs.runpod.io/pods/choose-a-pod); storage कितना टिकता है: [Storage के प्रकार](https://docs.runpod.io/pods/storage/types)
+- LeftoverLocals: [Trail of Bits, जनवरी 2024](https://blog.trailofbits.com/2024/01/16/leftoverlocals-listening-to-llm-responses-through-leaked-gpu-local-memory/)
+- age: [github.com/FiloSottile/age](https://github.com/FiloSottile/age)
+- shred की सीमाएँ: [GNU coreutils manual, shred invocation](https://www.gnu.org/software/coreutils/manual/html_node/shred-invocation.html)
+- NIST SP 800-88 Rev. 2: [NIST की घोषणा, सितंबर 2025](https://www.nist.gov/news-events/news/2025/09/guidelines-media-sanitization-nist-publishes-sp-800-88r2)
+- H100 confidential computing का डिज़ाइन: [NVIDIA, Confidential Computing on H100 GPUs for Secure and Trustworthy AI](https://developer.nvidia.com/blog/confidential-computing-on-h100-gpus-for-secure-and-trustworthy-ai/); सबके लिए उपलब्धता: [NVIDIA, अप्रैल 2024](https://developer.nvidia.com/blog/announcing-confidential-computing-general-access-on-nvidia-h100-tensor-core-gpus/)
+- Azure: [NCCads H100 v5 series](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nccadsh100v5-series)
+- Google Cloud: [Confidential VM के supported configurations](https://docs.cloud.google.com/confidential-computing/confidential-vm/docs/supported-configurations), [GPU के साथ Confidential VM instance बनाना](https://docs.cloud.google.com/confidential-computing/confidential-vm/docs/create-a-confidential-vm-instance-with-gpu)
+- GDPR Article 28: [gdpr-info.eu](https://gdpr-info.eu/art-28-gdpr/)
+- HIPAA और cloud providers: [HHS, HIPAA और cloud computing पर guidance](https://www.hhs.gov/hipaa/for-professionals/special-topics/health-information-technology/cloud-computing/index.html)
+- GPUFlow: [API quickstart](https://docs.gpuflow.app/hi/renters/api-quickstart/), [किरायेदार कहाँ तक पहुँच सकते हैं और कहाँ नहीं](https://docs.gpuflow.app/hi/providers/security/), [शर्तें](https://gpuflow.app/hi/terms), [Privacy policy](https://gpuflow.app/hi/privacy)
 
-डेटासेट की सुरक्षा के नज़रिए से सबसे बड़ा जोखिम tenants के बीच मेमोरी एक्सेस नहीं है। असली जोखिम डिस्क पर बचा डेटा और credentials को संभालने का तरीका है।
-
-व्यवहार में, secure deletion प्रक्रियाओं के साथ ठीक से मैनेज किया गया virtualized GPU node fine-tuning वर्कलोड के लिए पूरी तरह उपयुक्त है।
-
-सुरक्षा के नतीजे "bare metal" जैसे मार्केटिंग लेबल से कहीं ज़्यादा ऑपरेशनल अनुशासन पर निर्भर करते हैं।
-
----
-
-## Compliance से जुड़ी बातें: HIPAA, GDPR और अनुबंध से जुड़ा जोखिम
-
-अगर आप नियमों के दायरे वाले क्षेत्र में काम करते हैं, तो कुछ और बातें भी लागू होती हैं।
-
-### HIPAA
-
-Protected Health Information (PHI) के लिए ज़रूरी है:
-
-- नियंत्रित एक्सेस
-- ट्रांसफ़र के दौरान encryption
-- डेटा का सही तरीके से निपटान
-
-PHI के लिए किराए का इन्फ़्रास्ट्रक्चर इस्तेमाल करने से पहले जांचें:
-
-- Encryption के मानक compliance की ज़रूरतें पूरी करते हैं
-- जहां मुमकिन हो, डेटा de-identified है
-- आर्किटेक्चर के हिसाब से Business Associate Agreements ज़रूरी हैं या नहीं
-
-कई fine-tuning मामलों में de-identified ट्रेनिंग corpus से सबसे सख़्त पाबंदियां हट जाती हैं।
-
-### GDPR
-
-EU के डेटा subjects के लिए:
-
-- समझें कि फ़िज़िकल node कहां स्थित है
-- बेवजह के cross-border ट्रांसफ़र से बचें
-- व्यक्तिगत पहचान वाली जानकारी कम से कम रखें
-
-डेटासेट को छोटा रखना सिर्फ़ अच्छी सुरक्षा प्रथा नहीं है। यह नियमों के अनुरूप चलना भी है।
-
-### अनुबंध से जुड़ी ज़िम्मेदारियां
-
-कई एंटरप्राइज़ अनुबंधों में ऐसी शर्तें होती हैं जो इन पर रोक लगाती हैं:
-
-- Subprocessing
-- डेटा का भौगोलिक ट्रांसफ़र
-- थर्ड-पार्टी compute का इस्तेमाल
-
-किराए के GPU पर ट्रेनिंग से पहले ग्राहकों के साथ हुए अनुबंध पढ़ें। क़ानूनी जोखिम अक्सर तकनीकी जोखिम से बड़ा होता है।
-
-ऑपरेशनल सुरक्षा अनुबंध की ज़िम्मेदारियों के अनुरूप होनी चाहिए।
-
----
-
-## Decentralized बनाम hyperscaler प्राइवेसी
-
-एक आम धारणा है कि hyperscaler इन्फ़्रास्ट्रक्चर अपने आप ज़्यादा सुरक्षित होता है।
-
-असल में:
-
-- Hyperscalers बहुत ज़्यादा लॉग रखते हैं।
-- अकाउंट पहचान से जुड़े होते हैं।
-- बिलिंग रिकॉर्ड स्थायी होते हैं।
-- प्रोवाइडर की terms of service के तहत गतिविधि की समीक्षा हो सकती है।
-
-Decentralized मार्केटप्लेस में संस्थागत निगरानी कम होती है। अनुशासित ऑपरेशनल तरीकों के साथ मिलकर वे प्राइवेसी के ठोस फ़ायदे दे सकते हैं।
-
-अगर आपने आर्थिक अंतर नहीं देखे हैं, तो हमारी [GPU रेंटल कीमतों की तुलना 2026](/hi/gpu-rental-pricing-comparison-2026/) देखें।
-
-लागत की बचत और ऑपरेशनल प्राइवेसी एक-दूसरे के विरोधी नहीं हैं।
-
----
-
-## एक व्यावहारिक ऑपरेशनल चेकलिस्ट
-
-ट्रेनिंग से पहले:
-
-- डेटासेट छोटा और साफ़ किया गया
-- संवेदनशील identifiers हटाए गए
-- Encrypted ट्रांसफ़र का तरीका चुना गया
-- `nvidia-smi` से हार्डवेयर की पुष्टि की गई
-
-ट्रेनिंग के दौरान:
-
-- GPU utilization पर नज़र रखी गई
-- कोई ग़ैर-ज़रूरी नेटवर्क सर्विस खुली नहीं
-- कोई credentials डिस्क पर नहीं लिखे गए
-
-ट्रेनिंग के बाद:
-
-- Adapter अपनी मशीन पर डाउनलोड किया गया
-- डेटासेट सुरक्षित तरीके से डिलीट किया गया
-- Caches साफ़ किए गए
-- Tokens rotate किए गए
-- Shell history साफ़ की गई
-- रेंटल औपचारिक रूप से बंद किया गया
-
-सुरक्षा कोई फ़ीचर नहीं है। यह आदतों का एक क्रम है।
-
----
-
-## असली जोखिम लापरवाही है
-
-ज़्यादातर डेटा लीक इसलिए नहीं होते कि किसी ने ग़लत GPU मार्केटप्लेस चुन लिया।
-
-वे इसलिए होते हैं क्योंकि:
-
-- Credentials दोबारा इस्तेमाल किए गए
-- फ़ाइलें पीछे छूट गईं
-- Buckets ग़लत तरीके से कॉन्फ़िगर किए गए
-- Access tokens कभी revoke नहीं किए गए
-
-पब्लिक compute एक औज़ार है। वह उतना ही सुरक्षित है जितना उसे चलाने वाला अनुशासित है।
-
-अगर आप व्यवस्थित और दोहराए जा सकने वाले सुरक्षा तरीके अपनाते हैं, तो आप proprietary डेटा उजागर किए बिना, compliance की शर्तें तोड़े बिना और ऑपरेशनल जोखिम बढ़ाए बिना किराए के इन्फ़्रास्ट्रक्चर पर मॉडल fine-tune कर सकते हैं।
-
-Private AI सिर्फ़ आइसोलेशन से नहीं, बल्कि नियंत्रण से मिलता है: ट्रांसफ़र पर, डेटा कितनी देर रखा जाए इस पर, credentials के उजागर होने पर और सेशन बंद करने की प्रक्रिया पर नियंत्रण।
-
-यह नियंत्रण आपके हाथ में है।
-
----
-
-## आगे क्या पढ़ें
-
-अगर इस गाइड से आपकी सुरक्षा से जुड़ी चिंताएं दूर हुईं, तो ये संसाधन लागत, प्राइवेसी और इन्फ़्रास्ट्रक्चर से जुड़ी बातों को और विस्तार से समझाते हैं:
-
-- [किराए के GPU पर Private LLM Fine‑Tuning की पूरी गाइड](/hi/private-llm-fine-tuning-guide/)
-- [GPU रेंटल कीमतों की तुलना 2026](/hi/gpu-rental-pricing-comparison-2026/)
-- [GPU किराए पर लेने की असली लागत](/hi/hidden-fees-in-gpu-rental/)
-- [2026 में GPU किराए पर लेने के लिए क्या चाहिए](/hi/what-you-need-to-rent-a-gpu/)
-- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/hi/gpuflow-vs-vast-ai-vs-runpod/)
-
-ये लेख मिलकर किराए के GPU इन्फ़्रास्ट्रक्चर पर private AI वर्कलोड चलाने का आर्थिक, तकनीकी और ऑपरेशनल ढांचा सामने रखते हैं।
+सभी की जाँच सितंबर 2026 में की गई।

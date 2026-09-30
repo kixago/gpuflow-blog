@@ -1,9 +1,9 @@
 ---
-title: "RunPod vs Vast.ai: Complete Comparison for AI Developers in 2026"
-description: "Detailed comparison of RunPod and Vast.ai GPU rental platforms covering pricing, reliability, features, and ideal use cases. Data-driven analysis to help you choose the right provider for ML training and inference workloads."
-excerpt: "An objective comparison of the two leading GPU marketplace platforms. Covers pricing differences, reliability metrics, feature sets, and specific recommendations based on workload requirements."
+title: "RunPod vs Vast.ai in 2026: Pricing, Reliability and Storage"
+description: "RunPod vs Vast.ai, checked September 2026: RTX 4090 and 3090 prices, per-second billing, interruptible pods, storage charges, serverless and who each one suits."
+excerpt: "Vast.ai is usually cheaper per GPU hour; RunPod is simpler and has storage that follows you between machines. Current prices, billing rules and a decision flow."
 pubDate: 2026-02-12
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "en"
 category: "comparisons"
 featured: false
@@ -12,830 +12,238 @@ author: "GPUFlow Team"
 heroImage: "../_images/runpod-vs-vastai-comparison.png"
 heroImageAlt: "Split screen comparison showing GPU server interfaces representing RunPod and Vast.ai platforms"
 faq:
-  - question: "Is RunPod or Vast.ai cheaper for GPU rental?"
-    answer: "Vast.ai typically offers lower hourly rates due to its pure peer-to-peer marketplace model. RTX 4090 GPUs on Vast.ai range from $0.29 to $0.78 per hour, while RunPod's Secure Cloud tier charges $0.59 per hour for the same GPU. However, RunPod's pricing is fixed and predictable, whereas Vast.ai prices fluctuate based on supply and demand."
-  - question: "Which platform is more reliable for production workloads?"
-    answer: "RunPod's Secure Cloud tier provides more consistent reliability with curated datacenter hardware. Vast.ai reliability varies by individual provider, with ratings ranging from 97% to 99.9%. For production inference requiring high uptime, RunPod is the safer choice. For batch training jobs that can tolerate occasional interruption, Vast.ai offers better economics."
-  - question: "Can I use consumer GPUs like RTX 4090 on both platforms?"
-    answer: "Yes. Both RunPod and Vast.ai offer access to consumer GPUs including RTX 3090, RTX 4090, and RTX 5090. This distinguishes them from enterprise cloud providers like AWS, Azure, and GCP, which only offer datacenter GPU models."
-  - question: "Which platform has better pre-configured templates for AI workloads?"
-    answer: "RunPod offers more extensive official templates, including one-click deployments for Stable Diffusion, various LLM inference servers, and popular training frameworks. Vast.ai provides community templates but with less curation. Users who prefer turnkey setups typically find RunPod more convenient."
-  - question: "Do RunPod and Vast.ai require identity verification?"
-    answer: "Neither platform asks renters for identity documents for basic usage. Vast.ai requires a verified email and a $5 minimum deposit. RunPod requires prepaid credit and asks for KYC only before a first crypto payment. Both are far quicker to start with than enterprise clouds, where new accounts often have to request a GPU quota first."
+  - question: "Is RunPod or Vast.ai cheaper for an RTX 4090?"
+    answer: "Usually Vast.ai. In September 2026 getdeploying.com listed Vast.ai RTX 4090s from $0.31 per hour on demand and $0.21 interruptible, against $0.34 on RunPod Community Cloud and $0.74 on RunPod Secure Cloud. Vast.ai also charges for data transfer, which RunPod does not."
+  - question: "Do RunPod and Vast.ai bill per second?"
+    answer: "Yes, both meter GPU time per second. RunPod bills network volumes hourly and needs at least one hour of credit for your configuration before a pod starts. Vast.ai bills storage for as long as an instance exists, even while it is stopped."
+  - question: "Does a stopped pod or instance still cost money?"
+    answer: "On both, yes. RunPod charges $0.20 per GB per month for a stopped pod's volume disk, and network volumes keep billing at $0.07 per GB per month. Vast.ai keeps charging the host's storage rate until you destroy the instance."
+  - question: "What happens when my balance runs out on RunPod or Vast.ai?"
+    answer: "RunPod stops pods that have a network volume and terminates pods without one, and their data can't be recovered. Vast.ai stops instances at zero balance and, without a saved card to cover the negative balance, destroys the instances and their data."
+  - question: "Can I pay RunPod or Vast.ai with crypto?"
+    answer: "Yes. RunPod accepts cards, crypto after KYC verification, and invoicing for orders over $5,000. Vast.ai accepts cards through Stripe and crypto through BitPay and Crypto.com, with a $5 minimum deposit."
+  - question: "Is Vast.ai reliable enough for production?"
+    answer: "It depends on the host you pick. Every Vast.ai machine starts with a 60% reliability score that changes with its history, and datacenter hosts (ISO 27001 certified, shown with a blue label) are the ones Vast recommends for production. RunPod Secure Cloud runs in T3/T4 data centers."
 ---
 
-Choosing between RunPod and Vast.ai represents one of the most common decisions facing AI developers who need GPU access without enterprise cloud pricing. Both platforms occupy the middle ground between expensive hyperscalers and owning hardware outright, yet they approach the problem differently enough that the right choice depends heavily on your specific circumstances.
+Vast.ai is usually the cheaper of the two: an RTX 4090 started at $0.31 an hour on demand there in September 2026, against $0.34 on RunPod Community Cloud and $0.74 on RunPod Secure Cloud. RunPod is the simpler product: fixed list prices, free data transfer, and network volumes that let your files outlive any single machine. Pick Vast.ai when price matters most and your job survives a host going away; pick RunPod when you want fewer decisions and storage that isn't tied to one box.
 
-This comparison examines both platforms across the dimensions that actually matter for practical GPU rental: pricing structures, reliability characteristics, feature sets, and the workflows each platform handles best.
+Everything below comes from the two companies' docs and pricing pages, plus getdeploying.com for Vast.ai's marketplace prices, all checked in September 2026. Prices move weekly, so treat them as a snapshot.
 
-The short version: Vast.ai wins on price, RunPod wins on convenience and reliability. The longer version requires understanding the tradeoffs involved in each platform's architectural decisions.
+## At a glance
 
-**What this guide covers:**
+| | RunPod | Vast.ai |
+| --- | --- | --- |
+| **Model** | One company: Secure Cloud (data centers) and Community Cloud (vetted peer hosts) | Marketplace: hosts from home rigs to certified data centers |
+| **Who sets prices** | RunPod, fixed list | Each host |
+| **Billing** | Per second; 1 hour of credit needed to start | Per second |
+| **RTX 4090, per hour** | $0.34 Community, $0.74 Secure | From $0.31 on demand, $0.21 interruptible |
+| **Cheaper tiers** | Spot (interruptible) pods, 3 or 6 month savings plans | Interruptible (bid), reserved up to 50% off |
+| **Stopped storage** | $0.20/GB/month volume disk | Host's rate, until you destroy it |
+| **Storage that moves** | Network volumes, $0.07/GB/month | Volumes are tied to one machine |
+| **Data transfer** | Free in and out | Host's rate, per byte |
+| **Serverless** | Flex and active workers | Serverless at instance prices |
+| **Payment** | Card, crypto (after KYC), invoice over $5,000 | Card, BitPay, Crypto.com; $5 minimum |
 
-- Detailed pricing comparison with real-world cost calculations
-- Reliability analysis based on platform architecture and user-reported metrics
-- Feature-by-feature breakdown of both platforms
-- Specific recommendations for different workload types
-- Practical guidance for getting started with each platform
+The rest of the post explains where those rows come from and where they bite.
 
-![Side-by-side screenshot of RunPod and Vast.ai dashboards showing GPU instance listings with pricing](../_images/rental-dashboard-comparison-interface.png)
+## Two different kinds of company
 
----
+**RunPod** runs two pools. Secure Cloud, in its own words, "operates in T3/T4 data centers" and is aimed at production and sensitive data. Community Cloud "connects individual compute providers to users through a vetted, secure peer-to-peer system". One detail has changed this year: RunPod's docs now say it "is no longer accepting new hosts for Community Cloud", though existing Community capacity stays available. So the cheap RunPod tier is a fixed pool, and popular cards there are often sold out.
 
-## Table of Contents
+**Vast.ai** is a marketplace. Hosts list machines, set their own prices, and you rent a Docker container (or a VM) on one of them. Machines come in three grades: unverified (new), verified (passed Vast's own tests), and datacenter. A datacenter host has to hold ISO/IEC 27001 or a Tier 2/3 rating, sign a hosting agreement, prove who owns the business and list at least five GPU servers. Those offers carry a blue label and make up what Vast calls its "Secure Cloud".
 
-- [Platform Overview](#platform-overview)
-- [Pricing Comparison](#pricing-comparison)
-- [Reliability and Uptime](#reliability-and-uptime)
-- [Available Hardware](#available-hardware)
-- [User Experience and Interface](#user-experience-and-interface)
-- [Templates and Pre-configured Environments](#templates-and-pre-configured-environments)
-- [Storage and Data Transfer](#storage-and-data-transfer)
-- [Payment Options](#payment-options)
-- [Support and Documentation](#support-and-documentation)
-- [Security Considerations](#security-considerations)
-- [Real-World Performance Comparison](#real-world-performance-comparison)
-- [Best Use Cases for Each Platform](#best-use-cases-for-each-platform)
-- [Migration Considerations](#migration-considerations)
-- [Alternatives to Consider](#alternatives-to-consider)
-- [Frequently Asked Questions](#frequently-asked-questions)
-- [Final Recommendations](#final-recommendations)
+Both companies use the words "Secure Cloud" for their data-center tier. They mean similar things, but the vetting is different, so read each company's definition before you promise anything to a compliance team.
 
----
+Practically, both give you a container with SSH and Jupyter. RunPod adds VS Code and Cursor connections and a web proxy for exposing ports. The day-to-day work (pull an image, mount storage, run your script) is the same on both.
 
-## Platform Overview
+## Prices for common cards
 
-### RunPod: The Managed Marketplace
+Per GPU per hour, on demand unless stated, September 2026:
 
-RunPod launched in 2022 with a focus on making GPU rental accessible to individual developers and small teams. The platform operates a hybrid model: a "Secure Cloud" tier with hardware in managed datacenters, and a "Community Cloud" tier that aggregates GPUs from individual providers similar to Vast.ai's model.
+| GPU | Vast.ai | RunPod Community | RunPod Secure |
+| --- | --- | --- | --- |
+| RTX 3090 | $0.13 on demand, $0.08 interruptible | $0.22 | $0.50 |
+| RTX 4090 | $0.31 on demand, $0.21 interruptible | $0.34 | $0.74 |
 
-The company has raised venture funding and maintains a full-time engineering and support team. This institutional backing translates into more polished user experience, official templates, and responsive customer service—luxuries that pure peer-to-peer platforms cannot easily provide.
+Vast.ai prices are the lowest offers getdeploying.com listed on September 30, 2026. The $0.13 RTX 3090 price was for an 8-GPU machine and the $0.21 RTX 4090 interruptible price for a 4-GPU machine in Canada, both per GPU. Single-GPU offers are sometimes a little higher. RunPod prices are from its pricing page and getdeploying.com. For bigger cards, RunPod's Secure Cloud list shows the RTX 5090 at $0.99, the A100 80 GB at $1.59 and the H100 SXM at $3.49 an hour.
 
-RunPod's positioning emphasizes ease of use. The platform targets users who want to deploy GPU workloads quickly without deep infrastructure expertise. One-click templates for Stable Diffusion WebUI, text generation inference servers, and Jupyter notebooks reduce setup time from hours to minutes.
+RunPod raised 11 Secure Cloud prices on September 20, 2026. The RTX 4090 went from $0.69 to $0.74, A100s from $1.39 to $1.59 and the H100 SXM from $2.99 to $3.49. The RTX 3090 and RTX 5090 didn't change, and no Community Cloud price changed.
 
-**RunPod key characteristics:**
+### A worked example
 
-- Hybrid model combining managed datacenter and community GPUs
-- Fixed, predictable pricing on Secure Cloud tier
-- Extensive pre-built templates for common AI workloads
-- Per-second billing eliminates waste from partial-hour usage
-- Active Discord community with responsive official support
-- Serverless GPU option for inference workloads
+Ten hours of fine-tuning on one RTX 4090:
 
-### Vast.ai: The Pure Marketplace
+- Vast.ai on demand: 10 × $0.31 = $3.10, plus whatever the host charges for the bytes you move.
+- Vast.ai interruptible: 10 × $0.21 = $2.10, if nobody outbids you. If they do, you lose the time since your last checkpoint.
+- RunPod Community: 10 × $0.34 = $3.40, if a card is free.
+- RunPod Secure: 10 × $0.74 = $7.40.
 
-Vast.ai pioneered the peer-to-peer GPU rental model when it launched in 2019. The platform connects individual GPU owners—from hobbyists with gaming rigs to operators running small private datacenters—directly with users who need compute resources.
+On a single job the gap is a few dollars. On a month of continuous use (730 hours) it's $226 on Vast.ai on demand against $540 on RunPod Secure. That's the number to look at if you're choosing a home for a long-running workload.
 
-This pure marketplace approach produces the lowest prices in the industry. Without datacenter overhead or managed infrastructure costs, GPU owners can profitably rent hardware at rates that undercut every other option. The tradeoff is variability: different providers offer different levels of reliability, network performance, and hardware quality.
+### Interruptible and spot
 
-Vast.ai appeals to cost-conscious users comfortable evaluating individual providers based on reliability scores, geographic location, and hardware specifications. The platform provides detailed metrics for each listing, enabling informed decisions about price-reliability tradeoffs.
+Both sell cheaper capacity that can be taken away.
 
-**Vast.ai key characteristics:**
+On Vast.ai you set a bid. An interruptible instance "can be stopped by higher bids", and when that happens "your instance is stopped (killing running processes)". Vast says interruptible is often 50% or more below on demand. On-demand instances are the opposite: a fixed price set by the host that "cannot be interrupted".
 
-- Pure peer-to-peer marketplace with no managed infrastructure
-- Auction-style pricing based on supply and demand
-- Lowest absolute prices in the GPU rental market
-- Detailed provider reliability metrics and ratings
-- Wide hardware selection including newest consumer GPUs
-- Requires more user sophistication to navigate effectively
+RunPod calls these interruptible or spot pods. Its API describes them as pods that "can be rented at a lower cost but can be stopped at any time to free up resources for another Pod". RunPod's own blog gives an example of an RTX A6000 at $0.232 spot against $0.491 on demand.
 
-![Architectural diagram showing RunPod hybrid model versus Vast.ai pure peer-to-peer marketplace model](../_images/runpod-vast-model-search.png)
+Either way the rule is the same: use it only for jobs that save checkpoints often and can resume on another machine.
 
----
+### Commitments
 
-## Pricing Comparison
+RunPod sells savings plans: pay 3 or 6 months up front for a discount on GPU compute. They're non-refundable, have a fixed end date, and don't cover storage. Vast.ai sells reserved instances with discounts of up to 50%, depending on how long you commit. On Vast, a reservation is with one host's machine, so check that host's reliability before you prepay.
 
-Pricing represents the most significant differentiator between these platforms. Both are substantially cheaper than enterprise clouds, but the gap between them is meaningful for budget-constrained projects.
+## Reliability: data centers vs a host marketplace
 
-### Consumer GPU Pricing
+This is where the two differ most, and where the price gap comes from.
 
-Consumer GPUs like the RTX 4090 and RTX 3090 offer the best price-to-performance for most AI workloads. Neither AWS, Azure, nor GCP offers these GPUs—a major advantage for both RunPod and Vast.ai.
+On RunPod Secure Cloud you rent from a company that controls the hardware and the facility. On-demand pods, per RunPod's pricing docs, are dedicated to you "and cannot be displaced by other users". Community Cloud is peer hosts with "variable" reliability, in RunPod's own comparison table.
 
-| GPU              | RunPod Secure Cloud | RunPod Community | Vast.ai Range | Vast.ai Average |
-| ---------------- | ------------------- | ---------------- | ------------- | --------------- |
-| RTX 5090 (32GB)  | $0.89/hr            | $0.55-0.85/hr    | $0.38-1.08/hr | $0.65/hr        |
-| RTX 4090 (24GB)  | $0.59/hr            | $0.44-0.55/hr    | $0.29-0.78/hr | $0.45/hr        |
-| RTX 3090 (24GB)  | $0.46/hr            | $0.32-0.40/hr    | $0.18-0.60/hr | $0.35/hr        |
-| RTX A6000 (48GB) | $0.49/hr            | $0.40-0.48/hr    | $0.40-0.70/hr | $0.52/hr        |
+On Vast.ai you rent from whoever listed the machine. Vast gives you tools to judge them:
 
-**Analysis:** Vast.ai's low end beats RunPod's pricing by 30-50%, but achieving those rates requires selecting providers with lower reliability scores or less convenient locations. At median pricing, the gap narrows to 15-25%.
+- **Reliability score.** "A measure of the machine's historical uptime and health. All machines start at 60%." A score in the high 90s means a long, clean record.
+- **Verified vs unverified.** Unverified machines are new and untested.
+- **Datacenter label.** Certified facilities, recommended by Vast for production.
+- **Maximum duration.** Every offer shows how long the host will rent it out. An offer "remains available … until it reaches its end date or is unlisted by the host", so a machine you like may not be there next month.
 
-### Datacenter GPU Pricing
+My rule after years of renting from marketplaces: filter by reliability first and price second, and never keep the only copy of anything on a host's disk. A $0.25 machine that disappears mid-run costs more than a $0.35 one that doesn't.
 
-For workloads requiring datacenter-class hardware—large language models, multi-GPU training, production inference—both platforms offer A100 and H100 access at substantial discounts compared to hyperscalers.
+One RunPod trap is worth knowing. When you restart a stopped pod, RunPod warns you "may be allocated zero GPUs if capacity has changed". Your files are still there, but the GPU on that machine may be rented to someone else. That's the reason network volumes exist.
 
-| GPU       | RunPod Secure Cloud | RunPod Community | Vast.ai Range | AWS Equivalent |
-| --------- | ------------------- | ---------------- | ------------- | -------------- |
-| A100 40GB | N/A                 | $1.09-1.29/hr    | $0.80-1.20/hr | ~$4.10/hr      |
-| A100 80GB | $1.39-1.49/hr       | $1.19-1.35/hr    | $0.84-1.49/hr | ~$4.10/hr      |
-| H100 80GB | $2.39/hr            | $1.89-2.29/hr    | $1.47-2.94/hr | ~$6.90/hr      |
-| L4 24GB   | $0.39/hr            | $0.29-0.35/hr    | $0.35-0.50/hr | $0.80/hr       |
+## Storage and what stopping costs
 
-**Analysis:** Both platforms offer 60-75% savings compared to AWS for datacenter GPUs. The difference between RunPod and Vast.ai narrows for higher-end hardware, where reliability becomes more important and fewer providers exist in the marketplace.
+Storage is where the hourly price stops telling the whole story. It keeps billing when the GPU doesn't.
 
-### Pricing Model Differences
+### RunPod
 
-Beyond raw rates, the pricing models differ in important ways:
+| Storage | While running | While stopped |
+| --- | --- | --- |
+| Container disk | $0.10/GB/month | Not charged (and wiped) |
+| Volume disk (/workspace) | $0.10/GB/month | $0.20/GB/month |
+| Network volume, under 1 TB | $0.07/GB/month | $0.07/GB/month |
+| Network volume, over 1 TB | $0.05/GB/month | $0.05/GB/month |
 
-**RunPod Secure Cloud:**
+Container and volume disk are billed per second; network volumes are billed hourly. The container disk is scratch space and is cleared when the pod stops. The volume disk survives a stop but is deleted on terminate. A network volume is independent of any pod and can be attached to a new one, which solves the "zero GPUs on restart" problem: stop, start a fresh pod elsewhere, attach the same volume.
 
-- Fixed pricing regardless of demand
-- Guaranteed availability once instance is running
-- No bidding or auction dynamics
-- Predictable costs for budgeting
+Worked example: you keep 100 GB of models and checkpoints between sessions. On a stopped pod's volume disk that's 100 × $0.20 = $20 a month. On a network volume it's 100 × $0.07 = $7 a month, and you aren't tied to one machine. Data transfer is free both ways.
 
-**RunPod Community Cloud:**
+### Vast.ai
 
-- Variable pricing by provider
-- Provider sets their own rates
-- Can be interrupted if provider needs hardware
-- Spot-instance-like economics
+Vast has container storage, deleted with the instance, and local volumes. Two rules shape how you use it:
 
-**Vast.ai:**
+- **Disk size is fixed at creation.** You can't resize it later, so pick generously the first time.
+- **Volumes are tied to one physical machine.** They "cannot be moved or attached to instances on other machines".
 
-- Dynamic pricing based on supply and demand
-- Providers set minimum prices, market determines actual rates
-- Prices can spike during high-demand periods
-- Significant savings available during off-peak hours
+Storage prices vary by host and show on each offer (hover over the Rent button). They're billed for as long as the instance exists: "Storage charges continue even when instances are stopped. To stop storage billing, you must destroy the instance completely." Vast does note you're never charged while a machine is offline.
 
-For a comprehensive analysis of GPU rental pricing across all major providers, including enterprise cloud options, see our [complete GPU rental pricing comparison for 2026](/en/gpu-rental-pricing-comparison-2026/).
+Bandwidth is also priced by the host, per byte, in both directions. Downloading a 16 GB model and uploading a few checkpoints is small money on most hosts, but check the rate before you move a large dataset. RunPod doesn't charge for this at all.
 
-### Real Cost Scenario: Training a LoRA Model
+For a longer list of what the hourly price leaves out on every platform, see [the real cost of renting a GPU](/en/hidden-fees-in-gpu-rental/).
 
-To illustrate practical cost differences, consider training a Stable Diffusion LoRA model—a common workload taking approximately 2 hours on an RTX 4090.
+## Templates and setup
 
-| Platform         | GPU Selection            | Hourly Rate | 2-Hour Total |
-| ---------------- | ------------------------ | ----------- | ------------ |
-| RunPod Secure    | RTX 4090                 | $0.59       | $1.18        |
-| RunPod Community | RTX 4090 (median)        | $0.49       | $0.98        |
-| Vast.ai          | RTX 4090 (99%+ reliable) | $0.52       | $1.04        |
-| Vast.ai          | RTX 4090 (97%+ reliable) | $0.38       | $0.76        |
+Both use Docker images and call their presets "templates".
 
-The $0.42 difference between RunPod Secure and the cheapest Vast.ai option adds up over many training runs. At 50 training sessions, that is $21 in savings—meaningful for independent developers but perhaps not worth the reliability uncertainty for professional applications.
+RunPod's templates are "pre-configured Docker image setups that let you quickly spin up Pods without manual environment configuration": PyTorch, ComfyUI, inference servers and many community ones. You pick one, choose a GPU, and you're in JupyterLab or SSH within minutes.
 
-For detailed guidance on LoRA training workflows, including GPU selection and cost optimization, see our [guide to training Stable Diffusion LoRA models for under $10](/en/stable-diffusion-lora-training-under-10-dollars/).
+Vast.ai has the same idea. Its quickstart points you to pre-built templates such as PyTorch, TensorFlow and ComfyUI, or your own. Setup has a few more steps: verify your email before renting, upload an SSH public key, and install Vast's certificate for Jupyter in the browser.
 
----
+Since you can bring any image to both, templates matter less after your first week. The larger practical difference is that on RunPod your environment can live on a network volume and follow you, while on Vast.ai you either rebuild on each new machine or bake everything into your image.
 
-## Reliability and Uptime
+## Serverless
 
-Reliability separates GPU rental platforms more than any factor except price. An unreliable GPU that costs half as much is no bargain if your training run crashes at hour 11 of a 12-hour job.
+Both run your container as an autoscaling endpoint, and they bill it differently.
 
-### RunPod Reliability Architecture
+**RunPod Serverless** has flex workers, which scale to zero when idle, and active workers, which run all the time at a discount (arranged through sales). You pay for three phases: start time (loading the container and the model into GPU memory), execution time, and an idle timeout after each request, 5 seconds by default. The pricing page listed the RTX 4090 tier (24 GB PRO) at $1.10 an hour, noticeably more than a $0.74 Secure Cloud pod. You're paying for not having to run anything while traffic is zero.
 
-**Secure Cloud Tier:**
-RunPod's Secure Cloud operates hardware in managed datacenters with standardized configurations. The company controls the environment, maintains the hardware, and takes responsibility for uptime. While RunPod does not publish formal SLA numbers for Secure Cloud, user reports and my personal experience suggest 99.5%+ availability.
+**Vast.ai Serverless** charges "at the same price as Vast.ai's non-Serverless GPU instances", per second, with no extra fee. Active and loading workers pay for GPU, storage and bandwidth. Inactive workers pay only storage and bandwidth. Creating workers don't pay GPU time.
 
-Hardware in Secure Cloud is dedicated—once you start an instance, it remains available until you terminate it. No provider can reclaim the hardware mid-session.
+If your traffic is spiky and you'll accept cold starts, both work. RunPod has more polish and examples. Vast.ai is cheaper per GPU second but runs on the same mixed pool of hosts.
 
-**Community Cloud Tier:**
-Community Cloud reliability varies by provider, similar to Vast.ai. Providers receive reliability ratings based on historical uptime, and users can filter for higher-rated providers. The platform provides some protection through provider vetting, but interruptions can still occur.
+If all you need is to call an open model over an OpenAI-style API, you may not need either. Hosted per-token APIs are often cheapest for popular models ([the math](/en/hourly-gpu-vs-per-token-api/)). GPUFlow is another option: you rent an OpenAI-compatible API key for a model that a provider runs with Ollama on their own GPU, billed per second. It's inference only, with no SSH, no training and no custom code, so it doesn't replace RunPod or Vast.ai for anything else. The three are compared in [GPUFlow vs Vast.ai vs RunPod](/en/gpuflow-vs-vast-ai-vs-runpod/).
 
-### Vast.ai Reliability Architecture
+## Payments, minimums and running out of credit
 
-Vast.ai is entirely peer-to-peer, meaning reliability depends entirely on individual provider behavior. The platform provides detailed metrics to help users assess risk:
+Both are prepaid, and both are harsh when the balance hits zero.
 
-**Reliability Score:** Percentage of time the machine was available when rented. Ranges from ~92% to 99.9%.
+**RunPod** takes cards (Visa, Mastercard, Amex and others through Stripe), crypto (complete KYC before your first crypto payment), and invoicing by ACH, wire or card for orders over $5,000. To deploy a pod you need at least one hour of credit for the configuration you chose. Credits are non-refundable and can't be withdrawn. When you run out, pods with a network volume are stopped and the volume is kept (and keeps billing). Pods without one "are terminated, and their data can't be recovered."
 
-**Uptime History:** Visual representation of recent availability, showing any outages or interruptions.
+**Vast.ai** takes cards through Stripe and crypto through BitPay and Crypto.com. The minimum deposit is $5, and you verify your email first. Auto-billing tops you up from a saved card when your balance drops below a threshold you set. At $0.00 your instances stop. With a saved card, Vast charges it to cover the negative balance. Without one, "instances and stored data will be destroyed". Storage keeps billing even while your balance is negative. Refunds: none on credits you've spent. For unspent card credits you ask support, and crypto top-ups can't be refunded.
 
-**Provider Age:** How long the provider has been on the platform. Longer track records provide more predictive data.
+The practical advice is the same for both: turn on auto top-up or keep a buffer, and keep anything you can't lose on a network volume or off the platform.
 
-**Number of Rentals:** More rentals means more data points for reliability assessment.
+## Which one to pick
 
-Sophisticated users can achieve excellent reliability on Vast.ai by filtering for providers with 99%+ reliability scores, 6+ months platform tenure, and locations in stable power grid regions. However, this filtering reduces the available inventory and often eliminates the cheapest options.
+<figure>
+<svg viewBox="0 0 720 520" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">Decision flow for choosing between RunPod and Vast.ai, from API-only needs to lowest price</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker></defs>
+<rect x="20" y="20" width="400" height="56" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="220" y="53" text-anchor="middle" fill="#1e1b4b">Only need to call a model over an API?</text>
+<rect x="480" y="20" width="220" height="56" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+<text x="590" y="53" text-anchor="middle" fill="#1e1b4b">Per-token API or GPUFlow</text>
+<rect x="20" y="120" width="400" height="56" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="220" y="153" text-anchor="middle" fill="#1e1b4b">Production or compliance needs?</text>
+<rect x="480" y="120" width="220" height="56" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+<text x="590" y="144" text-anchor="middle" fill="#1e1b4b">RunPod Secure Cloud</text>
+<text x="590" y="165" text-anchor="middle" fill="#64748b" font-size="13">or Vast datacenter hosts</text>
+<rect x="20" y="220" width="400" height="56" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="220" y="253" text-anchor="middle" fill="#1e1b4b">Data must follow you across machines?</text>
+<rect x="480" y="220" width="220" height="56" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+<text x="590" y="253" text-anchor="middle" fill="#1e1b4b">RunPod network volume</text>
+<rect x="20" y="320" width="400" height="56" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="220" y="353" text-anchor="middle" fill="#1e1b4b">Want a scale-to-zero endpoint?</text>
+<rect x="480" y="320" width="220" height="56" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+<text x="590" y="353" text-anchor="middle" fill="#1e1b4b">Serverless on either</text>
+<rect x="20" y="420" width="400" height="70" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="220" y="450" text-anchor="middle" fill="#1e1b4b">Otherwise: Vast.ai, lowest price</text>
+<text x="220" y="474" text-anchor="middle" fill="#64748b" font-size="13">filter by reliability, checkpoint if interruptible</text>
+<line x1="420" y1="48" x2="476" y2="48" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="448" y="40" text-anchor="middle" fill="#16a34a" font-size="13">Yes</text>
+<line x1="420" y1="148" x2="476" y2="148" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="448" y="140" text-anchor="middle" fill="#16a34a" font-size="13">Yes</text>
+<line x1="420" y1="248" x2="476" y2="248" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="448" y="240" text-anchor="middle" fill="#16a34a" font-size="13">Yes</text>
+<line x1="420" y1="348" x2="476" y2="348" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="448" y="340" text-anchor="middle" fill="#16a34a" font-size="13">Yes</text>
+<line x1="220" y1="76" x2="220" y2="116" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="234" y="101" fill="#f97316" font-size="13">No</text>
+<line x1="220" y1="176" x2="220" y2="216" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="234" y="201" fill="#f97316" font-size="13">No</text>
+<line x1="220" y1="276" x2="220" y2="316" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="234" y="301" fill="#f97316" font-size="13">No</text>
+<line x1="220" y1="376" x2="220" y2="416" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="234" y="401" fill="#f97316" font-size="13">No</text>
+</svg>
+<figcaption>Work down from the top and stop at the first "yes". Most training and experimentation that can checkpoint ends at the bottom box.</figcaption>
+</figure>
 
-### Reliability Comparison Matrix
+**Pick Vast.ai when:**
 
-| Metric               | RunPod Secure | RunPod Community | Vast.ai (99%+ filter) | Vast.ai (all) |
-| -------------------- | ------------- | ---------------- | --------------------- | ------------- |
-| Typical Uptime       | 99.5%+        | 98-99%           | 99%+                  | 95-99%        |
-| Interruption Risk    | Very Low      | Moderate         | Low                   | Moderate-High |
-| Hardware Consistency | High          | Variable         | Variable              | Variable      |
-| Network Performance  | Consistent    | Variable         | Variable              | Variable      |
+- Price per GPU hour is what you're optimizing, especially for long runs where the monthly gap reaches hundreds of dollars.
+- Your job checkpoints and can restart on a different machine. Then interruptible instances are the cheapest GPU time you'll find.
+- You're willing to spend five minutes reading a host's reliability score, location and maximum rental duration before you click Rent.
+- You want serverless without paying a premium over the instance price.
 
-### Practical Reliability Considerations
+**Pick RunPod when:**
 
-**For training runs under 4 hours:** Both platforms provide acceptable reliability. The cost savings from Vast.ai generally outweigh the small risk of interruption for short jobs.
+- You want a fixed price list and don't want to compare hosts.
+- Your data needs to outlive any single machine. Network volumes at $0.07/GB/month are the cleanest answer either platform has.
+- You move a lot of data in or out. RunPod doesn't charge for it.
+- You need a data-center tier, crypto with KYC, or invoicing for large orders from one vendor.
 
-**For training runs 4-12 hours:** RunPod Secure Cloud or Vast.ai with strict reliability filtering (99%+) makes sense. The consequences of losing 8 hours of training justify paying a premium for reliability.
+**Use both** if you can. Plenty of people keep a RunPod network volume as their home base and send long, checkpointed training runs to cheap Vast.ai machines. Moving a Docker image between them is trivial. Moving data is the part to plan for.
 
-**For training runs over 12 hours:** Checkpointing becomes essential regardless of platform. Implement checkpoint saves every 30-60 minutes, and the cost of interruption drops to the time since the last checkpoint rather than the entire run.
+If you're still working out what a rental needs (image, storage, SSH keys), start with [what you need to rent a GPU](/en/what-you-need-to-rent-a-gpu/), and compare wider prices in the [2026 GPU rental pricing comparison](/en/gpu-rental-pricing-comparison-2026/).
 
-**For production inference:** RunPod Secure Cloud is the clear choice unless you are implementing your own failover and health checking. Production systems require predictable uptime that marketplace variability cannot guarantee.
+## Sources
 
-![Graph showing reliability distribution across Vast.ai providers with histogram of uptime percentages](../_images/vast-ai-uptime-percentage.png)
+All checked in September 2026.
 
----
-
-## Available Hardware
-
-Both platforms excel at providing hardware unavailable on enterprise clouds, particularly consumer GPUs. However, their inventories differ in meaningful ways.
-
-### Consumer GPU Availability
-
-| GPU Model       | RunPod Availability | Vast.ai Availability |
-| --------------- | ------------------- | -------------------- |
-| RTX 5090 (32GB) | Good                | Moderate (newer GPU) |
-| RTX 4090 (24GB) | Excellent           | Excellent            |
-| RTX 4080 (16GB) | Limited             | Good                 |
-| RTX 3090 (24GB) | Good                | Excellent            |
-| RTX 3080 (12GB) | Limited             | Good                 |
-| RTX 3070 (8GB)  | Very Limited        | Moderate             |
-
-Vast.ai's larger provider base typically offers more variety in consumer hardware, including older and less common models. RunPod focuses on the most popular choices for AI workloads, prioritizing RTX 4090 and RTX 3090 inventory.
-
-### Datacenter GPU Availability
-
-| GPU Model  | RunPod Availability | Vast.ai Availability |
-| ---------- | ------------------- | -------------------- |
-| H100 80GB  | Good                | Moderate             |
-| H200 140GB | Limited             | Limited              |
-| A100 80GB  | Excellent           | Good                 |
-| A100 40GB  | Good (Community)    | Good                 |
-| A6000 48GB | Good                | Good                 |
-| L4 24GB    | Excellent           | Good                 |
-| L40S 48GB  | Moderate            | Limited              |
-| A40 48GB   | Moderate            | Moderate             |
-
-RunPod has invested in datacenter-class hardware for its Secure Cloud tier, providing consistent availability of A100 and H100 GPUs. Vast.ai's datacenter GPU availability depends on providers who have purchased or leased this equipment—availability can be sporadic.
-
-### Multi-GPU Configurations
-
-For large model training requiring multiple GPUs, both platforms face limitations compared to enterprise clouds.
-
-**RunPod:** Offers multi-GPU pods up to 8xA100 or 8xH100 in Secure Cloud. Community Cloud multi-GPU availability is limited and inconsistent.
-
-**Vast.ai:** Multi-GPU systems are available but rare. Finding 4x or 8x GPU systems requires patience and flexibility on timing. Providers with multi-GPU systems command premium rates.
-
-Neither platform matches the multi-GPU availability of AWS p4d instances or Azure ND series. For 8-GPU training at scale, enterprise clouds remain necessary for guaranteed availability.
-
----
-
-## User Experience and Interface
-
-The user experience gap between RunPod and Vast.ai reflects their different philosophies and target users.
-
-### RunPod Interface
-
-RunPod's interface prioritizes accessibility for users who are not infrastructure experts. The dashboard presents available GPUs with clear pricing, deployment takes a few clicks, and pre-configured templates handle most environment setup.
-
-**Strengths:**
-
-- Clean, modern interface with intuitive navigation
-- Template gallery for common workloads
-- One-click deployment for Stable Diffusion, LLM inference, and more
-- Integrated JupyterLab access without additional configuration
-- Mobile-responsive design for monitoring on the go
-
-**Weaknesses:**
-
-- Less granular filtering options than Vast.ai
-- Community Cloud provider selection less detailed
-- Advanced configuration requires digging into settings
-
-### Vast.ai Interface
-
-Vast.ai's interface targets users comfortable with infrastructure decisions. The marketplace view provides extensive filtering and detailed provider information, enabling precise matching of requirements to available hardware.
-
-**Strengths:**
-
-- Detailed provider metrics (reliability, network speed, location)
-- Advanced filtering by GPU memory, disk space, and network bandwidth
-- Price sorting and bid-based pricing options
-- Transparent provider history and ratings
-- CLI tool for programmatic access
-
-**Weaknesses:**
-
-- Steeper learning curve for new users
-- Interface can feel cluttered with information
-- Template system less polished than RunPod
-- More decisions required before deployment
-
-### Instance Management Comparison
-
-| Feature             | RunPod      | Vast.ai            |
-| ------------------- | ----------- | ------------------ |
-| Time to First GPU   | 2-5 minutes | 2-5 minutes        |
-| Template Deployment | One-click   | Manual or template |
-| SSH Access          | Yes         | Yes                |
-| Web Terminal        | Yes         | Yes                |
-| JupyterLab          | Integrated  | Manual setup       |
-| File Browser        | Yes         | Limited            |
-| Stop/Resume         | Yes         | Yes                |
-| Per-Second Billing  | Yes         | Yes                |
-
-![Screenshot of Vast.ai filtering interface showing reliability, price, and hardware filters](../_images/vast-ai-dashboard.png)
-
----
-
-## Templates and Pre-configured Environments
-
-Templates dramatically reduce time-to-productivity for common workloads. Both platforms offer template systems, but with different levels of polish and coverage.
-
-### RunPod Templates
-
-RunPod maintains official templates for major AI workloads:
-
-**Stable Diffusion:**
-
-- Automatic1111 WebUI
-- ComfyUI
-- Forge WebUI
-- InvokeAI
-
-**LLM Inference:**
-
-- Text Generation WebUI (Oobabooga)
-- vLLM
-- Ollama
-- OpenAI-compatible API servers
-
-**Development:**
-
-- PyTorch with CUDA
-- TensorFlow with CUDA
-- Jupyter notebooks
-- VS Code Server
-
-**Other:**
-
-- Whisper (speech recognition)
-- Music generation models
-- Custom container support
-
-These templates include proper CUDA configuration, pre-downloaded models where appropriate, and sensible default settings. A new user can have Stable Diffusion generating images within 10 minutes of creating an account.
-
-### Vast.ai Templates
-
-Vast.ai's template system is less curated but more flexible:
-
-**Official Templates:**
-
-- Basic CUDA development environments
-- Jupyter notebook configurations
-- Common ML framework setups
-
-**Community Templates:**
-
-- User-submitted configurations
-- Variable quality and maintenance
-- Wide variety but inconsistent documentation
-
-**Docker Integration:**
-
-- Full Docker image support
-- Pull any public image
-- Build custom images
-
-Vast.ai's Docker-native approach provides maximum flexibility for users who know exactly what they want. However, the lack of maintained official templates means more setup work for common use cases.
-
-### Template Comparison
-
-| Workload                      | RunPod                      | Vast.ai             |
-| ----------------------------- | --------------------------- | ------------------- |
-| Stable Diffusion              | One-click, multiple UIs     | Manual or community |
-| LLM Inference                 | Multiple options, one-click | Manual setup        |
-| Training (PyTorch)            | Template available          | Template available  |
-| Custom Containers             | Supported                   | Excellent support   |
-| Setup Time (common workloads) | 5-10 minutes                | 15-30 minutes       |
-
-For users running standard AI workloads, RunPod's template advantage saves meaningful time. For users with custom requirements or Docker expertise, Vast.ai's flexibility may be preferable.
-
----
-
-## Storage and Data Transfer
-
-Storage and data transfer considerations often surprise new users. GPU costs are obvious; ancillary costs for storing datasets and moving data are less visible but can be significant.
-
-### RunPod Storage
-
-**Pod Storage:**
-
-- Each pod includes configurable disk space
-- Container storage persists while pod exists
-- Pricing included in pod hourly rate up to a threshold
-- Additional storage billed separately
-
-**Network Volume Storage:**
-
-- Persistent storage that survives pod termination
-- $0.07 per GB per month
-- Can be attached to pods in the same region
-- Useful for datasets and model weights
-
-**Data Transfer:**
-
-- No additional charges for data transfer
-- Download speeds vary by datacenter
-- Upload speeds generally excellent
-
-### Vast.ai Storage
-
-**Instance Storage:**
-
-- Disk space determined by provider
-- Varies widely between providers
-- Some providers offer limited SSD; others have terabytes available
-- Storage is part of hourly rate
-
-**Persistent Storage:**
-
-- No native persistent storage product
-- Users must manage their own solutions
-- Common approaches: cloud storage sync, external servers
-- More complex than RunPod for datasets that span multiple sessions
-
-**Data Transfer:**
-
-- No platform charges for transfer
-- Network speeds vary dramatically by provider
-- Key metric to check when selecting providers
-- Some providers have limited bandwidth
-
-### Storage Cost Comparison
-
-For a typical workflow requiring 100GB of persistent storage:
-
-| Storage Need                          | RunPod | Vast.ai                    |
-| ------------------------------------- | ------ | -------------------------- |
-| Dataset Storage (100GB, 1 month)      | $7.00  | External solution required |
-| Model Weights (50GB, included in pod) | $0     | $0                         |
-| Data Transfer                         | Free   | Free                       |
-
-RunPod's Network Volume feature provides significant convenience for users who need data persistence across sessions. Vast.ai users typically sync to cloud storage (S3, GCS, or similar) between sessions, adding complexity and potential transfer time.
-
----
-
-## Payment Options
-
-Payment flexibility matters for international users, those avoiding traditional banking, and organizations with specific procurement requirements.
-
-### RunPod Payment Methods (checked September 2026)
-
-- Credit and debit cards (Visa, Mastercard, American Express)
-- Cryptocurrency, with KYC verification before the first crypto payment
-- Prepaid account credits
-- Business invoicing (ACH or wire) for transactions over $5,000
-
-### Vast.ai Payment Methods (checked September 2026)
-
-- Credit and debit cards
-- Cryptocurrency through BitPay and Crypto.com
-- Prepaid account credits
-
-### Account Requirements
-
-| Requirement                 | RunPod                                    | Vast.ai                 |
-| --------------------------- | ----------------------------------------- | ----------------------- |
-| Email Verification          | Yes                                       | Yes                     |
-| Identity Verification (KYC) | Only before a first crypto payment        | Not in the docs         |
-| Business Verification       | No                                        | No                      |
-| Minimum to Start            | 1 hour of credit; $100 for prepaid cards  | $5 deposit              |
-
-Both platforms maintain low barriers to entry. Neither requires the extensive verification that enterprise cloud providers mandate. This accessibility comes with tradeoffs—neither platform will provide the compliance documentation that large organizations may require.
-
----
-
-## Support and Documentation
-
-When things go wrong—and they will eventually—support quality determines how quickly you recover.
-
-### RunPod Support
-
-**Channels:**
-
-- Discord community (very active)
-- Email support
-- Documentation wiki
-- Video tutorials
-
-**Response Time:**
-
-- Discord: Often minutes during business hours
-- Email: Typically 24-48 hours
-- Community questions: Often answered by staff directly
-
-RunPod's Discord presence is exceptional for a company this size. Staff members actively monitor channels and frequently respond to user questions. The company has clearly invested in community building as a support strategy.
-
-Documentation covers common workflows well but can lag behind new features. Video tutorials help visual learners but are not comprehensive.
-
-### Vast.ai Support
-
-**Channels:**
-
-- Discord community
-- Email support
-- Documentation
-- FAQ
-
-**Response Time:**
-
-- Discord: Variable, often community-answered
-- Email: 24-72 hours typical
-- Less staff presence in community channels
-
-Vast.ai's support reflects its marketplace nature. The company mediates between renters and providers but has less control over the infrastructure and therefore less ability to resolve certain issues. Provider-side problems require working with individual providers.
-
-Documentation is adequate for basic operations but less detailed than RunPod's for specific workloads.
-
-### Support Comparison
-
-| Aspect                  | RunPod    | Vast.ai    |
-| ----------------------- | --------- | ---------- |
-| Community Activity      | Very High | Moderate   |
-| Staff Response          | Frequent  | Occasional |
-| Documentation Depth     | Good      | Adequate   |
-| Video Content           | Yes       | Limited    |
-| Self-Service Resolution | High      | Moderate   |
-
----
-
-## Security Considerations
-
-Security concerns differ between managed platforms and peer-to-peer marketplaces. Understanding the threat model helps make appropriate choices.
-
-### RunPod Security Model
-
-**Secure Cloud:**
-
-- Hardware in managed datacenters
-- Standard datacenter physical security
-- RunPod controls the infrastructure stack
-- Container isolation between users
-- No access to bare metal by renters
-
-**Community Cloud:**
-
-- Hardware controlled by providers
-- Provider has physical access to hardware
-- Potential for malicious providers (rare but possible)
-- Container isolation but not guaranteed
-
-### Vast.ai Security Model
-
-- All hardware controlled by individual providers
-- Provider has physical and administrative access
-- Detailed provider vetting but not foolproof
-- Container isolation varies by provider configuration
-- Some providers may log or inspect traffic
-
-### Practical Security Recommendations
-
-**For sensitive workloads (proprietary models, confidential data):**
-
-- Use RunPod Secure Cloud exclusively
-- Consider enterprise cloud if compliance is required
-- Never use peer-to-peer marketplace GPUs for sensitive data
-
-**For non-sensitive workloads (public models, synthetic data):**
-
-- Both platforms are acceptable
-- Providers with long track records and high ratings present low risk
-- Standard security hygiene applies (no hardcoded credentials, etc.)
-
-**For any workload:**
-
-- Avoid leaving credentials in training scripts
-- Use environment variables for API keys
-- Clean instances before terminating
-- Assume providers might inspect disk contents after termination
-
-![Security architecture diagram comparing managed cloud versus peer-to-peer GPU rental models showing datacenter infrastructure](../_images/cloud-security-architecture-diagram.png)
-
----
-
-## Real-World Performance Comparison
-
-Raw pricing and features only matter if the GPUs actually perform as expected. I ran identical workloads on both platforms to measure practical differences.
-
-### Test Methodology
-
-**Hardware:** RTX 4090 24GB
-**Workload 1:** Stable Diffusion XL image generation (50 images, 30 steps each)
-**Workload 2:** LoRA training (50 images, 10 epochs)
-**Workload 3:** LLM inference (Llama 2 7B, 1000 tokens generated)
-
-Each test ran three times on each platform, selecting mid-range providers on Vast.ai (98%+ reliability, median pricing).
-
-### Performance Results
-
-| Workload                    | RunPod Secure | Vast.ai (98%+ provider) | Difference |
-| --------------------------- | ------------- | ----------------------- | ---------- |
-| SDXL Generation (50 images) | 4m 32s        | 4m 28s                  | -1.5%      |
-| LoRA Training (10 epochs)   | 52m 14s       | 53m 41s                 | +2.7%      |
-| LLM Inference (1000 tokens) | 28s           | 29s                     | +3.6%      |
-
-**Analysis:** Performance differences are negligible for compute-bound workloads. The RTX 4090 is the same GPU on both platforms—the silicon does not care who owns it.
-
-Slight Vast.ai slowdown in training and inference likely reflects network overhead rather than GPU performance. These differences are well within noise for practical purposes.
-
-### Network Performance
-
-Network performance varies more significantly:
-
-| Metric              | RunPod Secure | Vast.ai Average | Vast.ai Best |
-| ------------------- | ------------- | --------------- | ------------ |
-| Download Speed      | 500+ Mbps     | 200-400 Mbps    | 800+ Mbps    |
-| Upload Speed        | 400+ Mbps     | 150-300 Mbps    | 600+ Mbps    |
-| Latency Consistency | High          | Variable        | High         |
-
-For workloads involving significant data transfer (large datasets, frequent model uploads), RunPod's consistent network performance provides meaningful time savings. For compute-dominant workloads, network differences matter less.
-
----
-
-## Best Use Cases for Each Platform
-
-Based on pricing, reliability, and feature analysis, here are specific recommendations for common scenarios.
-
-### Choose RunPod Secure Cloud When:
-
-**Production inference systems:**
-The reliability requirements of production systems justify RunPod's premium. A crashed inference server at 2 AM is worth more than the cost difference.
-
-**Time-sensitive training runs:**
-When deadlines matter, predictable availability beats hoping a Vast.ai provider does not go offline. The modest cost increase is insurance against wasted time.
-
-**New users learning the space:**
-RunPod's templates and documentation reduce the learning curve. Start here, then consider Vast.ai once you understand your needs.
-
-**Teams with shared resources:**
-RunPod's organization features and persistent storage make collaboration easier than coordinating across Vast.ai providers.
-
-### Choose Vast.ai When:
-
-**Budget-constrained exploration:**
-When learning or experimenting, Vast.ai's 30-40% cost savings enable more iterations within a fixed budget. Interrupted runs matter less during exploration.
-
-**Batch processing with checkpointing:**
-Workloads that checkpoint regularly can tolerate provider interruptions. The cost savings compound over long training runs with proper checkpoint strategy.
-
-**Unusual hardware requirements:**
-Need a specific older GPU? Vast.ai's diverse provider base includes hardware RunPod does not stock.
-
-**Overnight or weekend training:**
-Off-peak pricing on Vast.ai drops significantly. Launching long training runs Friday evening at reduced rates makes sense if you can tolerate the reliability uncertainty.
-
-### Use Cases Where Either Works:
-
-**LoRA training (2-4 hours):**
-Both platforms handle this workload well. Choose based on current pricing and availability.
-
-**Stable Diffusion generation:**
-Interactive generation sessions work fine on either platform. The reliability risk during a 1-hour session is minimal.
-
-**One-off experiments:**
-Quick tests to validate ideas before committing to longer runs work equally well on both platforms.
-
----
-
-## Migration Considerations
-
-Switching between platforms is straightforward given some preparation. Both use standard container technologies and SSH access.
-
-### Data Migration
-
-**Datasets and model weights:**
-
-- Store in cloud storage (S3, GCS, Backblaze B2) accessible from either platform
-- Avoid relying on platform-specific persistent storage
-- Download from cloud to instance at session start
-
-**Code and configurations:**
-
-- Use git repositories for all code
-- Store configuration files in version control
-- Avoid platform-specific paths in scripts
-
-**Container images:**
-
-- Both platforms support Docker Hub and container registries
-- Custom images work on both platforms
-- Abstract platform differences in entrypoint scripts
-
-### Workflow Portability
-
-A portable workflow works on either platform with minimal changes:
-
-```bash
-# Example portable setup script
-#!/bin/bash
-
-# Clone code repository
-git clone https://github.com/yourrepo/training-code.git
-
-# Download dataset from cloud storage
-aws s3 sync s3://your-bucket/dataset ./dataset
-
-# Download model weights
-wget https://huggingface.co/model/weights.safetensors -O ./models/
-
-# Run training
-python train.py --config ./config.yaml
-
-# Upload results
-aws s3 sync ./output s3://your-bucket/results/
-```
-
-This script runs identically on RunPod or Vast.ai, requiring only appropriate credentials for cloud storage access.
-
----
-
-## Alternatives to Consider
-
-While RunPod and Vast.ai dominate the marketplace GPU rental space, other options merit consideration depending on your requirements.
-
-### Lambda Labs
-
-Lambda Labs offers managed GPU cloud with fixed pricing and strong ML focus. Pricing falls between enterprise clouds and marketplaces. Good choice for users wanting reliability without marketplace complexity and willing to pay a moderate premium.
-
-### GPUFlow
-
-[GPUFlow](https://gpuflow.app/en/marketplace) rents something different: an OpenAI-compatible API key for AI models already running on someone's consumer GPU, billed to the second. There's nothing to set up, but you can't train or run your own code. Worth considering if what you need is a model behind an API rather than a machine. See [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/en/gpuflow-vs-vast-ai-vs-runpod/).
-
-### Enterprise Clouds (AWS, Azure, GCP)
-
-For compliance requirements, guaranteed SLAs, and enterprise support, hyperscalers remain necessary. The 3-5x price premium buys capabilities marketplace platforms cannot provide: SOC2 certification, HIPAA compliance, dedicated support engineers, and contractual uptime guarantees.
-
-### Hardware Purchase
-
-At sufficient scale, owning hardware becomes economical. Break-even typically occurs around 2,500-3,000 hours of usage for consumer GPUs. Organizations running continuous workloads should evaluate total cost of ownership against rental.
-
----
-
-## Frequently Asked Questions
-
-### Is RunPod or Vast.ai cheaper for GPU rental?
-
-Vast.ai typically offers lower hourly rates due to its pure peer-to-peer marketplace model. RTX 4090 GPUs on Vast.ai range from $0.29 to $0.78 per hour, while RunPod's Secure Cloud tier charges $0.59 per hour for the same GPU. However, achieving Vast.ai's lowest rates requires selecting providers with lower reliability scores. At equivalent reliability levels (99%+), the price gap narrows to 15-25%.
-
-### Which platform is more reliable for production workloads?
-
-RunPod's Secure Cloud tier provides more consistent reliability with curated datacenter hardware. The company controls the infrastructure and takes responsibility for uptime. Vast.ai reliability varies by individual provider, with ratings ranging from 97% to 99.9%. For production inference requiring high uptime, RunPod is the safer choice. For batch training jobs that can tolerate occasional interruption, Vast.ai offers better economics.
-
-### Can I use consumer GPUs like RTX 4090 on both platforms?
-
-Yes. Both RunPod and Vast.ai offer access to consumer GPUs including RTX 3090, RTX 4090, and RTX 5090. This distinguishes them from enterprise cloud providers like AWS, Azure, and GCP, which only offer datacenter GPU models (A100, H100, etc.). Consumer GPUs provide excellent price-to-performance for most AI workloads.
-
-### Which platform has better pre-configured templates for AI workloads?
-
-RunPod offers more extensive official templates, including one-click deployments for Stable Diffusion (multiple UIs), various LLM inference servers, and popular training frameworks. Templates are maintained by RunPod staff and include proper CUDA configuration. Vast.ai provides community templates but with less curation and variable maintenance. Users who prefer turnkey setups typically find RunPod more convenient.
-
-### Do RunPod and Vast.ai require identity verification?
-
-Neither platform asks renters for identity documents for basic usage. Vast.ai requires a verified email and a $5 minimum deposit. RunPod requires prepaid credit and asks for KYC only before a first crypto payment. Both are far quicker to start with than enterprise clouds, where new accounts often have to request a GPU quota before they can start a GPU instance. More in [what you need to rent a GPU](/en/what-you-need-to-rent-a-gpu/).
-
-### How do I choose between the platforms for a specific project?
-
-Consider three factors: reliability requirements, budget constraints, and setup time value. Production systems or deadline-critical training runs favor RunPod Secure Cloud. Exploratory work or budget-constrained projects favor Vast.ai. New users benefit from RunPod's templates. Experienced users with custom requirements may prefer Vast.ai's flexibility.
-
-### Can I switch between platforms easily?
-
-Yes. Both platforms use standard SSH access and support Docker containers. Storing datasets in cloud storage and code in git repositories enables easy migration. The main switching cost is learning each platform's interface and provisioning workflows—typically a few hours of familiarization.
-
----
-
-## Final Recommendations
-
-Our recommendations:
-
-**Start with RunPod if:**
-
-- You are new to GPU rental
-- You need production reliability
-- Template availability matters to your workflow
-- You value responsive support
-
-**Start with Vast.ai if:**
-
-- Cost optimization is your primary concern
-- You have infrastructure experience
-- Your workloads tolerate interruption
-- You enjoy evaluating options and optimizing
-
-**Consider GPUFlow if:**
-
-- You need an open AI model behind an OpenAI-compatible API, not a machine
-- You don't want to set up drivers, containers or an inference server
-- You don't need to train or run your own code
-
-The good news: both RunPod and Vast.ai provide excellent value compared to enterprise alternatives. Either choice saves 60-80% compared to AWS or Azure. The differences between them, while meaningful, are secondary to the massive savings both enable.
-
-For ongoing projects, it makes sense to keep accounts on both platforms. Use RunPod for reliability-critical work and time-sensitive projects. Use Vast.ai for exploration, experiments, and batch processing where cost matters more than guaranteed availability. The flexibility to choose based on project requirements, rather than committing entirely to one platform, maximizes both cost efficiency and reliability where each matters most.
-
----
-
-**Need an AI model through an API instead of a whole machine?** On [GPUFlow](https://gpuflow.app/en/marketplace) you rent a GPU by the hour and get an OpenAI-compatible API key, billed to the second. [See how it works](https://docs.gpuflow.app/renters/getting-started/).
-
----
-
-_Related guides:_
-
-- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026/)
-- [How to Train Stable Diffusion LoRA Models for Under $10](/en/stable-diffusion-lora-training-under-10-dollars/)
-- [The Real Cost of Renting a GPU](/en/hidden-fees-in-gpu-rental/)
-
----
-
-_Prices and features in this comparison were collected in February 2026; payment methods and account requirements were rechecked in September 2026. For September 2026 prices, see [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/en/gpuflow-vs-vast-ai-vs-runpod/). Verify current information directly with RunPod and Vast.ai before making decisions._
+- RunPod: [pricing page](https://www.runpod.io/pricing), [pod pricing and storage](https://docs.runpod.io/pods/pricing), [pods overview](https://docs.runpod.io/pods/overview), [choosing a pod](https://docs.runpod.io/pods/choose-a-pod), [managing pods](https://docs.runpod.io/pods/manage-pods), [create pod API (interruptible field)](https://docs.runpod.io/api-reference/pods/POST/pods), [serverless pricing](https://docs.runpod.io/serverless/pricing), [billing](https://docs.runpod.io/references/billing-information), [spot vs on-demand](https://www.runpod.io/blog/spot-vs-on-demand-instances-runpod)
+- RunPod Secure Cloud price change of September 20, 2026: [usagepricing.com](https://www.usagepricing.com/blueprint/activity/runpod-2026-09-20-secure-cloud-price-hike)
+- Vast.ai: [quickstart](https://docs.vast.ai/guides/get-started/quickstart.md), [pricing](https://docs.vast.ai/guides/instances/pricing.md), [rental types](https://docs.vast.ai/guides/reference/faq/rental-types), [finding and renting instances](https://docs.vast.ai/guides/instances/choosing/find-and-rent), [datacenter status](https://docs.vast.ai/documentation/host/datacenter-status), [storage types](https://docs.vast.ai/documentation/instances/storage/types), [volumes](https://docs.vast.ai/documentation/instances/storage/volumes), [serverless pricing](https://docs.vast.ai/serverless/pricing), [billing](https://docs.vast.ai/documentation/reference/billing)
+- Marketplace prices: getdeploying.com for [RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090) and [RTX 3090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-3090)
+- GPUFlow: [renter getting started](https://docs.gpuflow.app/renters/getting-started/), [API quickstart](https://docs.gpuflow.app/renters/api-quickstart/)

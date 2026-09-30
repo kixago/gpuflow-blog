@@ -1,9 +1,9 @@
 ---
-title: "Cómo proteger tu dataset en un nodo GPU público"
-description: "Guía completa de seguridad para proteger datasets propietarios al entrenar modelos de IA en GPU alquiladas o en infraestructura descentralizada. Cifrado, límites de la virtualización, cumplimiento normativo y limpieza segura del entorno."
-excerpt: "Entrenar en GPU públicas no obliga a sacrificar la seguridad de los datos. Aprende a proteger datasets sensibles antes, durante y después de ejecutar cargas de trabajo de IA en infraestructura alquilada."
+title: "Cómo proteger tu conjunto de datos en un nodo de GPU alquilado o público"
+description: "El anfitrión de una GPU alquilada puede leer todo lo que tu trabajo descifra. Qué resuelven el cifrado, la secure cloud y la computación confidencial en H100, y cómo limpiar después."
+excerpt: "Alquilar una GPU significa que otra persona tiene root en la máquina donde están tus datos. Aquí tienes el modelo de amenazas, qué cubre de verdad cada defensa y una rutina de limpieza que funciona en los discos actuales."
 pubDate: 2026-02-26
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "es"
 category: "guides"
 featured: false
@@ -11,358 +11,241 @@ draft: false
 author: "GPUFlow Team"
 authorUrl: "https://gpuflow.app"
 heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "Entorno de servidores seguro y abstracto que representa el procesamiento protegido de datos de IA"
+heroImageAlt: "Entorno abstracto de servidores seguros que representa el procesamiento protegido de datos de IA"
 faq:
-  - question: "¿Es seguro subir datos propietarios a una GPU alquilada?"
-    answer: "Sí, siempre que sigas unas prácticas de seguridad operativa rigurosas. Usa transferencias cifradas, no guardes credenciales en el nodo, borra los datasets de forma segura después del entrenamiento y termina el alquiler correctamente."
-  - question: "¿Cuál es la forma más segura de transferir un dataset a un nodo GPU público?"
-    answer: "Usa protocolos cifrados como SCP o SFTP sobre SSH. Si el dataset es muy sensible, cífralo en local con herramientas como age o GPG antes de transferirlo."
-  - question: "¿Puede el host recuperar archivos borrados de un nodo alquilado?"
-    answer: "El borrado normal no garantiza que los datos se destruyan. Aunque la recuperación en entornos virtualizados es poco habitual, las herramientas de borrado seguro como shred y la eliminación completa de los directorios reducen mucho el riesgo residual."
-  - question: "¿Debo guardar claves de API o claves privadas en infraestructura alquilada?"
-    answer: "No. Un nodo de cómputo temporal nunca debe contener credenciales permanentes, frases semilla de monederos ni tokens de acceso a producción."
-  - question: "¿La infraestructura GPU descentralizada es menos segura que AWS?"
-    answer: "No necesariamente. La seguridad depende de la configuración y de la disciplina operativa. Las nubes centralizadas registran muchísima información y vinculan la actividad a identidades verificadas, mientras que los alquileres descentralizados reducen la visibilidad institucional, pero exigen buenas prácticas."
+  - question: "¿Puede el anfitrión de una GPU alquilada ver mis datos?"
+    answer: "Técnicamente, sí. El anfitrión tiene root en la máquina física, y tus datos tienen que descifrarse en memoria para entrenar o ejecutar un modelo. Solo la computación confidencial, como las VM confidenciales con H100 de Azure o Google Cloud, saca al anfitrión de la ecuación."
+  - question: "¿Borra shred los archivos de forma segura en una instancia de GPU en la nube?"
+    answer: "No de forma fiable. El manual de GNU shred dice que solo funciona si el sistema de archivos y el hardware sobrescriben los datos en el mismo sitio, y eso no lo garantizan los sistemas de archivos con journaling o copy-on-write, las snapshots ni los SSD. Cifra los datos antes de que lleguen al disco y, en su lugar, destruye la instancia."
+  - question: "¿Qué diferencia hay entre la Secure Cloud y la Community Cloud de RunPod?"
+    answer: "La documentación de RunPod describe la Secure Cloud como alojada en centros de datos T3/T4 y adecuada para producción y datos sensibles, y la Community Cloud como proveedores entre particulares con una fiabilidad variable. RunPod ya no acepta nuevos anfitriones en la Community Cloud."
+  - question: "¿Qué GPU en la nube admiten computación confidencial?"
+    answer: "En septiembre de 2026, Azure ofrece VM confidenciales NCCads H100 v5 con una GPU H100 NVL sobre AMD SEV-SNP, y Google Cloud ofrece a3-highgpu-1g confidencial (una H100, Intel TDX) y G4 (RTX PRO 6000, AMD SEV). Las tarjetas GeForce de consumo no están en estas listas."
+  - question: "¿Es seguro poner datos personales en una GPU alquilada según el RGPD?"
+    answer: "Solo si el proveedor es un encargado del tratamiento con un contrato que cumpla el artículo 28 del RGPD y una vía legal de transferencia si la máquina está fuera de la UE. La mayoría de los anfitriones particulares no tienen ese contrato contigo, así que anonimiza antes los datos o usa un proveedor de centro de datos que firme un DPA."
+  - question: "¿Puedo entrenar o hacer fine-tuning de un modelo en GPUFlow?"
+    answer: "No. GPUFlow es solo inferencia: obtienes una clave API compatible con OpenAI para un modelo que se ejecuta en el ordenador de un proveedor, sin SSH, sin shell y sin acceso a archivos. Los prompts llegan sin cifrar a ese ordenador, así que no envíes por ahí registros confidenciales."
 ---
 
-Si entrenas en hardware que no controlas físicamente, la seguridad deja de ser teórica. Se convierte en un procedimiento.
+Cuando alquilas una GPU, otra persona tiene root en la máquina donde están tus datos. El cifrado protege el conjunto de datos por el camino y mientras está en el disco, pero tu trabajo de entrenamiento tiene que descifrarlo en memoria para usarlo, y en ese momento un anfitrión decidido puede leerlo. Así que las decisiones de verdad son en quién confías (un centro de datos verificado o un servidor doméstico anónimo), qué poco envías y si necesitas computación confidencial, que es la única opción que saca al operador del anfitrión de la cadena de confianza.
 
-Los marketplaces de GPU públicos, ya sean proveedores centralizados o redes descentralizadas, te dan acceso a cómputo de alto rendimiento sin invertir en equipos. Es una ventaja considerable. Pero la contrapartida es sencilla: tu dataset pasa a estar en la máquina de otra persona.
+Esta guía trata de máquinas en las que inicias sesión, como las instancias de Vast.ai o RunPod. Recorre el modelo de amenazas, qué cubre cada defensa y una rutina de limpieza que aguanta en el almacenamiento actual. Las fuentes están al final; todo se comprobó en septiembre de 2026.
 
-Para las organizaciones que manejan investigación propietaria, código fuente, modelos financieros, historiales médicos o datos de clientes sujetos a regulación, esa realidad exige rigor.
+## El modelo de amenazas
 
-La buena noticia es esta: infraestructura alquilada no tiene por qué significar menos seguridad. Bien gestionada, puede ofrecer un aislamiento sólido, una exposición controlada e incluso, en algunos casos, más privacidad que las plataformas de los hiperescaladores.
+Empieza por poner nombre a quién podría llegar a los datos y cómo. En una instancia de GPU alquilada hay siete vías realistas.
 
-Esta guía explica cómo proteger tu dataset antes, durante y después de entrenar en un nodo GPU público. Da por hecho que ya conoces el flujo de fine-tuning que describimos en nuestra [guía de fine-tuning privado de LLM](/es/private-llm-fine-tuning-guide/).
+<figure>
+<svg viewBox="0 0 720 430" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">Modelo de amenazas para un conjunto de datos en una instancia de GPU alquilada: siete vías de acceso a los datos y la defensa principal para cada una</title>
+<rect x="0" y="0" width="720" height="430" fill="#ffffff"/>
+<line x1="220" y1="75" x2="240" y2="170" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="220" y1="220" x2="240" y2="215" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="220" y1="365" x2="240" y2="270" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="500" y1="75" x2="480" y2="170" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="500" y1="220" x2="480" y2="215" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="500" y1="365" x2="480" y2="270" stroke="#e2e8f0" stroke-width="2"/>
+<line x1="360" y1="330" x2="360" y2="290" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="240" y="140" width="240" height="150" rx="12" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="360" y="170" text-anchor="middle" fill="#1e1b4b" font-weight="bold">Tu instancia alquilada</text>
+<text x="360" y="205" text-anchor="middle" fill="#1e1b4b">Conjunto de datos</text>
+<text x="360" y="235" text-anchor="middle" fill="#1e1b4b">Pesos y checkpoints</text>
+<text x="360" y="265" text-anchor="middle" fill="#1e1b4b">Tokens y claves</text>
+<rect x="20" y="40" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="120" y="68" text-anchor="middle" fill="#1e1b4b">Operador del anfitrión</text>
+<text x="120" y="92" text-anchor="middle" fill="#64748b" font-size="13">Solución: host fiable o CC</text>
+<rect x="20" y="185" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="120" y="213" text-anchor="middle" fill="#1e1b4b">Ruta de red</text>
+<text x="120" y="237" text-anchor="middle" fill="#64748b" font-size="13">Solución: SSH, sin puertos</text>
+<rect x="20" y="330" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="120" y="358" text-anchor="middle" fill="#1e1b4b">Restos en el disco</text>
+<text x="120" y="382" text-anchor="middle" fill="#64748b" font-size="13">Solución: cifrar y destruir</text>
+<rect x="500" y="40" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="600" y="68" text-anchor="middle" fill="#1e1b4b">Plataforma del mercado</text>
+<text x="600" y="92" text-anchor="middle" fill="#64748b" font-size="13">Solución: contrato y DPA</text>
+<rect x="500" y="185" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="600" y="213" text-anchor="middle" fill="#1e1b4b">Otros inquilinos</text>
+<text x="600" y="237" text-anchor="middle" fill="#64748b" font-size="12">Solución: VM o máquina entera</text>
+<rect x="500" y="330" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="600" y="358" text-anchor="middle" fill="#1e1b4b">Snapshots, volúmenes</text>
+<text x="600" y="382" text-anchor="middle" fill="#64748b" font-size="13">Solución: nada persistente</text>
+<rect x="260" y="330" width="200" height="70" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="360" y="358" text-anchor="middle" fill="#1e1b4b">Lo que te dejas tú</text>
+<text x="360" y="382" text-anchor="middle" fill="#64748b" font-size="13">Solución: tokens acotados</text>
+</svg>
+<figcaption>Mientras el trabajo se ejecuta, todo lo que hay en la instancia está expuesto al operador del anfitrión. Las demás vías se cierran con higiene básica; esa necesita o un anfitrión de confianza o computación confidencial.</figcaption>
+</figure>
 
-Está pensada para alquileres en los que te conectas a la máquina, como Vast.ai, RunPod o TensorDock. GPUFlow funciona de otra manera: obtienes una clave de API para un modelo de IA y no se sube ni se guarda nada en la máquina del proveedor. Eso sí, tus prompts y las respuestas pasan por ella, así que allí la regla es más sencilla: no envíes nada que no compartirías con un desconocido.
+**El operador del anfitrión.** Quien es dueño de la máquina física tiene root en ella. En un mercado de contenedores como Vast.ai, los clientes se ejecutan en contenedores Docker sin privilegios, lo que te aísla de otros inquilinos pero no del anfitrión: root en el anfitrión puede leer los archivos y la memoria de un contenedor. Así funcionan los contenedores en cualquier plataforma.
 
-En este contexto, la seguridad no es cuestión de paranoia. Es cuestión de disciplina.
+**La ruta de red.** Los datos que viajan desde tu portátil o tu bucket hasta el nodo. Es la vía más fácil de cerrar.
 
----
+**La plataforma del mercado.** La empresa que está entre tú y el anfitrión guarda tu cuenta, tus claves SSH y lo que conserven sus propios registros. Lo que puede hacer con ello lo fijan sus condiciones, y por eso importa la sección sobre contratos de más abajo.
 
-## Define primero el modelo de amenazas
+**Restos en el disco.** Los archivos que borras pueden sobrevivir en el disco después del alquiler, donde el siguiente inquilino o el anfitrión podrían encontrarlos.
 
-Antes de poner medidas de protección, define de qué te estás protegiendo.
+**Snapshots y volúmenes persistentes.** Las copias que pediste tú (un volumen de red, una instancia parada) o que hizo el anfitrión (copias de seguridad) duran más que el trabajo.
 
-Cuando alquilas un nodo GPU, normalmente interactúas con:
+**Otros inquilinos.** Otros clientes en la misma máquina. Con aislamiento por VM o una máquina entera para ti, el riesgo es pequeño, pero las GPU han tenido fallos reales aquí. LeftoverLocals (CVE-2023-4969) permitía a un proceso leer la memoria local de GPU de otro en algunas GPU de Apple, AMD y Qualcomm; Trail of Bits recuperó unos 181 MB por consulta a un LLM en una AMD Radeon RX 7900 XT, suficiente para reconstruir la respuesta del modelo. Trail of Bits no encontró indicios en GPU de NVIDIA, ARM ni Intel.
 
-- Una capa de aislamiento por virtualización o contenedores
-- Un operador (el host) que es dueño del hardware físico
-- Una plataforma de marketplace que asigna los recursos y gestiona el pago
+**Lo que te dejas tú.** Un token de Hugging Face, claves de la nube o una clave SSH privada olvidados en el nodo. En la práctica, así empiezan la mayoría de las filtraciones.
 
-Los riesgos más realistas son:
+## Qué cubre el cifrado y qué no puede cubrir
 
-1. Datos residuales que quedan en el disco después de tu sesión
-2. Una mala gestión de credenciales que acaba comprometiendo otros sistemas
-3. Transferencias de archivos sin cifrar que exponen los datos en tránsito
-4. Una configuración de red incorrecta que deja servicios expuestos públicamente
+El cifrado tiene tres funciones, y en una GPU alquilada puedes encargarte tú mismo de dos.
 
-Entre los riesgos menos realistas, aunque se dramatizan a menudo, están:
+**En tránsito:** fácil. Usa SSH (`scp`, `sftp`, `rsync -e ssh`) o HTTPS desde un bucket. Vast.ai afirma que las conexiones SSH y su API van cifradas. No uses nunca enlaces HTTP sin cifrar ni servicios de intercambio de archivos sin autenticación.
 
-- Que el host vigile en tiempo real tus datos de entrenamiento
-- Que se extraiga la memoria de la GPU durante el trabajo
-- Que se intercepte de forma sofisticada un tráfico SSH bien configurado
-
-Los fallos de seguridad en entornos de cómputo alquilado casi siempre son operativos, no de arquitectura.
-
-Parte de esa idea.
-
----
-
-## Sube lo mínimo imprescindible
-
-El dataset más seguro es el que nunca sale de tu máquina local.
-
-Antes de transferir nada a una GPU alquilada:
-
-- Elimina las columnas que no uses
-- Quita los identificadores internos
-- Aplica hash o tokeniza la información personal que no sea esencial
-- Descarta los logs de producción en bruto
-- Reduce el corpus de entrenamiento al mínimo viable
-
-Si usas QLoRA u otros métodos de fine-tuning eficientes en parámetros, no estás reentrenando un modelo base desde cero. Estás ajustando deltas. Para eso rara vez hacen falta bases de datos operativas completas.
-
-Un dataset más pequeño reduce:
-
-- La superficie de exposición
-- El tiempo de transferencia
-- El espacio de almacenamiento
-- El coste del entrenamiento
-
-La seguridad y la eficiencia van de la mano más a menudo de lo que se cree.
-
----
-
-## La transferencia cifrada no es negociable
-
-No subas nunca datasets sensibles a través de portales de archivos en el navegador, FTP sin cifrar o enlaces temporales para compartir.
-
-Usa transferencias basadas en SSH:
+**En reposo:** cifra antes de subir, para que el archivo en el disco del anfitrión no sirva de nada sin la clave. [age](https://github.com/FiloSottile/age) es la herramienta más sencilla para esto:
 
 ```bash
-scp -P 22345 dataset.jsonl user@203.0.113.42:~/workspace/
+# on your own machine
+tar -cf - train/ | age -p > train.tar.age
+scp -P 22345 train.tar.age user@203.0.113.42:/workspace/
 ```
 
-SCP y SFTP cifran los datos en tránsito con estándares criptográficos modernos. Bien configurados, el riesgo de interceptación es insignificante.
-
-Si el material es muy sensible, cifra el archivo en local antes de transferirlo:
+En el nodo, descifra directamente en memoria para que el texto en claro no toque nunca el disco:
 
 ```bash
-age -p dataset.jsonl > dataset.jsonl.age
-scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/workspace/
+mkdir -p /dev/shm/train
+age -d /workspace/train.tar.age | tar -xf - -C /dev/shm/train
 ```
 
-Descífralo en el nodo remoto solo cuando sea necesario.
+`age -d` pide la frase de paso en el terminal, así que la clave nunca se escribe en el nodo. `/dev/shm` es un sistema de archivos en RAM; comprueba antes su tamaño con `df -h /dev/shm`, porque en los contenedores suele ser pequeño. Si los datos no caben en RAM, vas a necesitar una copia descifrada en disco, y la sección de limpieza de más abajo cobra más importancia.
 
-No uses sistemas de almacenamiento de terceros como paso intermedio salvo que lo exija el cumplimiento normativo. Cada sistema adicional que guarda tus datos aumenta la visibilidad institucional y el riesgo de que se conserven.
+El cifrado de disco completo con LUKS es la respuesta habitual en tus propios servidores, pero normalmente no puedes configurar dm-crypt dentro de un contenedor sin privilegios, y de todos modos el anfitrión tendría la clave en uso.
 
-Si tu objetivo es la privacidad, mueve los datos de forma directa y deliberada.
+**En uso:** aquí está el hueco. Para entrenar, la GPU necesita tensores en claro, y la memoria de la CPU que la alimenta también tiene texto en claro. Cualquiera con root en el anfitrión puede, en principio, volcar esa memoria. El cifrado en reposo no hace nada contra un anfitrión hostil con la máquina en marcha. Solo la computación confidencial basada en hardware lo resuelve.
 
----
+## Secure cloud o community cloud
 
-## No guardes nunca credenciales permanentes en nodos temporales
+Como el anfitrión es el único riesgo que la higiene no puede eliminar, elegirlo es la decisión más importante que tomas. Los dos grandes mercados dividen su oferta justo por eso.
 
-Aquí es donde muchos profesionales cometen errores evitables.
+| Opción | Quién gestiona el hardware | Qué dice la plataforma |
+| --- | --- | --- |
+| RunPod Secure Cloud | Centros de datos T3/T4 | Para «producción, datos sensibles» |
+| RunPod Community Cloud | Proveedores entre particulares | Para «cargas de trabajo sensibles al coste»; no acepta nuevos anfitriones |
+| Vast.ai Secure Cloud | Centros de datos verificados | ISO 27001, estándares Tier 3/4, seguridad física verificada |
+| Otros anfitriones de Vast.ai | Desde centros de datos hasta particulares | Los anfitriones particulares «pueden tener medidas de seguridad menos formales» |
 
-No guardes:
+El propio consejo de Vast.ai para datos sensibles es usar solo proveedores de Secure Cloud, cifrar los datos en reposo, no dejar credenciales en las instancias y usar una gestión de claves externa. Coincide con lo que yo le diría a cualquiera.
 
-- Frases semilla de monederos
-- Claves privadas SSH que uses en otros sitios
-- Tokens de API de producción
-- Credenciales root de tu proveedor de nube
-- Contraseñas de bases de datos
+Incluso en un centro de datos certificado hay dos límites. Primero, ISO 27001 certifica los procesos del operador; no puede descartar a un empleado deshonesto. Segundo, un anfitrión que trata datos personales por ti es un encargado del tratamiento según el RGPD, y el artículo 28 exige un contrato que lo cubra, mientras que el mercado está entre tú y el anfitrión. Lee con qué empresa contratas realmente y qué promete sobre sus anfitriones.
 
-Una infraestructura de cómputo temporal solo debe contener lo imprescindible para el trabajo.
+Para trabajo de verdad sensible, el siguiente escalón es una instancia con GPU en una cuenta de un gran proveedor de nube con el que ya tengas un DPA y, quizá, un BAA, lo que te saca del terreno de los mercados y cuesta más por hora. Nuestra [comparativa de precios de alquiler de GPU](/es/gpu-rental-pricing-comparison-2026/) muestra los rangos de precios.
 
-Si te autenticas en Hugging Face para descargar modelos con acceso restringido, usa un token con permisos limitados. Después del entrenamiento, borra las credenciales en caché:
+## Computación confidencial en GPU H100
 
-```bash
-rm -rf ~/.cache/huggingface
-```
+La computación confidencial (CC) es la única tecnología de esta lista diseñada para proteger los datos del operador del anfitrión mientras el trabajo se ejecuta. En las GPU de centro de datos NVIDIA Hopper y Blackwell, funciona así:
 
-Plantéate rotar los tokens al terminar.
+- La carga de trabajo se ejecuta en una VM confidencial (CVM) respaldada por AMD SEV-SNP o Intel TDX en la CPU. El diseño de NVIDIA da por hecho que el hipervisor y el sistema operativo del anfitrión pueden estar comprometidos; un operador con acceso al hipervisor «o incluso al propio sistema» no debería poder leer la memoria de la CVM.
+- Antes de usarla, la VM comprueba que la GPU es auténtica y está en modo CC con un certificado de dispositivo firmado, que se puede verificar con el Remote Attestation Service (NRAS) de NVIDIA.
+- Los datos, los búferes de comandos y los kernels de CUDA que cruzan el PCIe van cifrados y firmados, y pasan por un búfer intermedio cifrado en memoria compartida.
 
-Los incidentes de seguridad rara vez empiezan con un ataque a la GPU. Empiezan con credenciales expuestas.
+NVIDIA hizo disponible para todos la CC con una sola GPU H100 con CUDA 12.4 en abril de 2024. Dónde se puede alquilar realmente en septiembre de 2026:
 
----
+| Nube | Instancia | GPU | TEE de la CPU |
+| --- | --- | --- | --- |
+| Azure | NCCads H100 v5 | 1 × H100 NVL, 94 GB | AMD SEV-SNP (EPYC Genoa) |
+| Google Cloud | a3-highgpu-1g, Confidential VM | 1 × H100 | Intel TDX |
+| Google Cloud | g4-standard-48, Confidential VM | RTX PRO 6000 | AMD SEV |
 
-## Da por hecho que el sistema de archivos es recuperable
+Conoce los límites antes de construir sobre ella:
 
-Un comando de borrado normal:
+- **Una GPU por VM.** La serie de Azure tiene una GPU, y las VM confidenciales con GPU de Google no admiten clústeres de varios nodos. Los entrenamientos grandes con varias GPU quedan descartados.
+- **Aprovisionamiento.** En Google Cloud, A3 High confidencial solo funciona como Spot o flex-start y no admite reservas.
+- **Velocidad de transferencia.** El artículo técnico de NVIDIA de 2023 situaba el ancho de banda de CPU a GPU en modo CC en unos 4 GB/s, limitado por el cifrado en la CPU. Cargar un checkpoint de 16 GB lleva, por tanto, unos 16 ÷ 4 = 4 segundos de transferencia pura, sin problema para inferencia, pero un flujo de datos que mueve muchos gigabytes por paso lo va a notar. Versiones posteriores del driver mencionan mejoras de rendimiento, así que mide tu propio trabajo.
+- **La memoria de la GPU no va cifrada.** NVIDIA deja la HBM del encapsulado sin cifrar, con el argumento de que las herramientas habituales de ataque físico no llegan a ella.
+- **No está en los mercados.** Las tarjetas GeForce de consumo habituales en Vast.ai y en los anfitriones comunitarios de RunPod no están en ninguna de estas listas de compatibilidad.
 
-```bash
-rm dataset.jsonl
-```
+La CC cambia en quién tienes que confiar: en el hardware y la atestación de NVIDIA, en el fabricante de la CPU y en tu propia imagen de VM, en lugar del personal del anfitrión. Para datos regulados en los que importa poder decir «los administradores del proveedor de nube no pueden leerlos», es la única opción en hardware alquilado que te lo permite.
 
-elimina las referencias en el directorio. No garantiza que se destruyan los bloques del disco que hay debajo.
+## Antes y durante el trabajo
 
-En los entornos de alquiler virtualizados, el riesgo real de recuperación es bajo, pero no nulo. Lo responsable es suponer que los datos se pueden recuperar.
+### Reduce los datos antes de subirlos
 
-Para archivos sensibles:
+La protección más barata son los datos que nunca salen de tu máquina. Antes de transferir nada:
 
-```bash
-shred -u dataset.jsonl
-```
+- Quita las columnas que el modelo no necesita, sobre todo nombres, correos, números de cuenta y notas de texto libre.
+- Sustituye los identificadores directos por tokens aleatorios y guarda la tabla de correspondencias en casa.
+- Recorta el corpus a lo que necesita el método. Un fine-tuning con LoRA o QLoRA ajusta un pequeño conjunto de pesos adicionales y rara vez necesita una base de datos de producción entera; nuestra [guía de fine-tuning](/es/private-llm-fine-tuning-guide/) recorre una configuración realista.
+- Recuerda que los pesos del modelo contienen información. Un modelo ajustado con texto sensible puede repetir fragmentos, así que trata también el adaptador como sensible.
 
-Después, elimina todo tu directorio de trabajo:
+Los datos anonimizados son también lo que hace desaparecer la mayoría de las cuestiones legales de más abajo.
 
-```bash
-rm -rf ~/workspace
-```
+### Credenciales y red en el nodo
 
-Vacía las cachés:
+Da por hecho que todo lo que pongas en el nodo se puede copiar.
 
-```bash
-rm -rf ~/.cache/pip
-rm -rf ~/.cache/huggingface
-```
+- Usa un token de Hugging Face de permisos detallados con acceso de lectura solo al repositorio que necesitas, y revócalo cuando termine el trabajo.
+- No copies nunca a una máquina alquilada tu clave SSH privada principal, las credenciales root de tu nube ni las contraseñas de bases de datos de producción. Si el trabajo tiene que escribir resultados en un bucket, crea una clave que solo pueda escribir en un prefijo y que caduque en menos de un día.
+- Trae los resultados por SSH en lugar de enviarlos desde el nodo con claves de larga duración.
+- Comprueba qué está escuchando con `ss -tulnp`. Enlaza Jupyter, TensorBoard y los servidores de inferencia a `127.0.0.1` y accede a ellos por un túnel SSH (`ssh -L 8888:127.0.0.1:8888 ...`) en lugar de exponer un puerto público.
 
-Borra el historial de la shell:
+## Una limpieza que aguante en los discos actuales
 
-```bash
-history -c
-cat /dev/null > ~/.bash_history
-```
+El consejo habitual es pasar `shred` al conjunto de datos al terminar. No hace lo que la gente cree. El manual de GNU coreutils dice que `shred` depende de que el sistema de archivos y el hardware sobrescriban los datos en el mismo sitio, y enumera los casos en los que eso falla: sistemas de archivos con journaling o estructurados en registro, como ext4 en modo `data=journal`, Btrfs, XFS y ZFS, RAID, sistemas de archivos con snapshots, sistemas de archivos comprimidos y los SSD, cuya nivelación de desgaste escribe los datos nuevos en otro sitio. Un nodo de GPU alquilado es, con mucha probabilidad, varias de esas cosas a la vez.
 
-Termina formalmente el alquiler desde el panel del marketplace para asegurarte de que la máquina se desaprovisiona.
+Lo que sí funciona:
 
-Son pasos de unos minutos. Y reducen de forma real la exposición residual.
+1. **Haz que la copia en disco no valga nada.** Si solo el archivo cifrado con age llegó a tocar el disco, basta con borrarlo; sin la frase de paso, es ruido. La guía de NIST sobre saneamiento de soportes (SP 800-88 Rev. 2, septiembre de 2025) trata esta idea, el borrado criptográfico, como una técnica estándar.
+2. **Destruye, no pares.** En Vast.ai, parar una instancia conserva sus datos (y sigue facturando el almacenamiento); destruirla «borra de forma permanente la instancia y todos los datos». En RunPod, el disco del contenedor se vacía cuando el pod se para, el volumen `/workspace` sobrevive a las paradas y se borra al terminar el pod, y un volumen de red sobrevive a todo hasta que lo borras.
+3. **Borra los volúmenes de red que creaste.** Están diseñados para durar más que los pods.
+4. **Revoca lo que usaste.** El token de Hugging Face, las claves del bucket, y quita cualquier clave SSH pública de un solo uso que añadieras al mercado para este trabajo.
 
----
+La documentación de los mercados que he leído no describe cómo borra el anfitrión los discos entre un inquilino y otro. Planifica como si no lo hiciera; el paso 1 te cubre en cualquier caso.
 
-## Vigila la exposición de red
+## Contratos y normativa
 
-Después de conectarte a un nodo, revisa los puertos abiertos:
+Los controles técnicos importan menos que un hecho legal: poner datos en la máquina de alguien lo convierte en parte implicada.
 
-```bash
-ss -tulnp
-```
+- **RGPD.** Un anfitrión de GPU que trata datos personales por ti es un encargado del tratamiento. El artículo 28 exige uno que ofrezca «garantías suficientes» y un contrato vinculante. Un anfitrión particular con el que nunca has firmado nada no cumple eso, y la máquina puede estar fuera de la UE. Anonimiza, o usa un proveedor que firme un DPA.
+- **HIPAA.** El HHS dice que un proveedor en la nube que almacena datos sanitarios electrónicos es un socio comercial aunque los datos estén cifrados y no tenga la clave. Cifrar historiales médicos antes de enviarlos a un anfitrión no verificado no elimina la necesidad de un BAA.
+- **Los contratos de tus clientes.** Muchos acuerdos empresariales restringen los subencargados y la ubicación de los datos. Revísalos antes de la primera subida. La exposición legal suele ser mayor que la técnica.
 
-Tu entrenamiento no necesita puertos de entrada expuestos públicamente.
+El artículo complementario sobre [por qué las empresas restringen las herramientas de IA públicas](/es/why-corporate-policies-banning-chatgpt/) trata las mismas normas desde el lado del chat.
 
-Si experimentas con endpoints de inferencia, enlázalos a localhost salvo que necesites acceso remoto.
+## Inferencia en GPUFlow: otro intercambio
 
-Una configuración de red incorrecta sigue siendo una de las causas más habituales de exposición de datos, tanto en entornos descentralizados como en los de los hiperescaladores.
+GPUFlow no es un sitio donde poner un conjunto de datos. Es un mercado de inferencia: alquilas una GPU por horas y obtienes una clave API compatible con OpenAI (URL base `https://gpuflow.app/v1`) para el modelo abierto que un proveedor ejecuta (normalmente con Ollama) en su propio ordenador. No hay SSH, ni shell, ni acceso a archivos, y no puedes entrenar ni hacer fine-tuning. Nada de lo que subes queda en el disco del proveedor, porque no puedes subir nada.
 
----
+Eso elimina los problemas de disco y de credenciales de esta guía. No elimina el problema del anfitrión. Cada prompt y cada respuesta pasan sin cifrar por la máquina del proveedor mientras dura el alquiler. Las condiciones de GPUFlow prohíben a los proveedores grabarlos, leerlos, conservarlos o compartirlos, y GPUFlow tampoco guarda el texto, pero el proveedor tiene root en la máquina, así que la norma solo se hace cumplir por contrato. Si pasas un conjunto de datos por ahí, un registro por prompt, cada registro llega a ese ordenador.
 
-## Nodos GPU bare metal frente a virtualizados
+Así que úsalo con datos públicos, sintéticos o bien anonimizados, y para probar un modelo abierto o una aplicación contra una API al estilo de OpenAI. Deja los registros regulados y confidenciales en tu propio hardware, en un proveedor con el que tengas contrato o en una VM confidencial. La [guía rápida de la API](https://docs.gpuflow.app/es/renters/api-quickstart/) lo dice en una línea: no envíes contraseñas, números de tarjeta ni otros secretos que no compartirías con un desconocido. El mismo acuerdo visto desde el lado del proveedor está en [¿es seguro alquilar tu GPU?](/es/is-it-safe-to-rent-out-your-gpu/).
 
-Mucha gente da por hecho que alquilar hardware bare metal es, por naturaleza, menos seguro que trabajar dentro de una VM de un hiperescalador. La realidad tiene más matices.
+## Lista de comprobación
 
-La mayoría de los marketplaces de GPU ofrecen aislamiento mediante alguna de estas opciones:
+Antes:
 
-- Máquinas virtuales (KVM, Xen e hipervisores similares)
-- Aislamiento basado en contenedores
-- Instancias dedicadas de un solo inquilino
+- Decide el tipo de datos. Los datos regulados o confidenciales de clientes van a un proveedor con contrato o a una VM confidencial, no a un anfitrión comunitario.
+- Reduce y anonimiza.
+- Cifra con age; no dejes la frase de paso en el nodo.
 
-Con un hipervisor bien configurado, el aislamiento de memoria entre inquilinos se aplica a nivel de hardware. Tu proceso no puede leer el espacio de memoria de otro inquilino.
+Durante:
 
-Los riesgos varían según el entorno:
+- Descifra en `/dev/shm` cuando quepa.
+- Solo tokens acotados y de corta duración.
+- Servicios enlazados a localhost, accesibles por túneles SSH.
 
-**Entornos virtualizados:**
+Después:
 
-- Aislamiento de procesos sólido
-- Disco físico compartido a nivel del host
-- Menor riesgo de acceso cruzado al hardware
-- Más dependencia de la integridad del hipervisor
+- Trae los resultados por SSH; trata los pesos ajustados como sensibles.
+- Destruye la instancia y cualquier volumen de red.
+- Revoca los tokens y las claves de un solo uso.
 
-**Alquileres bare metal:**
+## Fuentes
 
-- Sin exposición de memoria a otros inquilinos
-- Acceso directo al hardware
-- Posible persistencia de datos en disco si no se borra entre sesiones
+- Aislamiento de contenedores y Secure Cloud en Vast.ai: [FAQ de seguridad de Vast.ai](https://docs.vast.ai/guides/reference/faq/security); parar frente a destruir: [gestión de instancias](https://docs.vast.ai/guides/instances/manage-instances)
+- Secure Cloud frente a Community Cloud de RunPod: [elegir un pod](https://docs.runpod.io/pods/choose-a-pod); persistencia del almacenamiento: [tipos de almacenamiento](https://docs.runpod.io/pods/storage/types)
+- LeftoverLocals: [Trail of Bits, enero de 2024](https://blog.trailofbits.com/2024/01/16/leftoverlocals-listening-to-llm-responses-through-leaked-gpu-local-memory/)
+- age: [github.com/FiloSottile/age](https://github.com/FiloSottile/age)
+- Limitaciones de shred: [manual de GNU coreutils, uso de shred](https://www.gnu.org/software/coreutils/manual/html_node/shred-invocation.html)
+- NIST SP 800-88 Rev. 2: [anuncio de NIST, septiembre de 2025](https://www.nist.gov/news-events/news/2025/09/guidelines-media-sanitization-nist-publishes-sp-800-88r2)
+- Diseño de la computación confidencial en H100: [NVIDIA, Confidential Computing on H100 GPUs for Secure and Trustworthy AI](https://developer.nvidia.com/blog/confidential-computing-on-h100-gpus-for-secure-and-trustworthy-ai/); disponibilidad general: [NVIDIA, abril de 2024](https://developer.nvidia.com/blog/announcing-confidential-computing-general-access-on-nvidia-h100-tensor-core-gpus/)
+- Azure: [serie NCCads H100 v5](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nccadsh100v5-series)
+- Google Cloud: [configuraciones compatibles de Confidential VM](https://docs.cloud.google.com/confidential-computing/confidential-vm/docs/supported-configurations), [crear una instancia de Confidential VM con GPU](https://docs.cloud.google.com/confidential-computing/confidential-vm/docs/create-a-confidential-vm-instance-with-gpu)
+- Artículo 28 del RGPD: [gdpr-info.eu](https://gdpr-info.eu/art-28-gdpr/)
+- HIPAA y proveedores en la nube: [HHS, guía sobre HIPAA y computación en la nube](https://www.hhs.gov/hipaa/for-professionals/special-topics/health-information-technology/cloud-computing/index.html)
+- GPUFlow: [guía rápida de la API](https://docs.gpuflow.app/es/renters/api-quickstart/), [qué pueden tocar los inquilinos y qué no](https://docs.gpuflow.app/es/providers/security/), [condiciones](https://gpuflow.app/es/terms), [política de privacidad](https://gpuflow.app/es/privacy)
 
-Desde el punto de vista de la seguridad del dataset, el riesgo principal no es el acceso a la memoria entre inquilinos. Son los datos residuales en disco y la higiene de las credenciales.
-
-En la práctica, un nodo GPU virtualizado bien gestionado, con procedimientos de borrado seguro, es perfectamente adecuado para cargas de fine-tuning.
-
-El nivel de seguridad depende mucho más de la disciplina operativa que de etiquetas comerciales como "bare metal".
-
----
-
-## Cumplimiento normativo: HIPAA, RGPD y riesgo contractual
-
-Si trabajas en un entorno regulado, hay más aspectos a tener en cuenta.
-
-### HIPAA
-
-La información sanitaria protegida (PHI) exige:
-
-- Acceso controlado
-- Cifrado en tránsito
-- Eliminación adecuada de los datos
-
-Antes de usar infraestructura alquilada con PHI, comprueba que:
-
-- Los estándares de cifrado cumplen los requisitos normativos
-- Los datos están desidentificados siempre que sea posible
-- Sabes si necesitas o no un Business Associate Agreement según tu arquitectura
-
-En muchos casos de fine-tuning, trabajar con un corpus desidentificado elimina las restricciones más duras.
-
-### RGPD
-
-Para los datos de personas de la UE:
-
-- Averigua dónde está físicamente el nodo
-- Evita transferencias internacionales innecesarias
-- Reduce al mínimo la información de identificación personal
-
-Minimizar el dataset no es solo una buena práctica de seguridad. También te alinea con la normativa.
-
-### Obligaciones contractuales
-
-Muchos contratos empresariales incluyen cláusulas que restringen:
-
-- La subcontratación del tratamiento
-- La transferencia geográfica de datos
-- El uso de cómputo de terceros
-
-Antes de entrenar en GPU alquiladas, revisa los contratos con tus clientes. A menudo el riesgo legal supera al técnico.
-
-La seguridad operativa debe estar alineada con las responsabilidades contractuales.
-
----
-
-## Privacidad: descentralizado frente a hiperescalador
-
-Persiste la idea de que la infraestructura de un hiperescalador es automáticamente más segura.
-
-En realidad:
-
-- Los hiperescaladores registran muchísima información.
-- Las cuentas están vinculadas a una identidad.
-- Los registros de facturación son permanentes.
-- La actividad puede revisarse según las condiciones de servicio del proveedor.
-
-Los marketplaces descentralizados reducen la supervisión institucional. Combinados con una práctica operativa disciplinada, pueden ofrecer ventajas reales de privacidad.
-
-Si no has repasado las diferencias económicas, consulta nuestra [comparativa de precios de alquiler de GPU en 2026](/es/gpu-rental-pricing-comparison-2026/).
-
-La eficiencia de costes y la privacidad operativa no son incompatibles.
-
----
-
-## Lista de comprobación práctica
-
-Antes del entrenamiento:
-
-- Dataset minimizado y depurado
-- Identificadores sensibles eliminados
-- Método de transferencia cifrada elegido
-- Hardware verificado con `nvidia-smi`
-
-Durante el entrenamiento:
-
-- Uso de la GPU vigilado
-- Ningún servicio de red expuesto sin necesidad
-- Ninguna credencial escrita en disco
-
-Después del entrenamiento:
-
-- Adaptador descargado en local
-- Dataset borrado de forma segura
-- Cachés vaciadas
-- Tokens rotados
-- Historial de la shell borrado
-- Alquiler terminado formalmente
-
-La seguridad no es una función. Es una serie de hábitos.
-
----
-
-## El verdadero riesgo es el descuido
-
-La mayoría de las fugas de datos no ocurren porque alguien eligiera el marketplace de GPU equivocado.
-
-Ocurren porque:
-
-- Se reutilizaron credenciales
-- Se dejaron archivos olvidados
-- Se configuraron mal los buckets
-- Nunca se revocaron los tokens de acceso
-
-El cómputo público es una herramienta. Refleja la disciplina de quien lo usa.
-
-Si sigues prácticas de seguridad estructuradas y repetibles, puedes hacer fine-tuning de modelos en infraestructura alquilada sin exponer datos propietarios, sin incumplir la normativa y sin aumentar el riesgo operativo.
-
-La IA privada no se consigue solo con aislamiento, sino con control: control sobre la transferencia, el tiempo que se guardan los datos, la exposición de las credenciales y el procedimiento de terminación.
-
-Ese control sigue en tus manos.
-
----
-
-## Qué leer a continuación
-
-Si esta guía ha resuelto tus dudas de seguridad, estos recursos profundizan en el coste, la privacidad y la infraestructura:
-
-- [La guía definitiva de fine-tuning privado de LLM en GPU alquiladas](/es/private-llm-fine-tuning-guide/)
-- [Comparativa de precios de alquiler de GPU en 2026](/es/gpu-rental-pricing-comparison-2026/)
-- [Lo que cuesta de verdad alquilar una GPU](/es/hidden-fees-in-gpu-rental/)
-- [Qué necesitas para alquilar una GPU en 2026](/es/what-you-need-to-rent-a-gpu/)
-- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/es/gpuflow-vs-vast-ai-vs-runpod/)
-
-En conjunto, estos artículos describen el marco económico, técnico y operativo para ejecutar cargas de trabajo de IA privadas en infraestructura GPU alquilada.
+Todas revisadas en septiembre de 2026.

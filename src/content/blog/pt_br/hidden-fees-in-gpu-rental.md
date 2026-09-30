@@ -1,176 +1,218 @@
 ---
 title: "Quanto custa de verdade alugar uma GPU: o que o preço por hora não mostra"
-description: "Armazenamento com a máquina parada, tráfego de dados, depósito mínimo, unidade de cobrança, tempo ocioso e tarifas do cartão. O que você realmente paga na Vast.ai, RunPod, Lambda, AWS e GPUFlow além do preço por hora da GPU."
-excerpt: "O preço por hora é só uma parte da conta. Reunimos todas as cobranças extras que encontramos nas principais plataformas de aluguel de GPU, com os valores e a fonte de cada uma."
+description: "Armazenamento com a máquina parada, banda, depósitos e pré-autorizações, tempo de preparação e ocioso, mínimos de cobrança e tarifas do cartão no Vast.ai, RunPod, Lambda, AWS e GPUFlow."
+excerpt: "O preço por hora muitas vezes é menos da metade do que um aluguel de GPU custa. Aqui está cada cobrança extra que conseguimos confirmar nas principais plataformas em setembro de 2026, com a fonte de cada uma e um exemplo com as contas."
 pubDate: 2026-02-15
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "pt_br"
 category: "pricing"
 featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/gpu-server-rack.jpg"
-heroImageAlt: "Close das ventoinhas de servidores de GPU em um rack"
+heroImageAlt: "Close das ventoinhas de servidores com GPU num rack"
 faq:
-  - question: "As plataformas de aluguel de GPU cobram armazenamento quando a máquina está parada?"
-    answer: "Muitas vezes, sim. Na RunPod, o volume disk de um pod parado custa US$ 0,20 por GB por mês, o dobro do valor com o pod rodando. Na Vast.ai, o armazenamento é cobrado a cada segundo em que a instância existe, inclusive parada. O GPUFlow não cobra armazenamento, porque um aluguel é uma chave de API, não uma máquina."
-  - question: "Quais plataformas de aluguel de GPU cobram pelo tráfego de dados?"
-    answer: "Na Vast.ai, cada host define o próprio preço para dados enviados e recebidos, e cada byte é cobrado. A RunPod e a Lambda dizem que não cobram entrada nem saída de dados. A AWS cobra pelos dados enviados para a internet depois dos primeiros 100 GB do mês."
-  - question: "Existe um valor mínimo para começar a alugar?"
-    answer: "O depósito mínimo da Vast.ai é de US$ 5. A Lambda faz uma pré-autorização de US$ 10 no seu cartão. A RunPod exige que quem usa cartão pré-pago deposite pelo menos US$ 100 por transação. No GPUFlow, as recargas começam em US$ 10, sem taxa."
-  - question: "Meu banco cobra alguma tarifa quando pago o aluguel de GPU em dólar?"
-    answer: "Pode cobrar. As tarifas de transação internacional do cartão costumam ficar entre 1% e 3%, e alguns bancos as cobram em compras de lojas estrangeiras mesmo quando o preço aparece em dólar. No Brasil, o IOF sobre compras internacionais com cartão é de 3,5%."
+  - question: "As plataformas de aluguel de GPU cobram armazenamento com a máquina parada?"
+    answer: "Normalmente, sim. No RunPod, o volume disk de um pod parado custa US$ 0,20 por GB por mês, o dobro do preço com ele rodando. No Vast.ai, o armazenamento é cobrado a cada segundo em que a instância existe, inclusive parada. Na AWS, os volumes EBS continuam sendo cobrados depois que a instância para. O GPUFlow não cobra armazenamento porque o aluguel é uma chave de API, não uma máquina."
+  - question: "Quais plataformas de aluguel de GPU cobram pela banda?"
+    answer: "No Vast.ai, cada host define um preço de banda e cada byte enviado ou recebido é cobrado, em qualquer estado da instância. O RunPod e a Lambda dizem não cobrar nada por entrada ou saída de dados. A AWS dá 100 GB de saída para a internet grátis por mês e depois cobra por GB."
+  - question: "Existe depósito mínimo para alugar uma GPU?"
+    answer: "O depósito mínimo do Vast.ai é de US$ 5. O RunPod exige pelo menos uma hora de crédito para o pod escolhido, e cartões pré-pagos devem depositar no mínimo US$ 100 por transação. A Lambda faz uma pré-autorização de US$ 10 no seu cartão. No GPUFlow as recargas começam em US$ 10, sem taxa, e o valor total reservado fica retido quando o aluguel começa."
+  - question: "Uma instância de GPU parada na nuvem continua custando dinheiro?"
+    answer: "A GPU para de ser cobrada, o armazenamento não. Uma instância parada na AWS continua pagando pelos volumes EBS e por qualquer Elastic IP associado. No Azure, uma VM que está apenas Stopped continua pagando pelos núcleos; ela precisa ficar Stopped (Deallocated) para a cobrança de computação parar."
+  - question: "O que acontece se o meu saldo acabar durante um aluguel de GPU?"
+    answer: "No RunPod, os pods param quando o saldo chega a US$ 0, e pods sem network volume são encerrados junto com os dados. No Vast.ai, as instâncias param e, sem um cartão salvo, são destruídas depois de um curto período de tolerância. No GPUFlow isso não acontece no meio de um aluguel, porque a reserva inteira fica retida quando ele começa."
+  - question: "Meu banco cobra taxa quando eu pago aluguel de GPU em dólar?"
+    answer: "Pode cobrar. As tarifas sobre compras internacionais costumam ficar entre 1% e 3%, e alguns bancos cobram mesmo quando o preço já está em dólar, só porque o lojista é estrangeiro. Muitos cartões canadenses cobram cerca de 2,5%, e o IOF sobre compras internacionais com cartão no Brasil é de 3,5%."
 ---
 
-O preço de um anúncio de GPU é por hora de uso da GPU. O que você paga no fim do mês costuma incluir outras coisas: espaço em disco, transferência de dados, o tempo de configuração e as tarifas do seu próprio banco. Nada disso fica escondido de propósito, mas é fácil deixar passar quando você compara plataformas só pelo preço de vitrine.
+O preço por hora de uma oferta de GPU cobre o tempo de GPU e mais nada. Na maioria das plataformas você também paga pelo espaço em disco (muitas vezes mais caro com a máquina parada do que rodando), pela transferência de dados em alguns marketplaces, pelo tempo de preparação e pelo tempo ocioso que o taxímetro conta como trabalho de verdade, e pela taxa de câmbio do seu banco. No exemplo mais abaixo, um mês planejado em US$ 13,60 de tempo de RTX 4090 vira uma conta de US$ 42,23.
 
-Este artigo lista todas as cobranças extras que conseguimos confirmar nas principais plataformas, com o link da fonte de cada uma. Verificamos tudo em setembro de 2026. Preços mudam, então confira os links antes de confiar em um número.
+Nada disso é escondido de propósito. Só é fácil de deixar passar quando você compara plataformas pelo número da vitrine. Tudo o que vem a seguir foi conferido na documentação e nas páginas de preço de cada plataforma em setembro de 2026; os links estão no final. Para os preços por hora em si, veja a [comparação de preços de aluguel de GPU](/pt_br/gpu-rental-pricing-comparison-2026/).
 
-## Resumo
+## Os extras por plataforma
 
 | Custo | Vast.ai | RunPod | Lambda | AWS EC2 | GPUFlow |
 | --- | --- | --- | --- | --- | --- |
 | Unidade de cobrança | Por segundo | Por segundo | Por minuto | Por segundo, mínimo de 60 s | Por segundo, mínimo de 1 min |
-| Armazenamento com a máquina rodando | Definido pelo host | US$ 0,10/GB/mês | Filesystems, por GB/mês | US$ 0,08/GB/mês (gp3) | Nenhum |
-| Armazenamento com a máquina parada | Sim, cobrado | US$ 0,20/GB/mês (volume disk) | Filesystems, por GB/mês | US$ 0,08/GB/mês (gp3) | Nenhum |
-| Transferência de dados | Definida pelo host, cada byte | Grátis | Grátis | Saída para a internet: primeiros 100 GB/mês grátis, depois pago | Nenhuma |
-| Mínimo para começar | Depósito de US$ 5 | 1 hora de crédito; US$ 100 com cartão pré-pago | Pré-autorização de US$ 10 no cartão | Forma de pagamento e cota de GPU | Recarga de US$ 10 |
+| Armazenamento com a máquina parada | Cobrado pela tarifa do host | Volume disk a US$ 0,20/GB/mês | Filesystems cobrados por GiB/mês | O EBS continua sendo cobrado | Nenhum |
+| Transferência de dados | Tarifa do host, cada byte | Sem cobrança | Sem cobrança | Saída: 100 GB/mês grátis, depois por GB | Nenhuma |
+| Para começar | Depósito mínimo de US$ 5 | 1 hora de crédito; US$ 100 para cartões pré-pagos | Pré-autorização de US$ 10 no cartão | Uma forma de pagamento | Recarga de US$ 10; reserva retida por inteiro |
+| Saldo chega a zero | Parada, depois destruída | Parado; sem network volume, os dados somem | Cobrança semanal depois do uso | n/d | Não acontece no meio do aluguel |
 
-O GPUFlow consegue dispensar as cobranças de armazenamento e de transferência porque aluga outra coisa: você recebe uma chave de API para modelos de IA que rodam na GPU de outra pessoa, não uma máquina em que você faz login. Isso também significa que você não pode rodar seu próprio código nem treinar modelos nele. Falamos mais sobre isso abaixo.
+O GPUFlow pode pular as linhas de armazenamento e transferência porque aluga outra coisa: uma chave de API compatível com a OpenAI para modelos de IA que já estão rodando na GPU de um provedor, e não uma máquina em que você entra. O outro lado é que você não pode rodar o seu próprio código, treinar ou fazer fine-tuning nele. Se você precisa de uma máquina, as outras quatro colunas são as que valem para você.
 
-## 1. Armazenamento, principalmente com a máquina parada
+## Armazenamento, principalmente com a máquina parada
 
-Nas plataformas que alugam uma máquina ou um contêiner, seus arquivos ficam em um disco, e o disco custa dinheiro enquanto existir.
+Em qualquer plataforma que aluga uma máquina ou um contêiner, os seus arquivos ficam num disco, e o disco custa dinheiro enquanto existir.
 
-- A **RunPod** cobra US$ 0,10 por GB por mês pelo container disk e pelo volume disk enquanto o pod está rodando. Quando você para o pod, o container disk deixa de existir e não custa nada, mas o volume disk passa a custar **US$ 0,20 por GB por mês**. Network volumes custam US$ 0,07 por GB por mês abaixo de 1 TB, rodando ou não.
-- A **Vast.ai** deixa cada host definir o preço do armazenamento. Ele é cobrado a cada segundo em que a instância existe, inclusive parada.
-- A **AWS** cobra os volumes EBS com a instância rodando ou não. Um volume gp3 em us-east-1 custa US$ 0,08 por GB por mês.
+- **RunPod** cobra US$ 0,10 por GB por mês pelo container disk e pelo volume disk enquanto o pod roda. Quando você para o pod, o container disk é apagado e não custa nada, mas o volume disk sobe para US$ 0,20 por GB por mês. Network volumes custam US$ 0,07 por GB por mês abaixo de 1 TB e US$ 0,05 acima disso, rodando ou não. Os planos de economia cobrem só a computação de GPU; o armazenamento é cobrado pelas tarifas normais.
+- **Vast.ai** cobra o armazenamento "a cada segundo em que a sua instância existe", em todos os estados, menos offline. A documentação é direta: "Parar uma instância não evita os custos de armazenamento." Quem define a tarifa é o host.
+- **AWS** não cobra computação nem transferência de dados de uma instância parada, mas "há cobranças para armazenar volumes do Amazon EBS", e um Elastic IP associado a uma instância parada continua sendo cobrado. Um volume gp3 em us-east-1 custa cerca de US$ 0,08 por GB por mês.
+- **Lambda** cobra os filesystems por GiB usado por mês, em incrementos de uma hora.
 
-Um exemplo: um volume de 200 GB em um pod parado da RunPod custa 200 × US$ 0,20 = **US$ 40 por mês**, mesmo que você nunca mais ligue o pod. Isso é mais do que 100 horas de uma RTX 3090 pelos preços típicos de marketplace que listamos mais abaixo.
+Um volume disk de 200 GB num pod parado do RunPod custa 200 × US$ 0,20 = US$ 40 por mês, mesmo que você nunca mais ligue o pod. É mais do que 100 horas de uma RTX 4090 pelo preço do Community Cloud do RunPod.
 
-**O que fazer:** apague os volumes que você não está usando. Se você só precisa guardar os arquivos entre uma sessão e outra, um network volume pequeno sai mais barato do que manter um pod grande parado.
+Ficar sem crédito piora a situação. Quando o saldo do RunPod chega a US$ 0, os pods param, e "Pods sem network volume são encerrados, e os dados deles não podem ser recuperados." O Vast.ai também para as instâncias e, se você não tiver cartão salvo, "suas instâncias e dados armazenados serão destruídos" depois de um curto período de tolerância. Ou seja, um volume esquecido ou continua cobrando ou desaparece com o seu trabalho dentro.
 
-## 2. Transferência de dados
+O que eu faço: apago os volumes no dia em que o projeto acaba, guardo só o que ainda preciso num network volume pequeno e mantenho uma cópia de tudo o que é importante fora da plataforma de GPU.
 
-Baixar um modelo e enviar um dataset pode movimentar dezenas de gigabytes.
+## Transferência de dados
 
-- **Vast.ai:** cada host define um preço para upload e download, e a documentação diz que cada byte é cobrado, seja qual for o estado da instância. Veja o preço de banda no anúncio antes de alugar, principalmente se você for baixar modelos grandes.
-- A **RunPod** e a **Lambda** dizem que não cobram entrada nem saída de dados.
-- **AWS:** a entrada de dados é grátis. A saída para a internet é grátis nos primeiros 100 GB do mês e depois é cobrada por GB. A AWS também cobra US$ 0,005 por hora por endereço IPv4 público, em uso ou não.
+Baixar um modelo de 15 GB e subir um dataset pode movimentar dezenas de gigabytes por sessão.
 
-## 3. Depósitos mínimos e bloqueios no cartão
+- **Vast.ai** cobra "preços de banda por cada byte enviado ou recebido pela instância, qualquer que seja o estado dela." Cada host define o próprio preço de upload e download, e a documentação avisa que isso "pode ter um impacto significativo no custo total de cargas de trabalho com muitos dados." Olhe esse preço na oferta antes de alugar.
+- **RunPod** diz que os pods "não têm cobrança de entrada/saída de dados."
+- **Lambda**: "Você não é cobrado por entrada nem por saída de dados."
+- **AWS**: a entrada de dados é grátis. A saída para a internet é grátis nos primeiros 100 GB por mês, somando todos os serviços e regiões, e depois é cobrada por GB em faixas. Cada endereço IPv4 público custa US$ 0,005 por hora, em uso ou não, o que dá US$ 3,60 num mês de 720 horas.
 
-A maioria das plataformas de GPU é pré-paga. Você compra crédito primeiro e depois gasta.
+## Depósitos, pré-autorizações e crédito pré-pago
 
-- **Vast.ai:** depósito mínimo de US$ 5.
-- **RunPod:** você precisa de pelo menos uma hora de crédito para a máquina que escolher, e cartões pré-pagos precisam depositar no mínimo US$ 100 por transação.
-- **Lambda:** uma pré-autorização de US$ 10 no seu cartão, estornada depois de alguns dias.
-- **SaladCloud:** o crédito expira 12 meses após a compra.
-- **GPUFlow:** recargas de US$ 10 a US$ 500, sem taxa, e os créditos não expiram.
+A maioria das plataformas de GPU é pré-paga: você compra crédito e depois gasta. O dinheiro que fica parado lá também é um custo, principalmente quando não tem como voltar.
 
-Crédito que expira ou fica parado também é custo. Compre o que você espera usar.
+- **Vast.ai**: depósito mínimo de US$ 5, por cartão, BitPay ou Crypto.com. O crédito não gasto comprado com cartão pode ser reembolsado a pedido pelo chat do site; o crédito gasto, não.
+- **RunPod**: você precisa ter pelo menos uma hora de crédito para o pod escolhido, e cartões pré-pagos devem depositar no mínimo US$ 100 por transação. Os créditos não são reembolsáveis e não podem ser sacados.
+- **Lambda** funciona ao contrário: cobra toda semana o uso da semana anterior e faz uma pré-autorização de US$ 10 quando você cadastra um cartão, estornada em poucos dias. Só aceita os principais cartões de crédito; pré-pagos e de débito são recusados.
+- **SaladCloud**: recargas de US$ 5 a US$ 10.000, e o crédito expira 12 meses depois da compra.
+- **GPUFlow**: recargas de US$ 10 a US$ 500 com cartão via Stripe, sem taxa, e os créditos não expiram. Quando você inicia um aluguel, o valor total reservado fica retido dos seus créditos, não um pequeno depósito. Reserve 10 horas a US$ 0,40 e US$ 4,00 ficam retidos até o aluguel terminar; o que você não usou volta nesse momento. Créditos comprados não podem ser sacados, e reembolso no cartão só existe para cobrança duplicada ou feita por engano, créditos que nunca chegaram ou exigência legal, dentro de 60 dias.
 
-## 4. Tempo de configuração é tempo cobrado
+![Formulário de aluguel do GPUFlow para uma oferta de US$ 0,35 por hora com 2 horas reservadas, mostrando US$ 0,70 retidos de US$ 25,00 em créditos disponíveis](../_images/screens/pt_br/renter-rent.png)
 
-Quando você aluga uma máquina, o relógio começa a contar quando ela liga, não quando o seu trabalho começa. Instalar drivers e bibliotecas, baixar uma imagem de contêiner e baixar um modelo de 15 GB, tudo isso acontece em tempo pago. A US$ 0,35 por hora, meia hora de configuração dá cerca de US$ 0,18. É pouco em uma sessão, mas soma se você sobe máquinas novas todo dia.
+Crédito que expira, ou que fica parado numa plataforma que você deixou de usar, é dinheiro gasto. Recarregue para o trabalho que você espera fazer neste mês, não para o ano.
 
-Duas coisas ajudam: usar um template ou uma imagem de contêiner que já tenha o que você precisa, e guardar os modelos em um volume para baixá-los uma vez só (e então pesar isso contra o custo de armazenamento do item 1).
+## Tempo de preparação e tempo ocioso
 
-No GPUFlow, o modelo já está instalado na máquina do provedor antes de você alugar. Não há nada para configurar: você paga a partir do momento em que o aluguel começa, e a chave funciona na hora.
+Uma máquina alugada cobra por tempo, não por trabalho. Dois tipos de tempo custam o mesmo que trabalho de verdade e não produzem nada.
 
-## 5. Unidade de cobrança e mínimos
+### Preparação
 
-A cobrança por segundo virou padrão, mas os mínimos variam:
+O taxímetro começa quando a máquina liga. Na Lambda, "a cobrança começa no momento em que você lança uma instância e ela passa nas verificações de saúde." Instalar bibliotecas, baixar uma imagem de contêiner e baixar um modelo, tudo isso acontece em tempo pago. A US$ 0,34 por hora, 15 minutos de preparação dão cerca de US$ 0,09. Pouco numa vez só, mas faça isso todo dia durante um mês e são algumas horas de GPU.
+
+Duas coisas ajudam: começar de um template ou imagem que já tenha o seu ambiente, e guardar os modelos num volume para baixá-los uma vez só (e aí pesar isso contra o custo de armazenamento acima).
+
+No GPUFlow não existe etapa de preparação do seu lado: o provedor já instalou os modelos na máquina, e você recebe a chave de API assim que o aluguel começa.
+
+### Tempo ocioso
+
+A Lambda diz com todas as letras: "As instâncias são cobradas enquanto estiverem rodando, estejam elas sendo usadas ativamente ou não." O Google Cloud diz o mesmo sobre uma VM ociosa que continua no estado RUNNING. Deixar um pod ligado durante a noite para ele estar pronto de manhã custa uma noite de GPU.
+
+O Azure tem uma armadilha a mais. Uma VM que está apenas "Stopped" (por exemplo, desligada de dentro do sistema operacional) continua pagando pelos núcleos. Ela precisa ficar "Stopped (Deallocated)", pelo portal ou pela CLI, para a cobrança de computação acabar.
+
+O GPUFlow também não está imune: você paga até clicar em **Encerrar agora** ou até o tempo reservado acabar. Encerrar antes não custa nada e a parte não usada da reserva volta, então a solução é simplesmente encerrar o aluguel quando terminar. [Como funciona a cobrança do GPUFlow](https://docs.gpuflow.app/pt-br/renters/billing/).
+
+## Incrementos e mínimos de cobrança
+
+Cobrança por segundo é comum hoje, mas os detalhes mudam:
 
 | Plataforma | Como o tempo é cobrado |
 | --- | --- |
-| Vast.ai | Por segundo, sem mínimo |
-| Pods da RunPod | Por segundo |
-| RunPod serverless | Por segundo, arredondado para cima; você também paga o tempo de inicialização do worker e um tempo ocioso (5 segundos por padrão) |
-| Lambda | Por minuto |
+| Vast.ai | Por segundo |
+| RunPod pods | Por segundo (a página de visão geral dos pods ainda diz por minuto) |
+| RunPod serverless | Por segundo, arredondado para cima, incluindo o tempo de inicialização do worker e um tempo ocioso (5 segundos por padrão) |
+| Lambda | Incrementos de um minuto |
 | AWS EC2 (Linux) | Por segundo, mínimo de 60 segundos |
-| Google Cloud | Por segundo, mínimo de 1 minuto |
-| GPUFlow | Por segundo, mínimo de 1 minuto |
+| Google Cloud | Por segundo depois de um mínimo de 1 minuto |
+| Azure | Minutos completos |
+| GPUFlow | Por segundo, mínimo de 1 minuto, arredondado para cima até o centavo seguinte |
 
-É no serverless que a unidade de cobrança mais pesa. Se você manda requisições curtas com pausas entre elas, o tempo de inicialização e o tempo ocioso podem custar mais do que as próprias requisições.
+Em trabalhos longos essas diferenças são ruído. Elas pesam em muitas sessões curtas e no serverless, em que o tempo de inicialização e o tempo ocioso são cobrados além das requisições. Se você manda requisições curtas com intervalos entre elas, esses tempos podem custar mais do que as próprias requisições. [Cobrança por segundo ou por hora](/pt_br/per-second-vs-hourly-gpu-billing/) faz as contas.
 
-## 6. Tempo ocioso em uma máquina ligada
+## Instâncias interruptíveis
 
-Uma máquina alugada por hora custa o mesmo com a GPU trabalhando ou esperando por você. Deixar um pod ligado a noite toda "para já estar pronto de manhã" é um jeito fácil de gastar demais. A Lambda diz isso com todas as letras: as instâncias são cobradas enquanto estão rodando, sendo usadas ou não.
+Capacidade interruptível (spot) é mais barata, às vezes muito mais barata, mas pode ser tomada de volta.
 
-**O que fazer:** coloque um lembrete ou use um recurso da plataforma que desliga máquinas ociosas. No GPUFlow você reserva um número de horas; se terminar antes, clique em **Encerrar agora** e o tempo não usado volta para os seus créditos. [Como funciona a cobrança do GPUFlow](https://docs.gpuflow.app/pt-br/renters/billing/).
+- O Vast.ai diz que as instâncias interruptíveis são "muitas vezes 50% ou mais baratas que as sob demanda."
+- Na AWS, em setembro de 2026, uma p5.4xlarge (uma H100) custava US$ 2,62 por hora no spot contra US$ 6,88 sob demanda.
+- No TensorDock, o armazenamento é cobrado pela tarifa normal além do seu lance, e você continua pagando enquanto estiver sendo superado. Os hosts definem um lance mínimo, normalmente em torno de 50% do preço sob demanda.
 
-## 7. Máquinas interruptíveis
+O custo escondido é o trabalho repetido. Se o seu trabalho não consegue recomeçar de um checkpoint, uma única interrupção pode apagar a economia. Salve checkpoints com frequência suficiente para que perder o último intervalo não doa.
 
-Máquinas interruptíveis (spot) são mais baratas, muitas vezes custam metade ou menos, mas podem ser paradas quando alguém paga mais. A Vast.ai as chama de interruptible e diz que costumam custar pelo menos 50% menos. Na TensorDock, o armazenamento continua sendo cobrado enquanto outra pessoa estiver pagando mais que você. Se o seu trabalho não consegue retomar a partir de um checkpoint, uma interrupção significa pagar duas vezes pelo mesmo trabalho.
+## As taxas do seu banco
 
-## 8. As tarifas do seu banco
+Quase toda plataforma de GPU, o GPUFlow incluído, cobra em dólar americano. Se o seu cartão é em outra moeda, o banco pode somar uma taxa própria:
 
-Quase todas as plataformas de GPU cobram em dólar. Se o seu cartão é de outra moeda, o banco pode acrescentar uma tarifa:
+- As tarifas sobre compras internacionais costumam ficar entre 1% e 3%, e alguns bancos cobram mesmo quando o preço aparece em dólar, só porque o lojista é estrangeiro.
+- A maioria dos cartões de crédito canadenses cobra cerca de 2,5% em compras em outra moeda.
+- No Brasil, o IOF sobre compras internacionais com cartão é de 3,5% desde julho de 2025.
 
-- As tarifas de transação internacional costumam ficar entre **1% e 3%**. Alguns bancos as cobram em compras de lojas estrangeiras mesmo quando o preço aparece em dólar.
-- Muitos cartões de crédito canadenses cobram cerca de **2,5%** em compras em outra moeda.
-- No Brasil, o **IOF sobre compras internacionais com cartão é de 3,5%**.
+Numa recarga de US$ 100, isso dá de US$ 1 a US$ 3,50 que você não vai ver na fatura da plataforma. Um cartão sem tarifa sobre compras internacionais elimina quase tudo.
 
-Em uma recarga de US$ 100, isso dá de US$ 1 a US$ 3,50 que não aparecem na fatura da plataforma. Um cartão sem tarifa de transação internacional elimina a maior parte disso.
+## Um exemplo com as contas: US$ 0,34 por hora, US$ 42 por mês
 
-## 9. Para provedores: taxas e mínimos de saque
+Um mês realista numa RTX 4090 do Community Cloud do RunPod a US$ 0,34 por hora, com um cartão de crédito canadense:
 
-Se você aluga a sua própria GPU, a plataforma fica com uma parte, e os saques têm regras próprias:
+- 40 horas de trabalho de verdade: 40 × US$ 0,34 = US$ 13,60. É esse o número que entra no orçamento.
+- 20 sessões com 15 minutos de preparação cada, 5 horas: 5 × US$ 0,34 = US$ 1,70.
+- Duas noites em que o pod ficou ligado, 10 horas cada: 20 × US$ 0,34 = US$ 6,80.
+- Um volume disk de 100 GB mantido o mês inteiro. Ele roda 65 das 720 horas do mês e fica parado nas outras 655: 100 × (US$ 0,10 × 65/720 + US$ 0,20 × 655/720) = cerca de US$ 19,10.
+- Subtotal de US$ 41,20, mais uma tarifa internacional de 2,5%: US$ 1,03.
 
-| Plataforma | O que fica com o provedor | Saque mínimo | Taxa de saque |
-| --- | --- | --- | --- |
-| GPUFlow | 88% do preço do aluguel | US$ 25 | US$ 2,50 por saque |
-| Vast.ai | A Vast diz que os preços anunciados costumam ficar cerca de 25% acima do que os hosts recebem | US$ 20 | Não informada pela Vast; o seu serviço de pagamento pode cobrar |
-| TensorDock | O contrato de hospedagem cita uma taxa de 20% ou 25% (o texto traz as duas) | US$ 250 antes do saque | Não informada |
+Total: US$ 42,23, cerca de 3,1 vezes o trabalho de GPU que você planejou. O RunPod não cobra transferência de dados, então num host do Vast.ai com preço de banda haveria mais uma linha.
 
-O GPUFlow também retém os ganhos por 7 dias (14 dias para contas com menos de 30 dias) antes de liberar o saque, para cobrir contestações de cartão. [Como funcionam os saques no GPUFlow](https://docs.gpuflow.app/pt-br/providers/getting-paid/).
+<figure>
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">Gráfico de barras empilhadas: um mês planejado em 13,60 dólares de tempo de RTX 4090 vira uma conta de 42,23 dólares depois do tempo de preparação, das noites ociosas, do armazenamento em disco e da tarifa do cartão</title>
+<rect x="0" y="0" width="720" height="300" fill="#ffffff"/>
+<text x="20" y="28" fill="#1e1b4b" font-weight="600">Um mês numa RTX 4090 a $0.34 por hora</text>
+<line x1="130" y1="50" x2="130" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="130" y="190" text-anchor="middle" fill="#64748b" font-size="13">$0</text>
+<line x1="250" y1="50" x2="250" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="250" y="190" text-anchor="middle" fill="#64748b" font-size="13">$10</text>
+<line x1="370" y1="50" x2="370" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="370" y="190" text-anchor="middle" fill="#64748b" font-size="13">$20</text>
+<line x1="490" y1="50" x2="490" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="490" y="190" text-anchor="middle" fill="#64748b" font-size="13">$30</text>
+<line x1="610" y1="50" x2="610" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="610" y="190" text-anchor="middle" fill="#64748b" font-size="13">$40</text>
+<text x="120" y="84" text-anchor="end" fill="#1e1b4b">Planejado</text>
+<rect x="130" y="62" width="163.2" height="34" rx="3" fill="#6366f1"/>
+<text x="301.2" y="84" fill="#1e1b4b">$13.60</text>
+<text x="120" y="144" text-anchor="end" fill="#1e1b4b">Cobrado</text>
+<rect x="130" y="122" width="163.2" height="34" fill="#6366f1"/>
+<rect x="293.2" y="122" width="20.4" height="34" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<rect x="313.6" y="122" width="81.6" height="34" fill="#f97316"/>
+<rect x="395.2" y="122" width="229.2" height="34" fill="#64748b"/>
+<rect x="624.4" y="122" width="12.4" height="34" fill="#1e1b4b"/>
+<text x="644.8" y="144" fill="#1e1b4b" font-weight="600">$42.23</text>
+<line x1="130" y1="50" x2="130" y2="170" stroke="#64748b" stroke-width="1.5"/>
+<rect x="20" y="209" width="16" height="16" fill="#6366f1"/>
+<text x="44" y="222" fill="#1e1b4b">Trabalho na GPU: $13.60</text>
+<rect x="250" y="209" width="16" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="274" y="222" fill="#1e1b4b">Preparação: $1.70</text>
+<rect x="480" y="209" width="16" height="16" fill="#f97316"/>
+<text x="504" y="222" fill="#1e1b4b">Noites ociosas: $6.80</text>
+<rect x="20" y="245" width="16" height="16" fill="#64748b"/>
+<text x="44" y="258" fill="#1e1b4b">Volume disk: $19.10</text>
+<rect x="250" y="245" width="16" height="16" fill="#1e1b4b"/>
+<text x="274" y="258" fill="#1e1b4b">Tarifa do cartão: $1.03</text>
+</svg>
+<figcaption>O exemplo desta seção, em escala: 40 horas de trabalho real de GPU a US$ 0,34 por hora, mais 5 horas de preparação, duas noites esquecidas, um volume disk de 100 GB mantido o mês todo e uma tarifa de cartão de 2,5%. O trabalho de GPU é menos de um terço da conta.</figcaption>
+</figure>
 
-## Preços típicos de GPU, setembro de 2026
+O maior item nem é a GPU, é um disco que ficou parado 91% do mês. A solução é sem graça: apagar o volume ou diminuí-lo, e encerrar o pod quando parar de trabalhar.
 
-Para ter uma referência, estas são as faixas de preço sob demanda que encontramos na Vast.ai, RunPod, Salad, SimplePod, TensorDock, Hyperstack e Lambda em setembro de 2026:
+### Um checklist antes de alugar
 
-| GPU | Preço típico por hora |
-| --- | --- |
-| RTX 3060 12 GB | US$ 0,05 – US$ 0,08 |
-| RTX 3090 | US$ 0,11 – US$ 0,31 |
-| RTX 4090 | US$ 0,30 – US$ 0,46 |
-| RTX 5090 | US$ 0,41 – US$ 0,69 |
+1. Some o tempo de GPU com o armazenamento pelo tempo em que você vai manter os arquivos, pela tarifa de máquina parada.
+2. Confira o preço de banda na oferta, se a plataforma cobrar, e estime quanto você vai baixar.
+3. Conte o tempo de preparação como tempo pago.
+4. Saiba como você vai parar de pagar: encerrar o aluguel, parar ou desalocar a máquina, apagar o volume.
+5. Saiba o que acontece com os seus dados se o saldo chegar a zero.
+6. Confira a tarifa internacional do seu cartão.
 
-Para comparar, uma NVIDIA L4 na AWS (g6.xlarge em us-east-1) custa cerca de US$ 0,80 por hora, e uma A10G (g5.xlarge), cerca de US$ 1,01.
-
-## Checklist antes de alugar
-
-1. Some o tempo de GPU **mais** o armazenamento pelo tempo em que você vai manter os arquivos.
-2. Veja o preço de banda, se a plataforma cobrar, e quanto você vai baixar.
-3. Conte o tempo de configuração como tempo pago.
-4. Saiba como vai parar de pagar: encerrar o aluguel, parar a máquina, apagar o volume.
-5. Confira a tarifa de transação internacional do seu cartão.
-
-Se o que você precisa é de um modelo de IA para chamar a partir do seu código, e não de uma máquina para rodar o seu próprio software, um aluguel baseado em API elimina os itens 1, 2 e 4 por completo. Se você precisa de uma máquina inteira para treinar modelos, as plataformas acima são a ferramenta certa, e este checklist é o que mantém a conta perto do preço por hora.
-
-## Artigos relacionados
-
-- [GPU por hora ou API por token? Quanto custa de verdade rodar um modelo de 7B–8B](/pt_br/hourly-gpu-vs-per-token-api/)
-- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud: qual combina com o seu trabalho](/pt_br/gpuflow-vs-vast-ai-vs-runpod/)
-- [O que é preciso para alugar uma GPU em 2026](/pt_br/what-you-need-to-rent-a-gpu/)
+Se o que você precisa é de um modelo de IA para chamar a partir do seu código, e não de uma máquina para rodar o seu próprio software, um aluguel via API elimina de vez as linhas de armazenamento, transferência e preparação. [GPU por hora ou API por token](/pt_br/hourly-gpu-vs-per-token-api/) compara isso com pagar por token, e [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/pt_br/gpuflow-vs-vast-ai-vs-runpod/) mostra qual plataforma serve para qual trabalho. Para treino ou qualquer outra coisa que exija uma máquina inteira, este checklist é o que mantém a conta perto do preço por hora.
 
 ## Fontes
 
-Tudo verificado em setembro de 2026.
+- RunPod: [preços de pods e armazenamento](https://docs.runpod.io/pods/pricing), [página de preços](https://www.runpod.io/pricing), [visão geral dos pods](https://docs.runpod.io/pods/overview), [preços do serverless](https://docs.runpod.io/serverless/pricing), [informações de cobrança](https://docs.runpod.io/references/billing-information), [preços da RTX 4090](https://www.runpod.io/gpu-models/rtx-4090)
+- Vast.ai: [preços](https://docs.vast.ai/guides/instances/pricing.md), [cobrança](https://docs.vast.ai/documentation/reference/billing), [guia rápido (depósito mínimo)](https://docs.vast.ai/guides/get-started/quickstart.md)
+- Lambda: [cobrança](https://docs.lambda.ai/public-cloud/billing/), [gerenciar cobrança](https://docs.lambda.ai/public-cloud/manage-billing/)
+- SaladCloud: [cobrança](https://docs.salad.com/general/explanation/billing.md)
+- TensorDock: [instâncias spot](https://docs.tensordock.com/virtual-machines/spot-instances)
+- AWS: [preços sob demanda do EC2](https://aws.amazon.com/ec2/pricing/on-demand/), [como funciona parar e iniciar](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/how-ec2-instance-stop-start-works.html), [preços da VPC (IPv4 público)](https://aws.amazon.com/vpc/pricing/), [preços da p5.4xlarge via Vantage](https://instances.vantage.sh/aws/ec2/p5.4xlarge?region=us-east-1), preço do gp3: [guia de preços do EBS da CloudBurn](https://cloudburn.io/blog/amazon-ebs-pricing)
+- Google Cloud: [preços de instâncias de VM](https://cloud.google.com/compute/vm-instance-pricing)
+- Azure: [preços e FAQ de VMs Linux](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/)
+- Tarifas de cartão: [Experian](https://www.experian.com/blogs/ask-experian/what-is-a-foreign-transaction-fee/), [NerdWallet Canadá](https://www.nerdwallet.com/ca/p/best/credit-cards/best-no-foreign-transaction-fee-credit-cards), IOF no Brasil: [Wise Brasil](https://wise.com/br/blog/iof-cartao-internacional)
+- GPUFlow: [cobrança](https://docs.gpuflow.app/pt-br/renters/billing/), [primeiros passos](https://docs.gpuflow.app/pt-br/renters/getting-started/), [marketplace](https://gpuflow.app/pt-BR/marketplace)
 
-- Preços e armazenamento de pods da RunPod: [docs.runpod.io/pods/pricing](https://docs.runpod.io/pods/pricing)
-- Cobrança do serverless da RunPod: [docs.runpod.io/serverless/pricing](https://docs.runpod.io/serverless/pricing)
-- Cobrança e depósitos da RunPod: [docs.runpod.io/references/billing-information](https://docs.runpod.io/references/billing-information)
-- Preços e cobrança da Vast.ai: [docs.vast.ai/guides/instances/pricing.md](https://docs.vast.ai/guides/instances/pricing.md), [docs.vast.ai/documentation/reference/billing](https://docs.vast.ai/documentation/reference/billing)
-- Depósito da Vast.ai: [quickstart da docs.vast.ai](https://docs.vast.ai/guides/get-started/quickstart.md)
-- Pagamentos aos hosts da Vast.ai: [docs.vast.ai/host/payment.md](https://docs.vast.ai/host/payment.md), artigo sobre ganhos dos hosts: [vast.ai](https://vast.ai/article/how-much-money-can-you-earn-renting-out-your-gpu-on-vast-ai)
-- Cobrança da Lambda: [docs.lambda.ai/public-cloud/billing](https://docs.lambda.ai/public-cloud/billing/), [gerenciar a cobrança](https://docs.lambda.ai/public-cloud/manage-billing/), [preços ("No egress fees")](https://lambda.ai/pricing)
-- Cobrança da SaladCloud: [cobrança na docs.salad.com](https://docs.salad.com/general/explanation/billing.md)
-- Instâncias spot da TensorDock: [docs.tensordock.com](https://docs.tensordock.com/virtual-machines/spot-instances), contrato de fornecedor: [docs.tensordock.com](https://docs.tensordock.com/legal-information/supplier-hosting-agreement.md)
-- Cobrança do AWS EC2: [aws.amazon.com/ec2/pricing/on-demand](https://aws.amazon.com/ec2/pricing/on-demand/); EBS: [aws.amazon.com/ebs/pricing](https://aws.amazon.com/ebs/pricing/); IPv4 público: [aws.amazon.com/vpc/pricing](https://aws.amazon.com/vpc/pricing/)
-- Preços de instâncias da AWS: [instances.vantage.sh g6.xlarge](https://instances.vantage.sh/aws/ec2/g6.xlarge?region=us-east-1), [g5.xlarge](https://instances.vantage.sh/aws/ec2/g5.xlarge?region=us-east-1)
-- Cobrança de VMs no Google Cloud: [cloud.google.com/compute/vm-instance-pricing](https://cloud.google.com/compute/vm-instance-pricing)
-- Tarifas de transação internacional do cartão: [Experian](https://www.experian.com/blogs/ask-experian/what-is-a-foreign-transaction-fee/), [NerdWallet Canadá](https://www.nerdwallet.com/ca/p/best/credit-cards/best-no-foreign-transaction-fee-credit-cards)
-- IOF de 3,5% no Brasil: [Wise Brasil](https://wise.com/br/blog/iof-cartao-internacional)
-- Faixas de preço de GPU: [documentação do GPUFlow, Como definir o preço da sua GPU](https://docs.gpuflow.app/pt-br/providers/pricing/)
+Tudo verificado em setembro de 2026.

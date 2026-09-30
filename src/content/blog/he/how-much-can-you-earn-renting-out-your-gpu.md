@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "כרטיס מסך לגיימינג עם שלושה מאווררים על מדף לבן"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "איור של כרטיס מסך לצד ערימות מטבעות שהולכות וגדלות"
 faq:
   - question: "כמה RTX 4090 יכול להרוויח בחודש במרקטפלייס להשכרת GPU?"
     answer: "במחיר טיפוסי של כ-$0.38 לשעה בספטמבר 2026, עם עמלה של 12% ב-GPUFlow ומחיר חשמל ממוצע בארה\"ב, RTX 4090 מכניס נטו כ-$0.25 לכל שעת השכרה. זה כ-$30 בחודש אם הוא מושכר 4 שעות ביום, וכ-$91 ב-12 שעות ביום, לפני החשמל ששאר המחשב צורך."

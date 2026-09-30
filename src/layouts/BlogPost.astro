@@ -1,4 +1,5 @@
 ---
+import type { MarkdownHeading } from 'astro';
 import { Image, getImage } from 'astro:assets';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
@@ -20,9 +21,12 @@ import {
 
 interface Props {
   post: Post;
+  headings: MarkdownHeading[];
 }
 
-const { post } = Astro.props;
+const { post, headings } = Astro.props;
+// Contents: the article's own sections, then the FAQ that the layout adds.
+const sections = headings.filter((h) => h.depth === 2);
 const { title, description, pubDate, updatedDate, heroImage, heroImageAlt, author, category, faq } = post.data;
 const lang = post.data.locale as LanguageCode;
 const t = useTranslations(lang);
@@ -91,12 +95,22 @@ if (faq) schemas.push(createFAQSchema(canonicalURL, faq));
           <p class="article-description">{description}</p>
         </div>
 
+        {sections.length > 1 && (
+          <nav class="toc" aria-labelledby="toc-title">
+            <p class="toc-title" id="toc-title">{t('post.toc')}</p>
+            <ol>
+              {sections.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+              {faq && faq.length > 0 && <li><a href="#faq">{t('post.faq')}</a></li>}
+            </ol>
+          </nav>
+        )}
+
         <div class="article-content">
           <slot />
         </div>
 
         {faq && faq.length > 0 && (
-          <div class="faq-section">
+          <div class="faq-section" id="faq">
             <h2>{t('post.faq')}</h2>
             {faq.map((item) => (
               <div class="faq-item">

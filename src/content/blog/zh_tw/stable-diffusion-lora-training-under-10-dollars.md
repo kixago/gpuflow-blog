@@ -1,595 +1,343 @@
 ---
-title: "如何用不到 10 美元訓練 Stable Diffusion LoRA 模型"
-description: "用租用 GPU 為 Stable Diffusion 訓練自訂 LoRA 模型的逐步教學，完整涵蓋 GPU 選擇、資料集準備、訓練設定與成本最佳化。"
-excerpt: "用 GPU 租用服務訓練高品質 LoRA 模型的實用教學，涵蓋平台選擇、參數設定，以及把總成本壓在 10 美元以內的技巧。"
+title: "用租來的 GPU 訓練 Stable Diffusion LoRA，花費不到 $10"
+description: "在租用的 RTX 4090 上訓練 SDXL 或 Flux LoRA，花費遠低於 $10：依 VRAM 選 GPU、撰寫標註、sd-scripts 與 ai-toolkit 的設定，以及實際成本試算。"
+excerpt: "2026 年 9 月，在租用的 RTX 4090 上跑一次 SDXL LoRA 訓練，大約 $0.35 到 $0.80。本文說明該選哪張 GPU、如何準備圖片和寫標註、確切的訓練指令，以及錢實際花在哪裡。"
 pubDate: 2026-02-11
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "zh_tw"
 category: "tutorials"
 featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/stable-diffusion-lora-training-guide.jpg"
-heroImageAlt: "安裝在伺服器機架中的 NVIDIA 顯示卡，可見散熱風扇與 LED 燈光"
+heroImageAlt: "一群人圍著大螢幕的插圖，螢幕上是 LoRA 網路示意圖，旁邊有伺服器機架，以及比較兩個訓練 epoch 範例圖片的面板"
 faq:
-  - question: "可以用自己的 GPU 訓練 LoRA 模型，不用租嗎？"
-    answer: "可以，前提是你有一張至少 12GB VRAM 的 NVIDIA GPU，例如 RTX 3060 或更高階的型號。不過考量電費、硬體耗損，以及消費級硬體明顯更長的訓練時間，如果只是偶爾做專案，租用通常更划算。"
-  - question: "一次典型的 LoRA 訓練需要多久？"
-    answer: "使用 RTX 4090 或 RTX 3090 時，大多數 LoRA 訓練會在一到三小時內完成。實際時間取決於資料集大小、訓練 epoch 數與 batch size 設定。"
-  - question: "LoRA 訓練最少需要幾張圖片？"
-    answer: "只要十五到二十張圖片，就能得到還不錯的結果。不過，含有三十到一百張標註良好圖片的資料集，品質通常更好。圖片品質和標註的準確度，比單純的數量更重要。"
-  - question: "哪個 GPU 租用平台訓練 LoRA 最划算？"
-    answer: "Vast.ai 的 RTX 4090 每小時價格通常最低。RunPod 則提供現成範本，介面對 GPU 租用新手來說最直覺。"
-  - question: "在同一次租用中訓練多個 LoRA 模型比較划算嗎？"
-    answer: "是的。在一次較長的租用中批次訓練多個 LoRA，可以省去重複的環境設定時間，並盡量減少 GPU 閒置的費用。在四小時內訓練三到五個 LoRA 模型，花費通常不到分開訓練的一半。"
+  - question: "用租來的 GPU 訓練一個 LoRA 要花多少錢？"
+    answer: "2026 年 9 月，RTX 4090 在 Vast.ai 上每小時約 $0.31，RunPod 價格頁面上則是每小時 $0.74。一次約 65 分鐘的 SDXL LoRA 訓練（含準備和測試），費用大約是 $0.34 到 $0.80。"
+  - question: "訓練 SDXL LoRA 需要多少 VRAM？"
+    answer: "sd-scripts 的文件說明，只要只訓練 U-Net、快取 latent 和文字編碼器輸出，並啟用 gradient checkpointing，8 GB 的 GPU 記憶體就能訓練 SDXL LoRA，建議 10 GB。RTX 3090 或 4090 這類 24 GB 的顯示卡，則能以 1024x1024 訓練，不必跟記憶體上限搏鬥。"
+  - question: "RTX 4090 能訓練 Flux LoRA 嗎？"
+    answer: "可以。ai-toolkit 附有針對 24 GB 顯示卡命名的 FLUX.1 範例設定，sd-scripts 則列出了利用 block swapping、低至 8 GB 的 FLUX.1 設定。Black Forest Labs 自己的指南表示，在 RTX 4090 上跑 1,800 步的 FLUX.2 [klein] LoRA 訓練不到一小時。"
+  - question: "訓練一個 LoRA 需要幾張圖片？"
+    answer: "針對一個角色、物品或風格，15 到 40 張好圖是常見的範圍；Black Forest Labs 建議 FLUX.2 [klein] 使用 15 到 40 張風格一致的圖片。清晰、多樣、標註完整的圖片，比數量多更重要。"
+  - question: "LoRA 訓練用 kohya_ss、OneTrainer 還是 ai-toolkit 比較好？"
+    answer: "三個都能用。kohya 的 sd-scripts 是命令列的標準工具，kohya_ss 在它上面加了網頁介面；OneTrainer 有桌面介面和內建的標註功能；ai-toolkit 有網頁介面、官方 RunPod 範本，而且很早就支援 FLUX.2 和 Qwen-Image 等新模型。"
+  - question: "可以在 GPUFlow 上訓練 LoRA 嗎？"
+    answer: "不行。GPUFlow 出租的是在提供者 GPU 上執行、相容 OpenAI 的聊天 API，沒有 shell、SSH 或檔案存取，所以無法在上面執行訓練腳本。請使用直接出租機器的平台，例如 Vast.ai 或 RunPod。"
 ---
 
-為 Stable Diffusion 訓練自訂 LoRA 模型，已經成為製作個人化 AI 圖像最容易上手的方式之一。無論你想重現特定的藝術風格、產生外觀一致的角色臉孔，還是用產品照片微調模型，LoRA 訓練都能做到，而且不必負擔完整微調模型的運算成本。
+在租來的 GPU 上訓練一個 SDXL 或小型 Flux 模型的 LoRA，花費遠低於 $10。2026 年 9 月，RTX 4090 在 Vast.ai 上每小時約 $0.31，在 RunPod 上每小時 $0.74，而一次 SDXL LoRA 訓練連同準備和測試，只要一個多小時。每次嘗試 $0.34 到 $0.80，$10 的預算夠您試十幾次。
 
-一般人常以為，這件事不是需要昂貴的本機硬體，就是需要可觀的雲端運算預算。其實兩者都不必。以目前的 GPU 租用價格，搭配有效率的訓練設定，你可以用不到十美元訓練出可實際使用的 LoRA 模型，而且往往花得更少。
+難的不是錢，而是圖片、標註，以及知道什麼時候該停。本指南全部都會談到，指令可以直接貼上使用。價格和工具版本都在 2026 年 9 月查核過，來源列在文末。
 
-這份指南會帶你走完整個流程：挑選合適的硬體、準備訓練資料集、設定訓練參數、執行訓練，以及驗證結果。每個階段的成本我都會講清楚，因為「平價 AI 訓練」這種模糊的承諾，對要實際編列專案預算的人毫無幫助。
+## 五個步驟的工作流程
 
-**開始之前你需要準備**：
+<figure>
+<svg viewBox="0 0 720 250" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">LoRA 訓練工作流程：資料集、標註、訓練、測試、使用；結果不對時回到資料集</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6366f1"/></marker></defs>
+<rect width="720" height="250" fill="#ffffff"/>
+<line x1="20" y1="40" x2="280" y2="40" stroke="#16a34a" stroke-width="2"/>
+<text x="150" y="30" text-anchor="middle" fill="#16a34a" font-size="13">免費：在您自己的電腦上</text>
+<line x1="300" y1="40" x2="560" y2="40" stroke="#f97316" stroke-width="2"/>
+<text x="430" y="30" text-anchor="middle" fill="#f97316" font-size="13">計費：在租用的 GPU 上</text>
+<rect x="20" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="80" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">資料集</text>
+<text x="80" y="112" text-anchor="middle" fill="#64748b" font-size="13">15–40 張圖片</text>
+<rect x="160" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="220" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">標註</text>
+<text x="220" y="112" text-anchor="middle" fill="#64748b" font-size="13">每張一個 .txt</text>
+<rect x="300" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="360" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">訓練</text>
+<text x="360" y="112" text-anchor="middle" fill="#64748b" font-size="13">sd-scripts</text>
+<rect x="440" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="500" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">測試</text>
+<text x="500" y="112" text-anchor="middle" fill="#64748b" font-size="13">範例圖網格</text>
+<rect x="580" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="640" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">使用</text>
+<text x="640" y="112" text-anchor="middle" fill="#64748b" font-size="13">ComfyUI、Forge</text>
+<line x1="140" y1="95" x2="158" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="280" y1="95" x2="298" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="420" y1="95" x2="438" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="560" y1="95" x2="578" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<path d="M500,130 L500,180 L80,180 L80,134" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#d1-arrow)"/>
+<text x="290" y="205" text-anchor="middle" fill="#1e1b4b" font-size="13">結果不對？修正圖片或標註，再訓練一次</text>
+<text x="360" y="235" text-anchor="middle" fill="#64748b" font-size="13">品質大多來自前兩個步驟，而它們不花一毛錢</text>
+</svg>
+<figcaption>租用之前先把資料集和標註做好。GPU 只在訓練和測試時計費，而結果不好時，通常要回頭改的是圖片，不是設定。</figcaption>
+</figure>
 
-- 二十到一百張訓練圖片（挑選標準見下文）
-- 對命令列介面有基本的認識
-- 一張可以在 GPU 租用平台儲值的付款卡
-- 大約兩到四小時的專注時間
-- 第一次訓練準備五到十五美元的預算
+## LoRA 是什麼，為什麼便宜
 
-![現代資料中心內部，一排排用於機器學習工作負載的高效能 GPU 伺服器](../_images/data-center-with-person.jpg)
+LoRA（Low-Rank Adaptation）會凍結基礎模型，在其中部分層旁邊訓練兩個小矩陣。原始論文指出，和完整微調 GPT-3 175B 相比，可訓練參數減少了 10,000 倍，GPU 記憶體減少了 3 倍。圖像模型也是同樣的道理：SDXL 基礎 checkpoint 是一個 6.9 GB 的檔案，而您訓練出的 LoRA 是一個獨立的小檔案，載入時疊在基礎模型上，強度可以自己調。
 
----
+所以一張消費級 GPU 就夠用，一次訓練也只要幾十分鐘，而不是好幾天。
 
-## 目錄
+## 依 VRAM 選 GPU
 
-- [認識 LoRA 及其重要性](#認識-lora-及其重要性)
-- [選擇適合訓練的 GPU](#選擇適合訓練的-gpu)
-- [GPU 租用平台比較](#gpu-租用平台比較)
-- [準備訓練資料集](#準備訓練資料集)
-- [建置訓練環境](#建置訓練環境)
-- [設定訓練參數](#設定訓練參數)
-- [執行訓練](#執行訓練)
-- [驗證與測試你的 LoRA](#驗證與測試你的-lora)
-- [成本最佳化策略](#成本最佳化策略)
-- [常見問題與解決方法](#常見問題與解決方法)
-- [常見問答](#常見問答)
+VRAM 決定您能訓練什麼。速度決定一次訓練要計費幾分鐘，所以每小時較貴但較快的顯示卡，算到每次訓練的成本可能差不多。
 
----
+| 模型系列 | 文件列出的最低需求 | 寬裕 | 說明 |
+| --- | --- | --- | --- |
+| SD 1.5 | 8 GB | 12 GB 以上 | 以 512x512 訓練，最便宜也最快 |
+| SDXL | 8 GB（建議 10 GB） | 24 GB | 只訓練 U-Net，快取 latent 和文字編碼器輸出 |
+| FLUX.1 [dev]（12B） | 8 GB，需大量 block swapping | 24 GB | sd-scripts 列出 24、16、12、10 和 8 GB 的設定 |
+| FLUX.2 [klein] 4B/9B | 未說明 | 24 GB | BFL：bf16 權重約 13 GB，LoRA 訓練可在 24 GB 以內完成 |
 
-## 認識 LoRA 及其重要性
+低 VRAM 設定能用，但很慢。sd-scripts 是靠在 GPU 和系統記憶體之間搬移 transformer 區塊，才把 FLUX.1 塞進 8 到 16 GB，而每次搬移都要花時間，這些時間都要付錢。在租來的機器上，24 GB 的顯示卡是合理的預設選擇：RTX 3090 或 4090。RTX 5090（32 GB）也可以，但 sd-scripts 註明它需要 PyTorch 2.8.0 搭配 CUDA 12.8 或 12.9，所以請確認您的範本附帶的軟體版本夠新。
 
-LoRA 是 Low-Rank Adaptation（低秩適應）的縮寫，是一種微調大型神經網路的技術：它只訓練少量額外參數，而不修改整個模型。原始的 Stable Diffusion 模型有將近十億個參數，完整微調就得修改全部參數，需要大量 GPU 記憶體和很長的訓練時間。
+![一張 ASUS TUF 三風扇顯示卡，立在白色層架上](../_images/test-hero.jpg)
 
-LoRA 繞過了這個問題：它凍結原始模型的權重，只訓練一些小型的 adapter 矩陣，用來改變模型處理資訊的方式。一個典型的 LoRA 檔案大約十到兩百 MB，而完整的 Stable Diffusion 檢查點則有兩到六 GB。
+資料中心等級的顯示卡比較快，但 RunPod 上 A100 80 GB 每小時 $1.59，是 4090 的兩倍多。只用 20 或 30 張圖訓練 LoRA，多出來的速度很少能彌補這個價差；這類顯示卡比較適合大型資料集或完整微調。
 
-這在實務上的影響相當大：
+## 去哪裡租，要花多少
 
-**記憶體效率**。LoRA 訓練需要的 GPU VRAM 遠少於完整微調。一張 24GB 的 GPU 就能輕鬆為 SDXL 模型訓練 LoRA，若要完整微調則需要 40GB 以上。
+您需要的是給您一台機器的平台：有 shell 或 Jupyter notebook、有磁碟，也有辦法把檔案傳進傳出。這類工作最常見的兩個選擇是 Vast.ai 和 RunPod。
 
-**訓練速度**。要訓練的參數比較少，每個 epoch 也就完成得比較快。完整微調可能要十二小時的工作，用 LoRA 常常九十分鐘就能搞定。
+| GPU | VRAM | Vast.ai（起價） | RunPod 價格頁面 | RunPod 追蹤到的最低價 |
+| --- | --- | --- | --- | --- |
+| RTX 3090 | 24 GB | 約 $0.11–0.13/小時 | $0.50/小時 | $0.22/小時 |
+| RTX 4090 | 24 GB | 約 $0.31–0.33/小時 | $0.74/小時 | $0.34/小時 |
+| RTX 5090 | 32 GB | 約 $0.41–0.47/小時 | $0.99/小時 | $0.69/小時 |
 
-**可組合性**。多個 LoRA 可以在推論時組合使用。你可以用一個 LoRA 控制藝術風格、另一個維持角色一致性，再以不同強度混合，完全不必重新訓練。
+價格截至 2026 年 9 月。「Vast.ai（起價）」和「RunPod 追蹤到的最低價」來自 getdeploying.com 的價格追蹤，中間那欄是 RunPod 自己的價格頁面。Vast.ai 的價格由各主機自訂，所以您看到的報價會因地點和可靠度分數而不同。
 
-**儲存與分享**。檔案小，LoRA 分享和管理起來都很方便。手邊放幾十個專用的 LoRA 也不用擔心儲存空間。
+兩者都按秒計費。額外費用則不同，而對一小時的工作來說，這些費用的影響比每小時價格看起來更大：
 
-正是這些效率帶來的成本下降，讓十美元以內的訓練成為可能。你只需要租用昂貴的硬體一到三小時，而不是八到二十四小時。
+- **Vast.ai** 對儲存空間的計費是「只要執行個體存在，不論是否在執行」，頻寬則按位元組計費，費率由各主機自訂。在頻寬費高的主機上下載 7 GB 的基礎模型，費用會累積起來。用完請刪除執行個體，不要只是停止。
+- **RunPod** 在執行期間對容器磁碟每 GB 每月收 $0.10，停止後不收；已停止的 volume 磁碟則是每 GB 每月 $0.20。資料傳入和傳出都不收費。
 
----
+兩個平台都有現成的範本。ai-toolkit 的作者維護一個官方 RunPod 範本，kohya_ss 的 README 也把 RunPod 列為支援的環境。用範本可以省下十分鐘以上在計費時間內安裝 PyTorch 的工夫。更完整的價格比較，請看 [GPUFlow、Vast.ai、RunPod 與 SaladCloud 比較](/zh_tw/gpuflow-vs-vast-ai-vs-runpod/)和 [GPU 租用的隱藏成本](/zh_tw/hidden-fees-in-gpu-rental/)。
 
-## 選擇適合訓練的 GPU
+## 準備資料集和標註
 
-選 GPU 要在三個因素之間取得平衡：VRAM 容量、訓練速度和租金。能用的最低選項和最佳選擇差別很大。
+這些都在您自己的電腦上做完，再去租機器。
 
-### VRAM 需求
+### 圖片
 
-訓練 Stable Diffusion 1.5 的 LoRA，12GB VRAM 是實務上的最低門檻。降低 batch size 和解析度的話，8GB 也跑得動，但訓練品質往往會打折扣。
+- **數量。** 一個人物、物品或風格用 15 到 40 張。Black Forest Labs 建議 FLUX.2 [klein] 使用「15 到 40 張風格一致的圖片」。如果多出來的圖品質較差，多不代表好。
+- **一致與多樣。** 每張圖都必須呈現這個概念，其他一切則要有變化：角度、光線、背景、構圖。如果產品的每張照片都放在同一張白桌上，LoRA 學到的會是那張桌子。
+- **品質。** 清晰、曝光正確，沒有浮水印或文字疊加。雜訊和 JPEG 色塊，LoRA 也會學得一樣忠實。
+- **解析度。** SDXL 和 Flux 的短邊至少 1024 像素，SD 1.5 至少 512。不必裁成正方形：啟用 bucketing 後，sd-scripts 會依長寬比將圖片分組。
 
-訓練 SDXL 的 LoRA，最低需要 16GB，強烈建議 24GB。SDXL 模型更大、需求也更高。VRAM 不足時硬跑 SDXL 訓練，會不斷發生記憶體置換，大幅拖慢速度，也常常導致訓練失敗。
+### 標註
 
-### 速度與成本的取捨
+每張圖片都有一個同名的文字檔（`photo01.jpg`、`photo01.txt`）。標註告訴模型哪些東西已經用文字說明了，讓 LoRA 去學文字沒說明的部分。開頭放一個罕見的觸發詞，接著描述所有您希望之後還能改變的東西：
 
-越貴的 GPU 訓練越快，但每小時多付的錢，不一定能等比例降低整個專案的成本。以訓練一個典型的 SD 1.5 LoRA 為例：
-
-| GPU         | VRAM | 大約訓練時間 | 一般時薪 | 預估總成本 |
-| ----------- | ---- | ------------ | -------- | ---------- |
-| RTX 3090    | 24GB | 2.5 小時     | $0.50    | $1.25      |
-| RTX 4090    | 24GB | 1.5 小時     | $0.70    | $1.05      |
-| RTX A6000   | 48GB | 1.5 小時     | $0.80    | $1.20      |
-| A100 (40GB) | 40GB | 1.0 小時     | $1.50    | $1.50      |
-
-RTX 4090 通常是最划算的選擇。它的訓練速度幾乎跟資料中心級 GPU 一樣快，時薪卻低得多。4090 不好租的時候，RTX 3090 仍然可行，總成本只高一點點。
-
-訓練 SDXL LoRA 時，計算方式會稍微不同，因為較大的模型更能受惠於額外的 VRAM 和記憶體頻寬。對於在消費級硬體上可能要跑四小時以上的複雜 SDXL 專案，A100 會變得更有競爭力。
-
-如果想看各大服務商（包括企業雲端和市集平台）GPU 租用價格的完整分析，請參考我們的 [2026 GPU 租用價格完整比較](/zh_tw/gpu-rental-pricing-comparison-2026/)。
-
-![常用於 AI 模型訓練、採三風扇散熱設計的 NVIDIA RTX 4090 顯示卡](../_images/test-hero.jpg)
-
----
-
-## GPU 租用平台比較
-
-針對 LoRA 訓練，有兩家服務商值得考慮。各有不同的特點，適合哪一家取決於你的技術熟悉程度和對成本的敏感度。
-
-### Vast.ai
-
-Vast.ai 經營一個點對點市集，由個人 GPU 擁有者上架硬體出租。這種模式造就了市場上最低的價格，RTX 4090 常常只要每小時 $0.35 到 $0.60。
-
-代價是品質不一。視個別主機而定，可靠度從 97% 到 99.9% 不等，可租用的數量也會隨需求起伏。你可能要多試幾個主機，才能找到網路速度足以上傳資料集的那一台。
-
-對於能自行評估主機指標的有經驗使用者，Vast.ai 能把訓練成本壓到最低。第一次設定和評估主機，請多預留三十分鐘。
-
-### RunPod
-
-RunPod 的定位介於純市集和企業雲端服務商之間。平台同時提供社群來源的 GPU，以及效能更穩定的專屬「Secure Cloud」執行個體。
-
-價格略高於 Vast.ai，Secure Cloud 方案的 RTX 4090 一般是每小時 $0.59。相對地，平台設定更簡單，提供常見 AI 工作負載的預先設定範本，可用性也更好預測。
-
-如果你是 GPU 租用新手，或比起把成本壓到最低，更重視介面直覺好用，RunPod 是合理的折衷選擇。
-
-### 關於 GPUFlow
-
-GPUFlow 不適合用來訓練 LoRA。它透過相容 OpenAI 的 API 提供 AI 對話模型的存取，而不是一台讓你執行訓練腳本的機器。要做訓練，請使用會把整台機器交給你的平台，例如上面這兩家。兩種做法的差別，請參考 [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/zh_tw/gpuflow-vs-vast-ai-vs-runpod/)。
-
-### 平台比較總覽
-
-| 平台    | RTX 4090 價格範圍           | 設定時間   | 付款方式             | 最適合         |
-| ------- | --------------------------- | ---------- | -------------------- | -------------- |
-| Vast.ai | $0.35-0.60/小時             | 5-15 分鐘  | 信用卡、加密貨幣     | 省下最多成本   |
-| RunPod  | $0.59/小時（Secure Cloud）  | 2-5 分鐘   | 信用卡、加密貨幣     | 容易上手       |
-
-以上為 2026 年 2 月的價格。2026 年 9 月，我們在 Vast.ai 上看到的 RTX 4090 每小時約 $0.37 起，RunPod Secure Cloud 則為 $0.74；請參考[我們最新的比較](/zh_tw/gpuflow-vs-vast-ai-vs-runpod/)。
-
----
-
-## 準備訓練資料集
-
-資料集的品質比任何其他因素都更能決定訓練結果。精心挑選的三十張圖片，效果會比隨便湊出來的兩百張更好。
-
-### 圖片挑選標準
-
-**一致性**。所有圖片都應該呈現你想讓模型學習的概念。如果要訓練特定人物的臉，每張圖片都應該清楚拍到那張臉。如果要訓練某種藝術風格，每張圖片都應該是那種風格的代表作。
-
-**一致中求變化**。在維持概念一致的同時，讓技術面有所變化：納入不同的角度、光線條件、背景和情境。這些變化能教模型學會類推，而不是對特定構圖過度擬合。
-
-**技術品質**。使用清晰、曝光正確的圖片。動態模糊、雜訊、壓縮失真和光線不佳，都會變成模型學到的一部分。如果訓練圖片顆粒很粗，產生出來的圖片也會偏向有顆粒感。
-
-**解析度**。SD 1.5 的訓練圖片至少要 512x512 像素，SDXL 至少要 1024x1024。來源圖片解析度越高，訓練流程裁切和縮放時就越不會損失品質。
-
-### 資料集大小建議
-
-最理想的資料集大小取決於概念的複雜度：
-
-**簡單概念（單一臉孔、基本風格）**：20-40 張圖片
-**中等概念（有多套服裝的角色、細膩的風格）**：40-80 張圖片
-**複雜概念（細節豐富的場景、變化很大的風格）**：80-150 張圖片
-
-圖片越多，需要的訓練步數就越多，時間和成本也跟著增加。前幾次嘗試請從這些範圍的下限開始。
-
-### 為圖片加上標註
-
-每張訓練圖片都需要一段描述內容的文字標註（caption）。這些標註會教模型把哪些文字概念和視覺模式連結起來。
-
-有效的標註要具體且一致：
-
-**不佳的標註**：「a woman」
-**較好的標註**：「a photograph of Sarah Miller, a woman with short brown hair and green eyes, wearing a blue sweater」
-
-**不佳的標註**：「fantasy art」
-**較好的標註**：「a digital painting in the style of luminescent fantasy, featuring glowing mushrooms in a dark forest, detailed linework, vibrant purple and blue color palette」
-
-推論時要用的觸發詞或片語，應該出現在每一段標註裡。如果你想用「in the style of luminescent fantasy」來呼叫你的 LoRA，這個片語就應該原封不動地出現在每一段訓練標註中。
-
-資料集不大的話，可以手動標註。圖片比較多時，可以用 BLIP 或 WD14 Tagger 之類的工具先產生初步標註，再由你檢查修改。
-
-![整理好的資料夾結構，訓練圖片與對應的標註文字檔並排存放，用於 LoRA 訓練](../_images/file-folder-organization.png)
-
-### 目錄結構
-
-依照訓練腳本預期的特定結構整理訓練資料：
-
-```
-training_data/
-├── 10_concept_name/
-│   ├── image001.jpg
-│   ├── image001.txt
-│   ├── image002.jpg
-│   ├── image002.txt
-│   └── ...
+```text
+zxq_mug, a ceramic coffee mug on a wooden desk, morning light from the left, shallow depth of field
 ```
 
-資料夾名稱的前綴（這個例子中的「10」）代表該資料夾中每張圖片在訓練時要重複幾次。數字越大，這些圖片在訓練中的權重就越高。
+有兩個工具可以幫您寫初稿：
 
-數字後面以底線分隔的名稱，在你不使用自訂標註時，會成為預設的觸發詞。
+- **WD14 tagger**，內建於 sd-scripts，會產生以逗號分隔的標籤。適合動漫風格的模型，以及用標籤訓練的 SDXL 微調模型：
 
----
+  ```bash
+  python finetune/tag_images_by_wd14_tagger.py --onnx \
+    --repo_id SmilingWolf/wd-swinv2-tagger-v3 --batch_size 4 /workspace/dataset/img
+  ```
 
-## 建置訓練環境
+- **JoyCaption** 是一個開放（Apache 2.0）的標註模型，專為訓練擴散模型打造，寫出來的是自然語言句子，比標籤更適合 Flux。它的 README 說明，以 bf16 執行約需 17 GB VRAM，另有 8-bit 和 4-bit 版本供較小的顯示卡使用。
 
-資料集準備好、GPU 也租到之後，下一步是設定訓練環境。LoRA 訓練的標準工具是 kohya_ss/sd-scripts，這是一套由社群維護的開源訓練腳本。
+OneTrainer 也內建 BLIP、BLIP2 和 WD-1.4 的標註功能。不管初稿是誰寫的，每一則標註都要讀過、修正。這是整個專案中最有價值的半小時。
 
-### 初始環境設定
+## 選擇訓練工具
 
-連上租用的 GPU 執行個體後，你需要 clone 訓練用的儲存庫並安裝相依套件。以下指令會建立基本環境：
+幾乎所有人都能在以下四個工具中找到合適的。全部免費且開源。
+
+| 工具 | 介面 | 支援模型（2026 年 9 月） | 適合 |
+| --- | --- | --- | --- |
+| kohya-ss/sd-scripts | 命令列 | SD 1.x/2.x、SDXL、SD3/3.5、FLUX.1、Lumina、HunyuanImage-2.1、Anima | 可重現的訓練、完全掌控 |
+| bmaltais/kohya_ss | 建立在 sd-scripts 上的網頁介面 | 同 sd-scripts | 想用 sd-scripts 又不想背參數 |
+| Nerogar/OneTrainer | 桌面介面和 CLI | SD 1.5 到 3.5、SDXL、FLUX.1、FLUX.2、Chroma、Qwen Image 等 | 內建標註和遮罩功能 |
+| ostris/ai-toolkit | 網頁介面和 YAML 設定檔 | SD 1.5、SDXL、FLUX.1、FLUX.2、Qwen-Image、Wan 影片等 | Flux 和較新的模型、RunPod 範本 |
+
+sd-scripts 目前是 0.11.1 版（2026 年 6 月），以 Python 3.10 測試，需要 PyTorch 2.6.0 以上。ai-toolkit 建議使用 Python 3.12，目前安裝的是針對 CUDA 13.0 建置的 PyTorch 2.13.0。OneTrainer 需要 Python 3.10 到 3.13。
+
+SDXL 我用 sd-scripts，因為整個設定就是那一行指令，每次訓練都容易重複和比較；Flux 則用 ai-toolkit。
+
+## 用 sd-scripts 訓練 SDXL LoRA
+
+在裝好 NVIDIA 驅動程式的全新 Linux 執行個體上，幾行指令就能設定完成：
 
 ```bash
-# Clone the training scripts repository
 git clone https://github.com/kohya-ss/sd-scripts.git
 cd sd-scripts
+python -m venv venv && source venv/bin/activate
+pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+pip install --upgrade -r requirements.txt
+accelerate config default --mixed_precision bf16
 
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-pip install -r requirements.txt
-pip install xformers
+# SDXL base model (not gated, CreativeML Open RAIL++-M license)
+hf download stabilityai/stable-diffusion-xl-base-1.0 sd_xl_base_1.0.safetensors \
+  --local-dir /workspace/models
 ```
 
-視網路速度而定，安裝通常要五到十分鐘。xformers 套件不是必要的，但建議安裝，因為它能大幅降低訓練時的記憶體用量。
-
-### 下載基礎模型
-
-LoRA 訓練需要一個 Stable Diffusion 基礎模型作為訓練對象。你必須把它下載到執行個體上：
-
-```bash
-# Create a models directory
-mkdir -p models/sd
-
-# Download Stable Diffusion 1.5 (approximately 4GB)
-wget -O models/sd/v1-5-pruned.safetensors \
-  "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned.safetensors"
-```
-
-如果要訓練 SDXL，請改用 SDXL 基礎模型，大小約 6.5GB。
-
-### 上傳訓練資料
-
-把準備好的資料集傳到 GPU 執行個體上。大多數服務商都支援 SCP 或 SFTP：
-
-```bash
-# From your local machine
-scp -r ./training_data user@gpu-instance-ip:~/sd-scripts/
-```
-
-如果你的資料集存放在雲端儲存空間，也可以用 wget 或 rclone 直接下載到執行個體上。
-
-### 用範本節省設定時間
-
-RunPod 和 Vast.ai 都提供已經裝好 Stable Diffusion 訓練工具的現成映像檔。比起從一台空白的執行個體開始設定，通常可以省下十五到二十分鐘，而設定時間也是計費時間。如果只是偶爾訓練，這可能占你 GPU 租用總費用相當可觀的比例。
-
----
-
-## 設定訓練參數
-
-訓練設定會大幅影響輸出品質和訓練時間。以下參數是保守的起點，不必耗費過多運算，就能得到可靠的結果。
-
-### 基本參數
-
-建立一個名為 `training_config.toml` 的設定檔：
+用 `scp`、`rsync` 或平台的檔案瀏覽器，把圖片和 `.txt` 標註的資料夾複製到 `/workspace/dataset/img`。接著在 `/workspace/dataset.toml` 中描述資料集：
 
 ```toml
-[model]
-pretrained_model_name_or_path = "./models/sd/v1-5-pruned.safetensors"
-v2 = false
-v_parameterization = false
-
-[dataset]
-train_data_dir = "./training_data"
-resolution = 512
-batch_size = 2
+[general]
+caption_extension = ".txt"
 enable_bucket = true
-min_bucket_reso = 256
-max_bucket_reso = 1024
 
-[training]
-output_dir = "./output"
-output_name = "my_lora"
-max_train_epochs = 10
-learning_rate = 1e-4
-unet_lr = 1e-4
-text_encoder_lr = 5e-5
-lr_scheduler = "cosine_with_restarts"
-lr_warmup_steps = 100
-network_dim = 32
-network_alpha = 16
-optimizer_type = "AdamW8bit"
-mixed_precision = "fp16"
-save_every_n_epochs = 2
-save_model_as = "safetensors"
+[[datasets]]
+resolution = 1024
+batch_size = 1
+
+  [[datasets.subsets]]
+  image_dir = "/workspace/dataset/img"
+  num_repeats = 10
 ```
 
-### 參數說明
-
-**resolution**：設成你推論時的目標解析度。SD 1.5 用 512，SDXL 用 1024。
-
-**batch_size**：數值越高訓練越快，但需要更多 VRAM。從 2 開始，記憶體夠的話再提高到 4。
-
-**max_train_epochs**：一個 epoch 代表模型把每張訓練圖片都看過一次。對大多數資料集來說，十個 epoch 是合理的起點。
-
-**learning_rate**：控制模型更新的幅度。上面的數值偏保守。如果效果不明顯，可以試著提高到 2e-4 或 3e-4。
-
-**network_dim 和 network_alpha**：這兩個參數控制 LoRA 的容量。dim 32 搭配 alpha 16，能在品質和檔案大小之間取得平衡。更高的維度（64、128）能捕捉更多細節，但檔案更大，也有過度擬合的風險。
-
-**optimizer_type**：AdamW8bit 能大幅降低記憶體用量，對品質的影響極小。用 24GB 顯示卡訓練 SDXL 時不可或缺。
-
-**mixed_precision**：FP16 訓練需要的記憶體只有 FP32 的一半。對大多數用途來說，品質上的影響可以忽略。
-
-### 依硬體調整
-
-RTX 4090（24GB VRAM）：
-
-- SD 1.5 通常可以安全使用 batch_size = 4
-- SDXL 使用 batch_size = 2
-
-RTX 3090（24GB VRAM）：
-
-- SD 1.5 使用 batch_size = 2
-- SDXL 使用 batch_size = 1（啟用 gradient checkpointing）
-
-A100（40GB VRAM）：
-
-- SD 1.5 使用 batch_size = 6-8
-- SDXL 使用 batch_size = 4
-
-batch size 越大，總訓練時間就等比例縮短。batch size 加倍，需要的最佳化步數大約減半。
-
-![程式碼編輯器顯示 LoRA 訓練設定檔，包含學習率、batch size 與網路維度等參數](../_images/terminal-screenshot-code-editor.png)
-
----
-
-## 執行訓練
-
-環境和參數都設定好之後，開始訓練：
+然後開始訓練：
 
 ```bash
-accelerate launch --num_cpu_threads_per_process=4 train_network.py \
-  --config_file="./training_config.toml" \
-  --logging_dir="./logs"
+accelerate launch --num_cpu_threads_per_process 1 sdxl_train_network.py \
+  --pretrained_model_name_or_path=/workspace/models/sd_xl_base_1.0.safetensors \
+  --dataset_config=/workspace/dataset.toml \
+  --output_dir=/workspace/output --output_name=zxq_mug \
+  --save_model_as=safetensors \
+  --network_module=networks.lora --network_dim=16 --network_alpha=8 \
+  --network_train_unet_only \
+  --optimizer_type=AdamW8bit --learning_rate=1e-4 \
+  --lr_scheduler=constant_with_warmup --lr_warmup_steps=100 \
+  --max_train_epochs=8 --save_every_n_epochs=2 \
+  --mixed_precision=bf16 --save_precision=bf16 \
+  --cache_latents --cache_latents_to_disk --cache_text_encoder_outputs \
+  --gradient_checkpointing --sdpa --seed=42 \
+  --sample_prompts=/workspace/prompts.txt --sample_every_n_epochs=2
 ```
 
-### 監控進度
+`prompts.txt` 每行一個測試提示詞，並用 sd-scripts 的行內選項指定尺寸、種子和步數：
 
-訓練輸出會顯示 loss 值和進度資訊：
-
-```
-epoch 1/10, step 50/500, loss=0.0823
-epoch 1/10, step 100/500, loss=0.0756
-epoch 1/10, step 150/500, loss=0.0691
-...
+```text
+zxq_mug, a ceramic coffee mug on a kitchen counter --w 1024 --h 1024 --d 42 --s 28
+zxq_mug, a ceramic coffee mug held by a hiker on a mountain top --w 1024 --h 1024 --d 42 --s 28
 ```
 
-**需要留意的地方**：
+### 各項設定的作用
 
-loss 通常會在前幾個 epoch 下降，然後趨於穩定。一次典型的訓練可能是這樣：
+- **步數。** 圖片數 × 重複次數 × epoch 數 ÷ 批次大小。25 張圖的話：25 × 10 × 8 = 2,000 步。
+- **`network_dim` 16、`network_alpha` 8。** LoRA 的容量。一個物品或一張臉，16 就很夠；風格有時需要 32。rank 越高，越快過擬合，檔案也越大。
+- **`--network_train_unet_only`。** 這裡是必要的：sd-scripts 不允許在訓練文字編碼器的同時快取文字編碼器輸出，而且它的文件本來就「強烈建議」SDXL LoRA 只訓練 U-Net。
+- **快取和 gradient checkpointing。** 這兩項讓 SDXL 能塞進 8 到 10 GB。快取也會停用標註打亂（caption shuffling）和標註丟棄（caption dropout），所以資料集檔案裡沒有這兩項。
+- **`learning_rate` 1e-4 搭配 AdamW8bit。** 這是 sd-scripts 自己的 SDXL LoRA 範例所用的值。如果四個 epoch 後範例圖幾乎沒變，試試 2e-4。如果範例圖變成訓練圖片的翻版，就調低，或提早停止。
+- **每 2 個 epoch 存一次 checkpoint。** 您會得到第 2、4、6、8 個 epoch 的檔案，從中挑最好的。最好的 LoRA 常常不是最後一個。
 
-- 第 1 個 epoch：loss 約 0.08-0.10
-- 第 5 個 epoch：loss 約 0.05-0.07
-- 第 10 個 epoch：loss 約 0.04-0.06
+### 要花多久
 
-如果 loss 在一開始下降後又回升，模型可能過度擬合了。如果 loss 從頭到尾都沒什麼變化，學習率可能太低。
+在一個 kohya_ss 的 issue 討論串中，使用者回報在 RTX 4090 上以 1024x1024、批次大小 1、啟用 gradient checkpointing 訓練 SDXL LoRA，速度約每秒 1.1 到 1.4 次迭代。以這個速度，2,000 步需要 24 到 30 分鐘，再加上快取 latent 的幾分鐘。同一個討論串也顯示，當顯示卡 VRAM 不足、溢出到共用記憶體時情況有多糟：每步 50 秒以上。如果您的速度遠低於預期範圍，先查看 `nvidia-smi`，再去懷疑設定。
 
-### 檢查點
+## 用 ai-toolkit 訓練 Flux 和較新的模型
 
-這份設定每兩個 epoch 儲存一次檢查點。這些中途存檔有兩個用途：
-
-1. **復原**。如果訓練當掉，或你需要提早終止，可以從最後一個檢查點繼續。
-
-2. **挑選**。不同的 epoch 有時會產生不同的特性。第 6 個 epoch 可能已經很好地抓住你的概念，第 10 個 epoch 卻過度擬合了。有了檢查點，你就能測試後再做選擇。
-
-### 預期訓練時間
-
-以上述設定訓練一個 50 張圖片的 SD 1.5 LoRA：
-
-| GPU      | 大約時間     |
-| -------- | ------------ |
-| RTX 3090 | 90-120 分鐘  |
-| RTX 4090 | 60-90 分鐘   |
-| A100     | 45-60 分鐘   |
-
-SDXL 訓練大約需要上述時間的 1.5 到 2 倍。
-
----
-
-## 驗證與測試你的 LoRA
-
-訓練完成後，輸出目錄中會產生一個 .safetensors 檔案。這個檔案要先經過測試，專案才算真正完成。
-
-### 基本驗證
-
-把 LoRA 檔案複製到你的本機電腦，或執行 Stable Diffusion WebUI 的系統上：
+Flux 用 ai-toolkit 最簡單。在租來的機器上：
 
 ```bash
-# Download from GPU instance
-scp user@gpu-instance-ip:~/sd-scripts/output/my_lora.safetensors ./
+git clone https://github.com/ostris/ai-toolkit.git
+cd ai-toolkit
+python3 -m venv venv && source venv/bin/activate
+pip3 install --no-cache-dir torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0 \
+  --index-url https://download.pytorch.org/whl/cu130
+pip3 install -r requirements.txt
+cp config/examples/train_lora_flux_24gb.yaml config/zxq_mug.yml
+# edit the dataset path, trigger word and steps, then:
+python run.py config/zxq_mug.yml
 ```
 
-在 Automatic1111 WebUI 中，把檔案放到 `models/Lora` 目錄。ComfyUI 則使用 `models/loras` 目錄。
-
-### 測試方法
-
-產生一系列測試圖片，並變換以下因素：
-
-**LoRA 權重**：分別以 0.5、0.7、0.8 和 1.0 的強度測試。有些 LoRA 在低於滿強度時效果最好。
-
-**提示詞位置**：把觸發詞放在提示詞的不同位置。放在開頭、中間或結尾，產生的結果可能有微妙的差異。
-
-**負面提示詞**：分別測試負面提示詞中有沒有你的概念。有時候把觸發詞加進負面提示詞、再搭配低權重，會產生有趣的反轉效果。
-
-**不同的種子值**：每種設定至少使用五個不同的種子，才能區分哪些是穩定的模式、哪些只是隨機的變化。
-
-### 品質評估
-
-依照以下標準評估結果：
-
-**概念準確度**：產生的圖片有沒有反映你訓練的概念？如果你訓練的是臉孔，認得出是那張臉嗎？
-
-**融合度**：LoRA 的概念能不能自然地和提示詞中的其他元素融合？你能不能把訓練好的角色放進各種不同的場景？
-
-**瑕疵**：留意是否有反覆出現的圖樣、不自然的元素，或一再出現的變形。這些都代表訓練有問題或過度擬合。
-
-**靈活度**：測試極端情況。如果你訓練的是角色，能不能畫出不同年齡的樣子？穿不同的衣服？做各種動作？
-
-如果結果不理想，常見的補救方法包括：
-
-- 增加訓練的 epoch 數（擬合不足時）
-- 減少訓練的 epoch 數（過度擬合時）
-- 調整學習率
-- 提升標註品質
-- 加入更多樣化的訓練圖片
-
-![比較網格，呈現不同 LoRA 強度下的 Stable Diffusion 輸出，展示 AI 生成圖片的品質差異](../_images/side-by-side-comparison.png)
-
----
-
-## 成本最佳化策略
-
-一次訓練花五美元還是二十美元，關鍵往往在於工作流程的效率，而不是選哪家服務商。
-
-### 上傳前先準備好資料集
-
-在開始租用 GPU 之前，就在本機電腦上完成所有資料集的篩選、裁切和標註。每小時付 $0.70 來手動檢查和重新命名檔案，是很浪費硬體的做法。
-
-開始租用前的檢查清單：
-
-- 所有圖片都已裁切成合適的長寬比
-- 所有標註都已撰寫並檢查過
-- 資料集已依正確的資料夾結構整理好
-- 訓練設定檔已準備好
-- 測試指令已寫好，隨時可以貼上
-
-### 批次訓練
-
-如果需要好幾個 LoRA，就在同一次租用中一起訓練。環境設定和模型下載這些固定成本，可以分攤到每一次訓練上。
-
-舉例來說，訓練三個不同的 LoRA：
-
-- 分三次租用：3 × (20 分鐘設定 + 90 分鐘訓練) = 330 分鐘
-- 一次批次處理：20 分鐘設定 + (3 × 90 分鐘訓練) = 290 分鐘
-
-省下的四十分鐘，大約等於降低 15% 的成本。
-
-### 檢查點測試策略
-
-與其一路訓練到第 15 個 epoch 再祈禱結果不錯，不如考慮：
-
-1. 訓練到第 6 個 epoch（約完整訓練時間的 60%）
-2. 測試該檢查點
-3. 如果結果滿意，就停下來，省下剩餘的 GPU 時間
-4. 如果擬合不足，就從檢查點繼續訓練
-
-用這種方式，常常能比預期更早得到好結果，降低總成本。
-
-### 用完立刻終止
-
-GPU 通常會一直計費，直到你明確停止執行個體為止。複製完輸出檔案後，請立刻結束租用。忘記關掉的執行個體以每小時 $0.70 跑一整晚，就會讓你的專案多花十二美元。
-
-### 挑對租用時段
-
-GPU 的供應量和價格會隨需求波動。在離峰時段訓練（例如美國時區的平日早上），通常比週末晚上更容易拿到好價格，也更容易租到 GPU。
-
----
-
-## 常見問題與解決方法
-
-### CUDA 記憶體不足
-
-**症狀**：訓練當掉，並出現「CUDA out of memory」錯誤。
-
-**解決方法**：
-
-- 調低設定中的 batch_size
-- 加上 `gradient_checkpointing = true` 以啟用 gradient checkpointing
-- 降低解析度（但會影響輸出品質）
-- 改用 VRAM 更大的 GPU
-
-### 訓練 loss 沒有下降
-
-**症狀**：在整個訓練過程中，loss 值一直持平或隨機波動。
-
-**解決方法**：
-
-- 提高學習率（試試 2e-4 或 3e-4）
-- 檢查標註是否正確描述圖片
-- 確認圖片格式正確且可以讀取
-- 確認基礎模型的路徑正確
-
-### LoRA 對生成結果沒有作用
-
-**症狀**：不論啟用或停用 LoRA，產生的圖片都一模一樣。
-
-**解決方法**：
-
-- 確認 LoRA 檔案放在你所用介面的正確目錄中
-- 檢查觸發詞是否與訓練標註中使用的一致
-- 提高 LoRA 的權重／強度設定
-- 改用訓練過程中的其他檢查點
-
-### LoRA 過度擬合、缺乏彈性
-
-**症狀**：LoRA 幾乎原樣重現訓練圖片，但換了不同的提示詞就失效。
-
-**解決方法**：
-
-- 減少訓練的 epoch 數
-- 降低 network_dim 的數值
-- 讓訓練資料集更多樣化
-- 降低學習率
-
-### 訓練速度太慢
-
-**症狀**：訓練進度比預期時間慢很多。
-
-**解決方法**：
-
-- 確認 GPU 真的有在使用（nvidia-smi 應該顯示很高的 GPU 使用率）
-- 確認已安裝 xformers
-- 檢查 mixed_precision 是否已啟用
-- 如果 network_dim 設得非常高，請調低
-
----
-
-## 常見問答
-
-### 可以用自己的 GPU 訓練 LoRA 模型，不用租嗎？
-
-可以，前提是你有一張至少 12GB VRAM 的 NVIDIA GPU，例如 RTX 3060 或更高階的型號。不過考量電費、硬體耗損，以及消費級硬體明顯更長的訓練時間，如果只是偶爾做專案，租用通常更划算。以每小時 $0.70 訓練兩小時的費用，比大多數家用電腦在較慢的硬體上滿載跑四到六小時所耗的電費還低。
-
-### 一次典型的 LoRA 訓練需要多久？
-
-使用 RTX 4090 或 RTX 3090 時，大多數 LoRA 訓練會在一到三小時內完成。實際時間取決於資料集大小、訓練 epoch 數與 batch size 設定。同樣的訓練，SDXL 模型大約比 SD 1.5 多花 50-100% 的時間。
-
-### LoRA 訓練最少需要幾張圖片？
-
-只要十五到二十張圖片，就能得到還不錯的結果。不過，含有三十到一百張標註良好圖片的資料集，品質通常更好。圖片品質和標註的準確度，比單純的數量更重要。精心挑選的三十張圖片，表現通常勝過匆忙湊出來的一百張。
-
-### 哪個 GPU 租用平台訓練 LoRA 最划算？
-
-Vast.ai 的 RTX 4090 每小時價格通常最低，2026 年 2 月常見的價格是每小時 $0.35 到 $0.50。RunPod 的介面對 GPU 租用新手來說最直覺。想看所有服務商與最新價格的詳細比較，請參考我們的 [GPU 租用價格完整比較](/zh_tw/gpu-rental-pricing-comparison-2026/)。
-
-### 在同一次租用中訓練多個 LoRA 模型比較划算嗎？
-
-是的。在一次較長的租用中批次訓練多個 LoRA，可以省去重複的環境設定時間，並盡量減少 GPU 閒置的費用。在四小時內訓練三到五個 LoRA 模型，花費通常不到分成多次租用、個別訓練的一半。
-
-### 訓練出來的 LoRA 可以商用嗎？
-
-這取決於基礎模型的授權。Stable Diffusion 1.5 採用 CreativeML Open RAIL-M 授權，允許在特定限制下商用。SDXL 的授權同樣寬鬆。你的 LoRA 會沿用基礎模型的限制。訓練圖片也可能有授權要求，請確認你對訓練用的每張圖片都擁有適當的權利。
-
----
-
-## 結論
-
-訓練自訂 LoRA 模型已經變得非常容易。過去需要大筆硬體投資的運算門檻，現在只剩下幾美元的 GPU 租金。只要把本指南介紹的技巧用在準備充分的資料集上，第一次嘗試通常就能得到可用的結果。
-
-成功的關鍵跟更昂貴的訓練方式並無不同：優質的訓練資料、恰當的參數選擇，以及仔細驗證結果。再強的運算能力，也彌補不了品質差的來源圖片或設定錯誤的訓練。
-
-先從二十到三十張圖片的小型資料集開始，用保守的設定訓練，在擴大到更大的專案之前徹底測試結果。每次嘗試的成本夠低，反覆調整完全可行，不妨把最初幾次訓練當作學習經驗，而不是正式產出。同樣的流程也適用於其他類型的模型。如果你處理的是文字而不是圖片，請參考我們的指南：在同類型的租用 GPU 上[微調大型語言模型](/zh_tw/private-llm-fine-tuning-guide/)。
-
-如果你正在比較各類服務商、各種價位的 GPU 租用選項，我們的 [GPU 租用價格比較](/zh_tw/gpu-rental-pricing-comparison-2026/)提供了消費級 GPU、資料中心硬體與企業雲端方案的最新價格。
-
----
-
-_本指南最後更新於 2026 年 2 月 12 日。GPU 租用價格和訓練工具的設定經常變動，開始訓練專案之前，請直接向服務商確認最新價格。_
+也可以用 `cd ui && npm run build_and_start` 啟動網頁介面，然後開啟 8675 連接埠。如果伺服器其他人也連得到，請照 README 的建議，先把 `AI_TOOLKIT_AUTH` 設成一組密碼。
+
+挑選 Flux 模型前，授權方面有兩件事要知道：
+
+- **FLUX.1 [dev]** 在 Hugging Face 上需要申請存取。您必須接受 FLUX.1 [dev] Non-Commercial License，並用 Hugging Face 的讀取權杖下載。它的模型卡說明，產生的圖片可以商用；但權重和您訓練的 LoRA 適用非商業授權。
+- **FLUX.2 [klein] 4B** 採用 Apache 2.0，不需申請存取。9B 版本則採用 FLUX Non-Commercial License。
+
+Black Forest Labs 在 2026 年 6 月發表了一份用 ai-toolkit 訓練 FLUX.2 [klein] LoRA 的指南：在 RTX 4090 上跑 1,800 步「不到一小時」，並建議查看第 750 到 1,500 步左右的 checkpoint。FLUX.1 [dev] 的大小是 klein 4B 的三倍，我還沒找到同樣可靠的公開時間數據；請預留更多時間，並實測您的第一次訓練。
+
+## 停止付費前先測試 LoRA
+
+趁機器還在執行時，查看每個已儲存 epoch 的範例圖。它們能免費告訴您，LoRA 是否學會了這個概念，以及從哪裡開始過擬合。接著下載您滿意的 checkpoint：
+
+```bash
+rsync -avP user@your-instance:/workspace/output/*.safetensors ./loras/
+```
+
+回到自己的電腦，把檔案放進 ComfyUI 的 `models/loras` 資料夾或 Forge 的 `models/Lora`，用固定的種子測試：
+
+- **強度。** 試 0.6、0.8 和 1.0。有些 LoRA 在低於 1.0 時效果最好。
+- **靈活度。** 把觸發詞放進訓練資料中沒有的場景：山頂上的馬克杯、畫作中的臉。如果只在和訓練圖片相似的場景中有效，就是過擬合了：改用較早的 epoch，或減少重複次數。
+- **滲漏。** 不加觸發詞生成圖片。如果這個概念還是出現了，代表您的標註對圖片描述得不夠。
+
+結果不對時，問題通常出在資料集：拿掉幾張較差的圖片，或在標註中寫出您希望能改變的東西。調整學習率是第二步，不是第一步。
+
+## 實際成本試算
+
+一個 SDXL LoRA，25 張圖，2,000 步，使用 RTX 4090：
+
+| 步驟 | 時間 |
+| --- | --- |
+| 從範本啟動，安裝 sd-scripts | 10 分鐘 |
+| 下載 SDXL 基礎模型、上傳資料集、快取 | 10 分鐘 |
+| 訓練（2,000 步，每秒 1.1 到 1.4 次迭代） | 30 分鐘 |
+| 查看範例圖、下載 checkpoint、刪除執行個體 | 15 分鐘 |
+| **合計** | **65 分鐘（1.08 小時）** |
+
+- Vast.ai，每小時 $0.31：1.08 × $0.31 = **$0.34**，另加儲存費和該主機的頻寬費率。
+- RunPod，每小時 $0.74：1.08 × $0.74 = **$0.80**。那一小時的 50 GB 容器磁碟再加 50 × $0.10 ÷ 730 小時，不到 1 美分。
+
+一個 FLUX.2 [klein] LoRA，訓練一小時，準備和測試 30 分鐘，在 RunPod 上是 1.5 × $0.74 = **$1.11**，在 Vast.ai 上是 1.5 × $0.31 = **$0.47**。
+
+<figure>
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="d2-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d2-title">在租用的 RTX 4090 上訓練 LoRA 的成本長條圖，與 10 美元預算比較</title>
+<rect width="720" height="300" fill="#ffffff"/>
+<line x1="230" y1="40" x2="230" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="322" y1="40" x2="322" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="414" y1="40" x2="414" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="506" y1="40" x2="506" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="598" y1="40" x2="598" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="690" y1="30" x2="690" y2="250" stroke="#f97316" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="698" y="22" text-anchor="end" fill="#f97316" font-size="13">$10 預算</text>
+<text x="220" y="75" text-anchor="end" fill="#1e1b4b">SDXL，Vast.ai</text>
+<rect x="230" y="58" width="15.6" height="26" fill="#16a34a"/>
+<text x="253" y="76" fill="#1e1b4b" font-size="13">$0.34</text>
+<text x="220" y="125" text-anchor="end" fill="#1e1b4b">SDXL，RunPod</text>
+<rect x="230" y="108" width="36.8" height="26" fill="#6366f1"/>
+<text x="275" y="126" fill="#1e1b4b" font-size="13">$0.80</text>
+<text x="220" y="175" text-anchor="end" fill="#1e1b4b">FLUX.2 klein，RunPod</text>
+<rect x="230" y="158" width="51.1" height="26" fill="#6366f1"/>
+<text x="289" y="176" fill="#1e1b4b" font-size="13">$1.11</text>
+<text x="220" y="225" text-anchor="end" fill="#1e1b4b">5 次 SDXL，RunPod</text>
+<rect x="230" y="208" width="184.5" height="26" fill="#6366f1"/>
+<text x="422" y="226" fill="#1e1b4b" font-size="13">$4.01</text>
+<line x1="230" y1="250" x2="690" y2="250" stroke="#64748b" stroke-width="1"/>
+<text x="230" y="270" text-anchor="middle" fill="#64748b" font-size="13">$0</text>
+<text x="322" y="270" text-anchor="middle" fill="#64748b" font-size="13">$2</text>
+<text x="414" y="270" text-anchor="middle" fill="#64748b" font-size="13">$4</text>
+<text x="506" y="270" text-anchor="middle" fill="#64748b" font-size="13">$6</text>
+<text x="598" y="270" text-anchor="middle" fill="#64748b" font-size="13">$8</text>
+<text x="690" y="270" text-anchor="middle" fill="#64748b" font-size="13">$10</text>
+<text x="460" y="292" text-anchor="middle" fill="#64748b" font-size="13">RTX 4090 每次訓練的成本，2026 年 9 月價格</text>
+</svg>
+<figcaption>就算以 RunPod 的牌價分開嘗試五次 SDXL，總額仍遠低於 $10。以每小時 $0.74 計算，$10 可買 13.5 小時的 RTX 4090 時間；以 $0.31 計算，約 32 小時。</figcaption>
+</figure>
+
+真正讓 $10 預算破功的，很少是訓練本身。而是整晚忘了關的執行個體（每小時 $0.74，12 小時就是 $8.88）、已停止卻仍在付儲存費的 Vast.ai 執行個體，或是在計費時間內花一小時寫標註。按秒計費只有在您用完就刪除機器時才有幫助。
+
+## GPUFlow 適合這項工作嗎
+
+不適合。GPUFlow 出租的是語言模型的使用權：由提供者在自己的 GPU 上執行（通常用 Ollama），您透過一組相容 OpenAI 的 API 金鑰存取。沒有 shell、沒有 SSH，也不能存取檔案，所以無法安裝訓練工具、上傳圖片或下載 LoRA。而且它提供的是聊天模型，不是圖像模型。請在 Vast.ai、RunPod 或其他直接出租機器的類似平台上訓練。
+
+如果您處理的是文字而不是圖片，同樣的「租用、訓練、刪除」做法也適用於語言模型：請看[在租用的 GPU 上私密微調 LLM](/zh_tw/private-llm-fine-tuning-guide/)。
+
+## 來源
+
+全部於 2026 年 9 月查核。
+
+- LoRA 論文：[Hu 等人，LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
+- sd-scripts：[README 和版本發布](https://github.com/kohya-ss/sd-scripts)、[SDXL LoRA 訓練](https://github.com/kohya-ss/sd-scripts/blob/main/docs/sdxl_train_network.md)、[SDXL 說明與 VRAM](https://github.com/kohya-ss/sd-scripts/blob/main/docs/train_SDXL-en.md)、[資料集設定](https://github.com/kohya-ss/sd-scripts/blob/main/docs/config_README-en.md)、[FLUX.1 LoRA 訓練](https://github.com/kohya-ss/sd-scripts/blob/main/docs/flux_train_network.md)、[WD14 tagger](https://github.com/kohya-ss/sd-scripts/blob/main/docs/wd14_tagger_README-en.md)
+- [bmaltais/kohya_ss](https://github.com/bmaltais/kohya_ss)、[Nerogar/OneTrainer](https://github.com/Nerogar/OneTrainer)、[ostris/ai-toolkit](https://github.com/ostris/ai-toolkit)、[JoyCaption](https://github.com/fpgaminer/joycaption)
+- SDXL 在 4090 上的速度：[kohya_ss issue #1288](https://github.com/bmaltais/kohya_ss/issues/1288)
+- Black Forest Labs：[在 60 分鐘內用 LoRA 微調 FLUX.2 [klein]](https://huggingface.co/blog/black-forest-labs/flux-2-klein-lora)，以及 [FLUX.1 [dev]](https://huggingface.co/black-forest-labs/FLUX.1-dev)、[FLUX.2 [klein] 4B](https://huggingface.co/black-forest-labs/FLUX.2-klein-base-4B)、[FLUX.2 [klein] 9B](https://huggingface.co/black-forest-labs/FLUX.2-klein-base-9B) 的模型卡
+- [Stable Diffusion XL base 1.0 模型卡](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
+- 價格：[RunPod 價格](https://www.runpod.io/pricing)、[RunPod pod 價格與儲存](https://docs.runpod.io/pods/pricing)、[Vast.ai 價格](https://docs.vast.ai/guides/instances/pricing.md)，以及 getdeploying.com 上的 [RTX 3090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-3090)、[RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090)、[RTX 5090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-5090) 和 [Vast.ai](https://getdeploying.com/vast-ai)
+- GPUFlow：[API 快速入門](https://docs.gpuflow.app/zh-tw/renters/api-quickstart/)

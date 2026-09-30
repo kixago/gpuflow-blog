@@ -1,627 +1,346 @@
 ---
-title: "Guia completo de fine-tuning privado de LLMs em GPUs alugadas"
-description: "Tutorial completo de fine-tuning de modelos de linguagem open-weights com o seu próprio dataset em uma GPU alugada. Proteja seus dados, reduza o custo de computação e evite ficar preso a um fornecedor."
-excerpt: "Aprenda a fazer fine-tuning de LLMs open-weights em GPUs alugadas sem perder o controle dos seus dados. Instruções passo a passo sobre transferência segura, treinamento com QLoRA e limpeza do ambiente."
+title: "Fine-tuning de LLM com privacidade numa GPU alugada: um guia prático"
+description: "Quando o fine-tuning vale mais que RAG ou prompt, VRAM do QLoRA por tamanho de modelo, TRL, Unsloth e Axolotl, dados privados em GPU alugada, custos e como servir o modelo."
+excerpt: "Um fine-tuning QLoRA de um modelo aberto de 8B cabe numa única GPU alugada de 24 GB e custa cerca de US$ 0,35 a US$ 0,83 por treino. Antes de pagar, confirme que o fine-tuning é a ferramenta certa e planeje como os seus dados continuam seus na máquina de outra pessoa."
 pubDate: 2025-02-23
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "pt_br"
 category: "tutorials"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "Representação abstrata de uma sala de servidores segura processando dados de IA, com iluminação azul"
+heroImage: "../_images/private-llm-fine-tuning-guide-hero.png"
+heroImageAlt: "Ilustração de um dataset privado sendo usado para fazer fine-tuning de um modelo de linguagem num servidor de GPU alugado"
 faq:
-  - question: "Dá para fazer fine-tuning de modelos de linguagem grandes em uma única RTX 4090?"
-    answer: "Sim. Com QLoRA (Quantized Low-Rank Adaptation), modelos de até 8B parâmetros cabem com folga em 24 GB de VRAM. Este tutorial mostra exatamente como configurar o script de treinamento para hardware de consumo, com valores específicos de batch size, comprimento de sequência e rank do LoRA."
-  - question: "Meu dataset fica seguro em uma GPU alugada?"
-    answer: "Seu dataset fica tão seguro quanto as suas práticas operacionais. Este guia explica como transferir os dados criptografados via SCP, como evitar intermediários de armazenamento em nuvem como S3 ou Google Drive e como limpar a máquina remota depois do treinamento. Lembre-se de que a máquina é de outra pessoa: apague tudo antes de encerrar o aluguel."
-  - question: "Quanto custa fazer fine-tuning de um modelo de 8B em uma GPU alugada?"
-    answer: "Um fine-tuning típico de um modelo de 8B parâmetros em uma RTX 4090 alugada custa entre três e oito dólares, dependendo do tamanho do dataset e do número de épocas."
-  - question: "Preciso comprovar minha identidade para alugar GPU para treinamento?"
-    answer: "Normalmente não. Marketplaces como Vast.ai e RunPod pedem um e-mail e crédito pré-pago, não documentos de identidade. A RunPod só pede KYC antes do primeiro pagamento em cripto. Na AWS, contas novas começam com cota de GPU zerada, e você precisa solicitar um aumento."
-  - question: "Em que formato o script de treinamento espera o dataset?"
-    answer: "O script espera um arquivo JSONL em que cada linha contém um objeto JSON com um campo text. Esse campo deve trazer a instrução, a entrada e a resposta formatadas como uma única string com quebras de linha. Há um exemplo com a formatação correta no Passo 4 deste guia."
-  - question: "Este tutorial funciona com outros modelos além do Llama?"
-    answer: "Sim. O fluxo vale para qualquer modelo open-weights, incluindo Mistral, Qwen, Falcon e outros. O exemplo de código usa o Llama-3.1-8B, mas basta trocar o identificador do modelo para fazer fine-tuning de outro modelo base."
-  - question: "Quanto tempo leva o fine-tuning de um modelo de 8B parâmetros?"
-    answer: "O tempo de treinamento depende do tamanho do dataset. Uma execução típica com 1.000 exemplos termina em 30 a 60 minutos em uma RTX 4090. Datasets maiores escalam de forma aproximadamente linear: um dataset de 10.000 exemplos exige de 5 a 10 horas de computação."
-  - question: "O que devo fazer com a máquina remota depois do treinamento?"
-    answer: "Você precisa limpar o ambiente, apagando o dataset, o código de treinamento, o cache do Hugging Face e o histórico do bash. Este guia traz os comandos exatos para uma exclusão segura, incluindo o uso opcional do shred para destruir os arquivos por completo antes de encerrar o aluguel."
+  - question: "Quanta VRAM é preciso para fazer fine-tuning de um modelo de 7B ou 8B?"
+    answer: "Com QLoRA, a tabela de requisitos do Unsloth indica cerca de 5 GB para um modelo de 7B e 6 GB para um de 8B; LoRA comum em 16 bits precisa de cerca de 19 GB e 22 GB. Treinos reais precisam de folga para sequências mais longas e batches maiores, então uma placa de 24 GB, como a RTX 3090 ou a 4090, é a escolha confortável."
+  - question: "Devo fazer fine-tuning ou usar RAG?"
+    answer: "Use RAG quando o modelo precisa de fatos dos seus documentos, principalmente fatos que mudam. Um estudo de 2024 de Ovadia et al. concluiu que o RAG superou de forma consistente o fine-tuning não supervisionado para adicionar conhecimento. Faça fine-tuning quando precisar de um formato, um tom ou um comportamento de tarefa específica que o prompt não entrega de forma confiável."
+  - question: "Quanto custa fazer fine-tuning de um LLM numa GPU alugada?"
+    answer: "Um treino QLoRA de um modelo de 8B com 2.000 exemplos leva pouco mais de uma hora, contando a preparação, o que dá cerca de US$ 0,35 numa RTX 4090 do Vast.ai a US$ 0,31/h ou US$ 0,83 pelo preço de tabela do RunPod, de US$ 0,74/h (setembro de 2026). Um treino com 20.000 exemplos leva umas quatro horas, ou de US$ 1,24 a US$ 2,97."
+  - question: "O host da GPU consegue ver os meus dados de treino?"
+    answer: "O host é dono do hardware, então parta do princípio de que consegue. O isolamento por contêiner protege você de outros locatários, não do dono da máquina. Use hosts de data center verificados (Vast.ai Secure Cloud, RunPod Secure Cloud) para dados sensíveis, tire os dados pessoais antes de subir e apague a instância quando terminar."
+  - question: "Qual é a diferença entre LoRA e QLoRA?"
+    answer: "A LoRA congela o modelo base e treina matrizes adaptadoras pequenas. O QLoRA faz o mesmo, mas carrega o modelo base congelado em precisão NF4 de 4 bits, o que reduziu a memória o bastante para fazer fine-tuning de um modelo de 65B numa única GPU de 48 GB no artigo original."
+  - question: "Posso fazer fine-tuning ou subir o meu modelo no GPUFlow?"
+    answer: "Não. O GPUFlow é só para inferência: você aluga uma API de chat compatível com a OpenAI para modelos que os provedores instalaram nas próprias máquinas, normalmente com o Ollama. Não há shell nem acesso a arquivos, então não dá para treinar nem subir um modelo seu."
 ---
 
-Se você está lendo isto, provavelmente tem um dataset que não pode (ou não quer) enviar para a OpenAI.
-
-Você não está sozinho. Para muitas empresas e desenvolvedores independentes, a conveniência do ChatGPT não compensa o risco inaceitável de vazamento de dados. Seja com prontuários médicos sujeitos à HIPAA, com bases de código proprietárias que representam anos de investimento em engenharia ou com modelos financeiros sensíveis capazes de mexer com o mercado, usar IA na nuvem muitas vezes significa confiar a um terceiro a sua propriedade intelectual mais valiosa.
-
-Quando esse terceiro é um conglomerado de tecnologia com histórico de usar dados de clientes para treinar modelos futuros, "confiança" vira uma palavra desconfortável.
-
-A solução não é abandonar a IA. A solução é ser dono da infraestrutura.
-
-Fazer fine-tuning de modelos open-weights em hardware que você controla deixou de ser um nicho acadêmico. Para organizações que levam privacidade a sério, virou requisito de negócio. Modelos como Llama, Mistral, Qwen e dezenas de outros estão disponíveis para uso comercial, sem taxa de API e sem exigência de compartilhar dados. O problema sempre foi o acesso à computação. Comprar clusters de NVIDIA H100 exige milhões em investimento. Alugar na AWS exige verificação de identidade, contratos corporativos e preços por hora que tornam treinamentos longos caros demais.
-
-Este guia apresenta um terceiro caminho. Você vai aprender a fazer fine-tuning de um modelo de linguagem open-weights em uma GPU alugada em um marketplace, muitas vezes hardware de pessoas físicas espalhadas pelo mundo. Vamos cobrir a configuração do ambiente, os protocolos de segurança para trabalhar em nós públicos e a execução completa do treinamento.
-
-Os exemplos de código usam o Llama-3.1-8B como referência concreta, mas o fluxo é idêntico para qualquer modelo compatível com o Hugging Face. Troque o identificador do modelo e você pode fazer fine-tuning do Mistral-7B, do Qwen2-7B ou de qualquer lançamento open-weights que sirva ao seu caso.
-
-E tudo isso sem contrato de longo prazo e por uma fração do que os provedores de nuvem tradicionais cobram.
-
-![Janela de terminal mostrando uma conexão SSH ativa com um servidor de GPU remoto](../_images/terminal-ssh-connection.png)
-
-## A economia do fine-tuning privado
-
-Antes de entrar na implementação técnica, vamos estabelecer o contexto financeiro.
-
-Treinar um modelo na AWS significa instâncias grandes e pedidos de cota. A instância p4d.24xlarge (8 GPUs A100) custa US$ 32,77 por hora, e contas novas na AWS começam com cota de GPU zerada.
-
-Em um marketplace de GPU, você aluga poder de computação diretamente de quem é dono do hardware. As consequências são grandes:
-
-**Custo menor:** uma RTX 4090 sai por cerca de US$ 0,30 a US$ 0,46 por hora nos marketplaces (setembro de 2026). Para modelos de 8B parâmetros com QLoRA, uma única 4090 com 24 GB de VRAM conclui um fine-tuning em duas a seis horas, dependendo do tamanho do dataset. O custo total de computação fica entre três e oito dólares.
-
-**Seus dados ficam em uma única máquina:** você copia o dataset direto para a máquina alugada via SSH, treina, baixa o resultado e apaga tudo. Nada de bucket de armazenamento, nada de uma terceira cópia.
-
-**Sem porteiros:** você não precisa de aprovação da equipe de vendas corporativas de um provedor de nuvem nem de aumento de cota. Basta adicionar crédito pré-pago e alugar o hardware.
-
-Para comparar: uma única A10G na AWS (g5.xlarge, a opção mais barata com 24 GB de VRAM) custa cerca de US$ 1,01 por hora em us-east-1. Some o pedido de cota, o tempo de configuração e a computação ociosa enquanto você prepara o ambiente, e o custo real da primeira execução fica muito acima dos poucos dólares que ela custa em um marketplace.
-
-Esses números estão detalhados na nossa [comparação de preços de aluguel de GPU](/pt_br/gpu-rental-pricing-comparison-2026/) e em [o custo real de alugar uma GPU](/pt_br/hidden-fees-in-gpu-rental/).
-
-## Pré-requisitos
-
-Este tutorial parte do princípio de que você conhece a linha de comando do Linux. Não é preciso ter pós-graduação em machine learning, mas você deve saber navegar pelo sistema de arquivos, editar arquivos de texto e interpretar mensagens de erro.
-
-**Requisitos de hardware:**
-
-- **GPU:** no mínimo 24 GB de VRAM. RTX 3090, RTX 4090 e A10G atendem. Para o modelo de 70B parâmetros, você precisa de 48 GB ou mais (A6000, duas A100 ou H100).
-- **RAM do sistema:** 32 GB ou mais. O carregamento do modelo passa os pesos pela memória do sistema antes de transferi-los para a GPU.
-- **Armazenamento:** 100 GB ou mais de SSD NVMe. Os pesos base do Llama-3 8B ocupam cerca de 16 GB. O dataset, os checkpoints e o adapter final somam mais espaço.
-
-**Sobre a escolha do modelo:** este tutorial usa o Llama-3.1-8B da Meta como exemplo porque ele representa a maior classe de modelo que cabe em uma única GPU de 24 GB com quantização QLoRA. A família Llama agora inclui o Llama 4 Scout e o Maverick, mas eles usam arquitetura Mixture of Experts com 109B e 400B parâmetros no total, respectivamente, e exigem configurações com várias GPUs, o que foge do escopo de um aluguel de nó único. O fluxo descrito aqui vale igualmente para Mistral-7B, Qwen2-7B, Gemma-2-9B e qualquer outro modelo compatível com o Hugging Face que caiba na VRAM do hardware alugado.
-
-**Pré-requisitos de software:**
-
-- Python 3.10 ou superior
-- Conhecimento básico de PyTorch
-- Uma conta no Hugging Face (necessária para baixar modelos restritos, como o Llama, que exigem aceitar uma licença)
-- Uma conta com crédito pré-pago em um marketplace de GPU que alugue máquinas inteiras com acesso SSH, como Vast.ai, RunPod ou TensorDock
-
-Não sabe qual escolher? Veja [o que você precisa para alugar uma GPU](/pt_br/what-you-need-to-rent-a-gpu/) e [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/pt_br/gpuflow-vs-vast-ai-vs-runpod/). A GPUFlow em si não serve para este tutorial: ela aluga acesso a modelos de IA por meio de uma API, não uma máquina em que você possa fazer login.
-
-## Passo 1: garantir o seu nó de computação
-
-O primeiro passo é conseguir o hardware. Nas grandes plataformas de nuvem, isso significa criar uma conta, solicitar cota de GPU e esperar a aprovação. Em um marketplace, o processo é bem mais direto.
-
-Abra o marketplace de sua preferência e adicione algum crédito. A interface mostra as máquinas disponíveis com especificações, preço por hora e índice de confiabilidade.
-
-Filtre por máquinas com estas características:
-
-- **GPU:** RTX 4090 (24 GB de VRAM) ou RTX 6000 Ada (48 GB de VRAM)
-- **RAM:** mínimo de 32 GB
-- **Armazenamento:** 100 GB ou mais disponíveis
-- **Confiabilidade:** índice de uptime de 95% ou mais
-
-Escolha uma máquina e inicie o aluguel. Prefira uma imagem que já tenha CUDA e PyTorch instalados: isso economiza tempo de configuração, e o tempo de configuração também é cobrado.
-
-**Cuidados de segurança em nós públicos:**
-
-Ao alugar uma máquina em qualquer rede remota, você está acessando um hardware que pertence a um desconhecido e que está fisicamente sob o controle dele. A camada de virtualização oferece um isolamento real, mas você precisa agir com a cautela adequada:
-
-1. **Não guarde chaves privadas na máquina remota.** Chaves SSH de outros sistemas, credenciais de nuvem e tokens de API de serviços em produção nunca devem existir em um nó alugado.
-
-2. **Trate o sistema de arquivos como hostil.** Parta do princípio de que tudo o que você grava em disco pode, em tese, ser recuperado pelo host depois que você se desconectar. Os procedimentos de exclusão segura estão no Passo 6.
-
-3. **Criptografe os dados sensíveis durante a transferência.** Tratamos disso no Passo 3.
-
-4. **Não reutilize senhas.** Se a interface de aluguel fornecer credenciais padrão, troque-as imediatamente ou gere um novo par de chaves SSH.
-
-Depois que o aluguel for confirmado, o painel mostra os dados de conexão. Você vai receber um comando SSH parecido com este:
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-Abra o terminal local e execute esse comando. Aceite a impressão digital da chave do host quando for solicitado. Pronto: você está conectado ao seu nó de GPU alugado.
-
-Confira se o hardware corresponde ao que você contratou:
-
-```bash
-nvidia-smi
-```
-
-A saída deve mostrar a GPU alugada, a capacidade de memória e a versão do driver instalado. Se a GPU não aparecer ou as especificações forem diferentes do pedido, desconecte-se imediatamente e informe a divergência ao suporte do marketplace.
-
-## Passo 2: configuração do ambiente
-
-Com a conexão SSH verificada, a próxima prioridade é montar um ambiente Python limpo. A maioria dos nós alugados já vem com drivers NVIDIA e CUDA toolkit instalados, mas depender dos pacotes Python do sistema do host é pedir conflitos de dependência que vão consumir horas de depuração.
-
-Vamos criar um ambiente virtual isolado para garantir reprodutibilidade e estabilidade.
-
-Execute os comandos a seguir para criar o espaço de trabalho:
-
-```bash
-mkdir ~/llama3-finetune
-cd ~/llama3-finetune
-python3 -m venv venv
-source venv/bin/activate
-```
-
-O prompt do terminal agora deve mostrar `(venv)`, indicando que o ambiente virtual está ativo. Todos os pacotes instalados a partir daqui ficam dentro desse diretório, sem mexer no sistema do host.
-
-Antes de instalar pacotes Python, verifique se o CUDA toolkit está acessível:
-
-```bash
-nvcc --version
-```
-
-Anote a versão do CUDA. Você vai precisar dela para garantir a compatibilidade com o PyTorch. A maioria dos nós alugados roda CUDA 11.8 ou 12.1. Se o `nvcc` não for encontrado, o CUDA toolkit pode não estar no seu PATH. Normalmente isso se resolve carregando o arquivo de ambiente correspondente:
-
-```bash
-source /etc/profile.d/cuda.sh
-```
-
-Se esse arquivo não existir, consulte a documentação do marketplace sobre a configuração do seu nó.
-
-Agora instale o ecossistema PyTorch. O comando a seguir instala o PyTorch com suporte a CUDA 12.1. Ajuste o sufixo da versão do CUDA se o seu nó usar outra:
-
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-Em seguida, instale as bibliotecas necessárias para um fine-tuning eficiente. Vamos usar o ecossistema do Hugging Face, junto com o bitsandbytes para quantização e o PEFT para treinamento eficiente em parâmetros:
-
-```bash
-pip install transformers==4.40.0 datasets==2.19.0 peft==0.10.0 bitsandbytes==0.43.1 trl==0.8.6 accelerate==0.29.0
-```
-
-**Fixar as versões faz diferença.** As versões acima foram testadas e são compatíveis entre si no momento em que este texto foi escrito. O ecossistema do Hugging Face muda rápido, e instalações sem versão fixa costumam trazer mudanças incompatíveis. Se aparecerem erros de importação ou comportamentos estranhos, versões incompatíveis são a causa mais provável.
-
-Por fim, autentique-se no Hugging Face. Os pesos do Llama-3 são restritos por um contrato de licença que exige uma conta no Hugging Face. Acesse o [repositório Meta Llama-3](https://huggingface.co) e aceite os termos da licença. Depois, gere um token de acesso na página de configurações do Hugging Face.
-
-Execute o comando de autenticação:
-
-```bash
-huggingface-cli login
-```
-
-Cole o token de acesso quando for solicitado. O token fica salvo em `~/.cache/huggingface/token`. Agora você tem autorização para baixar pesos de modelos restritos diretamente no nó alugado.
-
-![Código Python exibido em um terminal com os parâmetros de configuração do modelo Llama-3](../_images/python-llama3-config.png)
-
-## Passo 3: transferência segura dos dados
-
-Esta seção trata do principal motivo para alugar uma máquina em vez de chamar uma API: a soberania dos dados.
-
-O fluxo padrão na nuvem envolve enviar o dataset para um bucket de armazenamento (S3, Google Cloud Storage, Azure Blob) e depois baixá-lo na instância de computação. Essa abordagem cria várias cópias dos seus dados sensíveis em sistemas que você não controla. O provedor de armazenamento tem acesso. O provedor de computação tem acesso. Os dois guardam logs da sua atividade.
-
-Vamos evitar tudo isso com uma transferência direta e criptografada.
-
-O protocolo SSH inclui o `scp` (Secure Copy Protocol), que transfere arquivos pelo mesmo canal criptografado que você usa para acessar o terminal. Os dados vão direto da sua máquina local para o nó alugado, sem passar por nenhum armazenamento intermediário.
-
-Abra uma **nova janela de terminal** no seu **computador local**. Não feche a sessão SSH que já está aberta com o nó alugado. Execute o comando a seguir, substituindo o caminho do arquivo e os dados de conexão pelos seus:
-
-```bash
-scp -P 22345 /path/to/your/dataset.jsonl user@203.0.113.42:~/llama3-finetune/
-```
-
-A opção `-P` define o número da porta (repare no P maiúsculo, diferente do `-p` minúsculo do ssh). Com datasets grandes, a transferência pode levar alguns minutos. Você vai ver o progresso com a quantidade de bytes transferidos.
-
-**Para datasets acima de 1 GB**, considere compactar antes de transferir:
-
-```bash
-# On your local machine
-gzip -k dataset.jsonl
-scp -P 22345 dataset.jsonl.gz user@203.0.113.42:~/llama3-finetune/
-
-# Then on the remote node
-cd ~/llama3-finetune
-gunzip dataset.jsonl.gz
-```
-
-**Medidas de segurança adicionais:**
-
-Se o seu modelo de ameaças inclui adversários sofisticados, vale criptografar o dataset antes da transferência com GPG ou age. Isso cria uma defesa em camadas: mesmo que a transferência fosse interceptada de alguma forma, o conteúdo continuaria ilegível.
-
-```bash
-# On your local machine (using age encryption)
-age -p dataset.jsonl > dataset.jsonl.age
-scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/llama3-finetune/
-
-# On the remote node
-age -d dataset.jsonl.age > dataset.jsonl
-rm dataset.jsonl.age
-```
-
-Para a maioria dos usuários, a transferência padrão via SCP já oferece proteção suficiente. O protocolo SSH usa criptografia AES-256. Ataques man-in-the-middle são barrados pela verificação da chave do host. Seus dados não passam por nenhum sistema de armazenamento de terceiros.
-
-## Passo 4: o script de fine-tuning
-
-Vamos usar a classe `SFTTrainer` da biblioteca TRL (Transformer Reinforcement Learning) para fazer o fine-tuning supervisionado. A biblioteca esconde boa parte da complexidade e continua configurável o bastante para cargas de produção.
-
-Antes de escrever o script de treinamento, você precisa entender o formato esperado do dataset.
-
-**Formato exigido do dataset:**
-
-O script espera um arquivo JSONL (JSON Lines) em que cada linha contém um objeto JSON válido com um campo `text`. O campo `text` deve trazer o exemplo de treinamento completo, formatado como uma única string.
-
-Veja três linhas formatadas corretamente:
+Você consegue fazer fine-tuning de um modelo de pesos abertos de 8B com os seus próprios dados usando QLoRA numa única GPU alugada de 24 GB, e um treino típico custa menos de um dólar. As perguntas difíceis vêm antes: se o fine-tuning é mesmo a solução (para fatos, a busca por recuperação costuma ganhar) e como os seus dados continuam privados numa máquina que pertence a outra pessoa.
+
+Este guia trata das duas coisas e depois da VRAM necessária por tamanho de modelo, das ferramentas atuais, de um script de treino que funciona, de um custo calculado e de como servir o resultado. Tudo foi conferido em setembro de 2026; as fontes estão no final.
+
+## Fine-tuning, RAG ou prompts melhores
+
+O fine-tuning muda o jeito como o modelo se comporta. É uma forma ruim de ensinar fatos a ele. Ovadia et al. compararam as duas abordagens para injetar conhecimento e concluíram que o RAG "supera de forma consistente" o fine-tuning não supervisionado, "tanto para conhecimento já visto no treino quanto para conhecimento totalmente novo". O resumo deles: LLMs têm dificuldade para aprender fatos novos por fine-tuning.
+
+Então percorra esta árvore antes de alugar qualquer coisa:
+
+<figure>
+<svg viewBox="0 0 720 420" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">Árvore de decisão para escolher entre busca por recuperação, prompts melhores, fine-tuning ou um modelo maior</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+<rect width="720" height="420" fill="#ffffff"/>
+<rect x="60" y="15" width="280" height="40" rx="8" fill="#1e1b4b"/>
+<text x="200" y="40" text-anchor="middle" fill="#ffffff">As respostas deixam a desejar</text>
+<line x1="200" y1="55" x2="200" y2="83" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<rect x="20" y="85" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="115" text-anchor="middle" fill="#1e1b4b">Faltam fatos, ou os dados mudam?</text>
+<rect x="440" y="80" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="105" text-anchor="middle" fill="#1e1b4b" font-weight="600">Use RAG</text>
+<text x="570" y="126" text-anchor="middle" fill="#64748b" font-size="12">consulte seus documentos a cada pedido</text>
+<line x1="380" y1="110" x2="438" y2="110" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="102" text-anchor="middle" fill="#16a34a" font-size="13">Sim</text>
+<line x1="200" y1="135" x2="200" y2="173" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="160" fill="#64748b" font-size="13">Não</text>
+<rect x="20" y="175" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="205" text-anchor="middle" fill="#1e1b4b">Instruções e exemplos resolvem?</text>
+<rect x="440" y="170" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="195" text-anchor="middle" fill="#1e1b4b" font-weight="600">Melhore o prompt</text>
+<text x="570" y="216" text-anchor="middle" fill="#64748b" font-size="13">system prompt, exemplos few-shot</text>
+<line x1="380" y1="200" x2="438" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="192" text-anchor="middle" fill="#16a34a" font-size="13">Sim</text>
+<line x1="200" y1="225" x2="200" y2="263" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="250" fill="#64748b" font-size="13">Não</text>
+<rect x="20" y="265" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="295" text-anchor="middle" fill="#1e1b4b">Precisa de formato, tom ou tarefa fixos?</text>
+<rect x="440" y="260" width="260" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="570" y="285" text-anchor="middle" fill="#1e1b4b" font-weight="600">Fine-tuning com QLoRA</text>
+<text x="570" y="306" text-anchor="middle" fill="#64748b" font-size="13">centenas de bons exemplos</text>
+<line x1="380" y1="290" x2="438" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="282" text-anchor="middle" fill="#16a34a" font-size="13">Sim</text>
+<line x1="200" y1="315" x2="200" y2="353" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="340" fill="#64748b" font-size="13">Não</text>
+<rect x="60" y="355" width="280" height="50" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+<text x="200" y="385" text-anchor="middle" fill="#1e1b4b">Tente um modelo base maior</text>
+<text x="570" y="370" text-anchor="middle" fill="#64748b" font-size="13">RAG e fine-tuning combinam bem:</text>
+<text x="570" y="390" text-anchor="middle" fill="#64748b" font-size="13">ajuste o comportamento, busque os fatos</text>
+</svg>
+<figcaption>A maioria dos problemas do tipo "o modelo não conhece as nossas coisas" é problema de recuperação. O fine-tuning se paga quando você precisa do mesmo comportamento toda vez: um schema JSON, um estilo da casa, um esquema de classificação.</figcaption>
+</figure>
+
+Bons motivos para fazer fine-tuning:
+
+- **Formato de saída rígido.** Extrair campos no seu schema em todas as chamadas, sem uma página de instruções em cada prompt.
+- **Estilo e tom.** Respostas de suporte que soam como a sua equipe, ou relatórios com estrutura fixa.
+- **Uma tarefa específica feita por um modelo pequeno.** Um modelo de 8B ajustado pode substituir um modelo grande e genérico numa única tarefa, o que faz diferença quando você o serve em hardware barato.
+- **Prompts mais curtos.** Um comportamento aprendido nos pesos não precisa ser repetido em cada requisição.
+
+## LoRA e QLoRA
+
+O fine-tuning completo atualiza todos os pesos, então a GPU precisa guardar os gradientes e o estado do otimizador de todos eles, além do próprio modelo. A LoRA congela o modelo base e treina matrizes pequenas de posto baixo ao lado das camadas dele; o artigo original relatou 10.000 vezes menos parâmetros treináveis e 3 vezes menos memória de GPU do que o fine-tuning completo do GPT-3 175B com Adam.
+
+O QLoRA vai além: o modelo base congelado é carregado em precisão NF4 de 4 bits, e só os adaptadores são treinados em 16 bits. Dettmers et al. o usaram para fazer fine-tuning de um modelo de 65B numa única GPU de 48 GB "preservando o desempenho do fine-tuning completo em 16 bits". O artigo trouxe três peças que as ferramentas usam até hoje: o tipo de dado NF4, a quantização dupla das constantes de quantização e os otimizadores paginados, que absorvem picos de memória.
+
+O resultado de qualquer um dos dois é um adaptador, uma pasta com alguns tensores, que você aplica sobre o modelo base inalterado. Dá para mantê-lo separado ou mesclá-lo aos pesos.
+
+## Quanta VRAM você precisa
+
+O Unsloth publica uma tabela com a VRAM mínima para fine-tuning por tamanho de modelo. Os números abaixo são dele, com as otimizações de memória dele; um treino comum com Hugging Face precisa de mais, e sequências mais longas ou batches maiores empurram todas as linhas para cima.
+
+| Tamanho do modelo | QLoRA (4 bits) | LoRA (16 bits) | Placa alugada que roda QLoRA com folga |
+| --- | --- | --- | --- |
+| 3B | 3,5 GB | 8 GB | Qualquer placa de 12 GB+ |
+| 8B | 6 GB | 22 GB | RTX 3090 / 4090 (24 GB) |
+| 14B | 8,5 GB | 33 GB | RTX 3090 / 4090 (24 GB) |
+| 32B | 26 GB | 76 GB | Placa de 48 GB (RTX A6000, A40, L40S) |
+| 70B | 41 GB | 164 GB | Placa de 80 GB (A100, H100) |
+
+<figure>
+<svg viewBox="0 0 720 320" role="img" aria-labelledby="d2-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d2-title">Gráfico de barras com a VRAM mínima para fine-tuning de modelos de 8B, 14B, 32B e 70B com QLoRA e com LoRA em 16 bits, comparada com placas de 24, 48 e 80 GB</title>
+<rect width="720" height="320" fill="#ffffff"/>
+<rect x="200" y="12" width="14" height="14" fill="#6366f1"/>
+<text x="220" y="24" fill="#1e1b4b" font-size="13">QLoRA 4 bits</text>
+<rect x="320" y="12" width="14" height="14" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="340" y="24" fill="#1e1b4b" font-size="13">LoRA 16 bits</text>
+<line x1="262.1" y1="58" x2="262.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="262.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">24 GB</text>
+<line x1="324.2" y1="58" x2="324.2" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="324.2" y="52" text-anchor="middle" fill="#f97316" font-size="12">48 GB</text>
+<line x1="407.1" y1="58" x2="407.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="407.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">80 GB</text>
+<text x="190" y="88" text-anchor="end" fill="#1e1b4b">8B</text>
+<rect x="200" y="66" width="15.5" height="16" fill="#6366f1"/>
+<text x="221" y="79" fill="#1e1b4b" font-size="12">6</text>
+<rect x="200" y="84" width="56.9" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="268" y="97" fill="#1e1b4b" font-size="12">22</text>
+<text x="190" y="138" text-anchor="end" fill="#1e1b4b">14B</text>
+<rect x="200" y="116" width="22" height="16" fill="#6366f1"/>
+<text x="228" y="129" fill="#1e1b4b" font-size="12">8.5</text>
+<rect x="200" y="134" width="85.4" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="291" y="147" fill="#1e1b4b" font-size="12">33</text>
+<text x="190" y="188" text-anchor="end" fill="#1e1b4b">32B</text>
+<rect x="200" y="166" width="67.3" height="16" fill="#6366f1"/>
+<text x="273" y="179" fill="#1e1b4b" font-size="12">26</text>
+<rect x="200" y="184" width="196.7" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="425" y="197" fill="#1e1b4b" font-size="12">76</text>
+<text x="190" y="238" text-anchor="end" fill="#1e1b4b">70B</text>
+<rect x="200" y="216" width="106.1" height="16" fill="#6366f1"/>
+<text x="302" y="229" text-anchor="end" fill="#ffffff" font-size="12">41</text>
+<rect x="200" y="234" width="424.5" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="631" y="247" fill="#1e1b4b" font-size="12">164</text>
+<line x1="200" y1="265" x2="640" y2="265" stroke="#64748b" stroke-width="1"/>
+<text x="200" y="283" text-anchor="middle" fill="#64748b" font-size="12">0</text>
+<text x="303.5" y="283" text-anchor="middle" fill="#64748b" font-size="12">40</text>
+<text x="407.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">80</text>
+<text x="510.6" y="283" text-anchor="middle" fill="#64748b" font-size="12">120</text>
+<text x="614.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">160</text>
+<text x="420" y="306" text-anchor="middle" fill="#64748b" font-size="13">VRAM mínima em GB (tabela de requisitos do Unsloth)</text>
+</svg>
+<figcaption>O QLoRA é o que torna as placas domésticas alugadas úteis aqui: até 14B cabe com folga numa placa de 24 GB, 32B precisa de uma placa de 48 GB e 70B, de uma de 80 GB. Sem o carregamento em 4 bits, até o 8B mal cabe em 24 GB.</figcaption>
+</figure>
+
+O meu padrão é um modelo de 8B ou 14B numa RTX 4090. É a placa alugada mais barata que deixa espaço para sequências de 2.048 tokens e um batch razoável, e modelos nessa faixa são fáceis de servir depois. Para escolher o modelo base pela VRAM em que você vai servi-lo, veja [quais modelos de IA cabem na VRAM da sua GPU](/pt_br/which-ai-models-fit-your-gpu-vram/).
+
+## Escolha a ferramenta: TRL, Unsloth ou Axolotl
+
+As três são de código aberto e todas fazem LoRA e QLoRA.
+
+| Ferramenta | Como usar | Ponto forte | Atenção |
+| --- | --- | --- | --- |
+| Hugging Face TRL + PEFT | Python (`SFTTrainer`) | A implementação de referência; DPO, GRPO e outros na mesma API | Usa mais memória que o Unsloth no mesmo treino |
+| Unsloth | Python, ou a interface web Unsloth Studio | Promete 2x mais velocidade e 70% menos VRAM; exporta direto para GGUF | A interface Studio é AGPL-3.0 (o núcleo é Apache 2.0) |
+| Axolotl | Um arquivo YAML, `axolotl train config.yml` | Multi-GPU (FSDP, DeepSpeed), muitas receitas | Exige Python 3.11+ e PyTorch 2.11+ |
+
+Em setembro de 2026, o TRL está na versão 1.14 e o PEFT na 0.21. O Unsloth precisa de Python 3.11 a 3.13 e de uma GPU NVIDIA com CUDA capability 7.0 ou superior (V100, T4, série RTX 20 em diante). O Axolotl recomenda Python 3.12 e PyTorch 2.12.1.
+
+Use o TRL se quiser entender cada linha, o Unsloth se estiver com pouca VRAM ou quiser exportar para GGUF com uma chamada, e o Axolotl se for repetir treinos com configurações diferentes ou passar para várias GPUs. O script abaixo usa o TRL, porque é o caminho mais curto que mostra todas as peças.
+
+## Prepare os dados
+
+O `SFTTrainer` do TRL lê conversas no mesmo formato de uma requisição de API de chat. Um objeto JSON por linha no `train.jsonl`:
 
 ```json
-{"text": "### Instruction: Summarize the following legal clause in plain English.\n\n### Input: Party A shall indemnify, defend, and hold harmless Party B from any claims, damages, or expenses arising from Party A's negligence or willful misconduct.\n\n### Response: Party A agrees to protect Party B from any legal claims or costs that result from Party A's mistakes or intentional wrongdoing."}
-{"text": "### Instruction: Extract the key financial metrics from this earnings report.\n\n### Input: Q3 revenue reached $4.2B, up 12% YoY. Operating margin improved to 23.5% from 21.2%. Free cash flow was $890M.\n\n### Response: Revenue: $4.2 billion (12% year-over-year growth). Operating margin: 23.5% (up from 21.2%). Free cash flow: $890 million."}
-{"text": "### Instruction: Identify potential HIPAA violations in this process description.\n\n### Input: Patient records are emailed to the billing department as PDF attachments. The billing staff prints these for manual review and shreds them after processing.\n\n### Response: Potential violations include: unencrypted email transmission of PHI, physical documents that may be visible to unauthorized personnel during processing, and lack of documented chain of custody. Recommend encrypted file transfer and on-screen review only."}
+{"messages": [{"role": "system", "content": "Extract the invoice fields as JSON."}, {"role": "user", "content": "Invoice 4471 from Norden AB, due 12 March, total 1,250 EUR"}, {"role": "assistant", "content": "{\"invoice_id\": \"4471\", \"supplier\": \"Norden AB\", \"due\": \"2026-03-12\", \"total\": 1250, \"currency\": \"EUR\"}"}]}
 ```
 
-**Observações importantes sobre a formatação:**
+Regras práticas:
 
-1. Cada objeto JSON deve ocupar exatamente uma linha. Nada de JSON em várias linhas.
-2. As quebras de linha dentro do campo `text` precisam ser escapadas como `\n`.
-3. As aspas dentro do texto precisam ser escapadas como `\"`.
-4. O arquivo deve usar codificação UTF-8.
+- **Qualidade acima de quantidade.** Algumas centenas a alguns milhares de exemplos consistentes e corretos valem mais do que dezenas de milhares com ruído. Cada erro nos dados é um comportamento que você está pagando para ensinar.
+- **Espelhe a produção.** Use o system prompt e o formato de entrada que a sua aplicação vai enviar de fato.
+- **Separe de 5 a 10%.** Guarde exemplos com que o modelo nunca treina, para comparar o modelo base e o ajustado lado a lado.
+- **Tire o que não precisa.** Nomes, e-mails, números de conta e IDs raramente ajudam o modelo a aprender um formato. Troque-os por marcadores realistas antes de os dados saírem do seu computador.
 
-Se os dados de origem estiverem em outro formato (CSV, Parquet, colunas separadas de instrução e resposta), você vai precisar pré-processá-los nessa estrutura antes da transferência. A biblioteca `json` do Python cuida do escape automaticamente:
+Essa última regra vai além da máquina alugada. Carlini et al. extraíram centenas de sequências de treino literais do GPT-2, incluindo nomes, números de telefone e endereços de e-mail, alguns dos quais apareciam em um único documento de treino. Um modelo ajustado pode repetir aquilo com que foi treinado para quem o usar depois.
 
-```python
-import json
+## Mantenha os dados privados numa máquina alugada
 
-with open('dataset.jsonl', 'w') as f:
-    for example in your_data:
-        text = f"### Instruction: {example['instruction']}\n\n### Input: {example['input']}\n\n### Response: {example['output']}"
-        f.write(json.dumps({"text": text}) + '\n')
-```
+Num marketplace de GPU, o computador pertence a outra pessoa. O Vast.ai diz com todas as letras: "os clientes ficam isolados em contêineres Docker sem privilégios e só têm acesso aos próprios dados", e "a segurança dos provedores varia bastante". Esse isolamento protege você de outros locatários. Não protege de quem tem acesso físico e root no host.
 
-Com o dataset no lugar, crie o script de treinamento no nó remoto:
+Para dados privados:
+
+1. **Escolha um host de data center verificado.** Os provedores do Secure Cloud do Vast.ai são "data centers verificados com certificação ISO 27001 e padrões de data center Tier 3/4", e o Vast os recomenda para trabalhos sensíveis. O Secure Cloud do RunPod roda em data centers T3/T4; o Community Cloud conecta você a provedores individuais. As linhas de data center custam mais por hora e aqui valem a pena.
+2. **Suba só o dataset limpo,** por SSH (`rsync -avP` ou `scp`). Não deixe ele num bucket público nem num link compartilhado no meio do caminho.
+3. **Mantenha os logs locais.** No TRL 1.14, `report_to` tem `"none"` como padrão, então nada vai para um rastreador de experimentos a menos que você ative. Não chame `push_to_hub` com um adaptador treinado com dados privados.
+4. **Tire os resultados e depois apague a instância.** Baixe o adaptador e as saídas da avaliação, saia do Hugging Face (`hf auth logout`) se tiver usado um token, e apague a instância e qualquer volume. No Vast.ai, o armazenamento é cobrado e mantido até a instância ser apagada, não só parada.
+
+Apagar arquivos dentro de um contêiner não garante que o disco do host seja limpo, então a proteção de verdade está nos passos 1 e 2: escolher quem fica com o hardware e mandar para ele o mínimo possível. Mais detalhes em [como proteger um dataset em um nó de GPU público](/pt_br/how-to-secure-dataset-on-public-gpu-node/). Se a sua política proíbe qualquer hardware de terceiros, o mesmo script roda na sua própria placa de 24 GB.
+
+## Treino: um script QLoRA com o TRL
+
+Numa máquina Linux alugada com uma RTX 3090 ou 4090:
 
 ```bash
-cd ~/llama3-finetune
-nano train.py
+python -m venv venv && source venv/bin/activate
+pip install torch trl peft bitsandbytes datasets
 ```
 
-Cole a configuração abaixo. Este script usa QLoRA para fazer fine-tuning de um modelo de 8B parâmetros dentro dos limites de memória de uma GPU de 24 GB. O exemplo usa o Llama-3.1-8B, mas você pode trocar por qualquer modelo compatível alterando a variável MODEL_NAME:
+Depois o `train.py`, seguindo o padrão de QLoRA da documentação de PEFT do TRL. O Qwen3-8B é Apache 2.0 e não tem acesso restrito, então não é preciso token do Hugging Face:
 
 ```python
 import torch
 from datasets import load_dataset
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    TrainingArguments,
-)
 from peft import LoraConfig
-from trl import SFTTrainer
+from transformers import BitsAndBytesConfig
+from trl import SFTConfig, SFTTrainer
 
-# ============================================
-# CONFIGURATION - Modify these values as needed
-# ============================================
-
-# Base model identifier on Hugging Face
-# Change this to fine-tune a different model (e.g., "mistralai/Mistral-7B-v0.1")
-MODEL_NAME = "meta-llama/Llama-3.1-8B"
-
-# Name for your fine-tuned adapter
-OUTPUT_NAME = "llama-3-8b-custom"
-
-# Path to your dataset
-DATASET_PATH = "dataset.jsonl"
-
-# Training hyperparameters
-NUM_EPOCHS = 1
-BATCH_SIZE = 4
-LEARNING_RATE = 2e-4
-MAX_SEQ_LENGTH = 512
-
-# LoRA hyperparameters
-LORA_RANK = 16
-LORA_ALPHA = 16
-LORA_DROPOUT = 0.05
-
-# ============================================
-# QUANTIZATION CONFIGURATION
-# ============================================
+dataset = load_dataset("json", data_files="train.jsonl", split="train")
 
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_compute_dtype=torch.bfloat16,
     bnb_4bit_use_double_quant=True,
 )
 
-# ============================================
-# MODEL LOADING
-# ============================================
-
-print("Loading base model...")
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True,
-)
-model.config.use_cache = False
-
-print("Loading tokenizer...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
-
-# ============================================
-# DATASET LOADING
-# ============================================
-
-print(f"Loading dataset from {DATASET_PATH}...")
-dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
-print(f"Dataset contains {len(dataset)} examples")
-
-# ============================================
-# LORA CONFIGURATION
-# ============================================
-
 peft_config = LoraConfig(
-    r=LORA_RANK,
-    lora_alpha=LORA_ALPHA,
-    lora_dropout=LORA_DROPOUT,
-    bias="none",
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    target_modules="all-linear",
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
 )
 
-# ============================================
-# TRAINING ARGUMENTS
-# ============================================
-
-training_args = TrainingArguments(
-    output_dir="./results",
-    num_train_epochs=NUM_EPOCHS,
-    per_device_train_batch_size=BATCH_SIZE,
-    gradient_accumulation_steps=1,
-    learning_rate=LEARNING_RATE,
-    weight_decay=0.001,
-    fp16=True,
-    logging_steps=10,
-    save_steps=100,
-    save_total_limit=3,
-    optim="paged_adamw_32bit",
+args = SFTConfig(
+    output_dir="out",
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=2e-4,
     lr_scheduler_type="cosine",
-    warmup_ratio=0.03,
-    report_to="none",
+    warmup_steps=20,
+    max_length=2048,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="epoch",
+    model_init_kwargs={"dtype": torch.bfloat16},
 )
 
-# ============================================
-# TRAINER INITIALIZATION AND EXECUTION
-# ============================================
-
-print("Initializing trainer...")
 trainer = SFTTrainer(
-    model=model,
+    model="Qwen/Qwen3-8B",
+    args=args,
     train_dataset=dataset,
+    quantization_config=bnb_config,
     peft_config=peft_config,
-    dataset_text_field="text",
-    max_seq_length=MAX_SEQ_LENGTH,
-    tokenizer=tokenizer,
-    args=training_args,
 )
-
-print("Starting training...")
 trainer.train()
-
-print(f"Saving adapter to {OUTPUT_NAME}...")
-trainer.model.save_pretrained(OUTPUT_NAME)
-tokenizer.save_pretrained(OUTPUT_NAME)
-
-print("Training complete.")
+trainer.save_model("out/adapter")
 ```
 
-Salve o arquivo com `Ctrl+O` e saia com `Ctrl+X`.
+As escolhas que importam:
 
-**Entendendo os principais parâmetros:**
+- **`learning_rate=2e-4`.** A documentação do TRL recomenda cerca de 10 vezes a taxa normal de fine-tuning para QLoRA. Se a loss de avaliação sobe enquanto a de treino cai, é overfitting: use menos épocas.
+- **`r=16`, `target_modules="all-linear"`.** Adaptadores em todas as camadas lineares, a configuração dos benchmarks do Unsloth. Rank 16 basta para formato e estilo; aumente para tarefas mais difíceis.
+- **`max_length=2048`.** Exemplos mais longos são cortados. Confira o tamanho em tokens dos seus dados; um limite maior exige mais VRAM.
+- **Batch efetivo de 16** (4 × 4 passos de acumulação). Se a memória acabar, abaixe `per_device_train_batch_size` e aumente a acumulação para manter o produto.
 
-- **LORA_RANK (r=16):** controla a expressividade do adapter treinado. Valores mais altos aprendem mais, mas consomem mais memória. O comum é ficar entre 8 e 64.
+Antes de desligar a máquina, passe os exemplos separados pelo modelo base e pelo ajustado e compare. É o único teste que diz se o dinheiro serviu para alguma coisa.
 
-- **LORA_ALPHA (16):** fator de escala dos pesos do LoRA. Uma heurística comum é usar o mesmo valor do rank.
+## Quanto custa
 
-- **MAX_SEQ_LENGTH (512):** comprimento máximo, em tokens, dos exemplos de treinamento. Sequências mais longas exigem mais memória. Se aparecerem erros de OOM, reduza esse valor primeiro.
+O tempo de treino é o total de tokens ÷ a vazão. A GigaGPU, uma empresa de hospedagem, publicou uma medição de ~3.500 tokens de treino por segundo para o Llama 3.1 8B com QLoRA numa RTX 4090. Supondo uma taxa parecida para o Qwen3-8B:
 
-- **BATCH_SIZE (4):** número de exemplos processados ao mesmo tempo. Reduza para 2 ou 1 se faltar memória.
+**Treino pequeno:** 2.000 exemplos × 600 tokens × 3 épocas = 3,6 milhões de tokens. 3.600.000 ÷ 3.500 = 1.029 s, cerca de 17 minutos.
 
-- **target_modules:** as camadas em que os adapters LoRA são inseridos. No Llama-3, as camadas de projeção da atenção (q, k, v, o) dão os melhores resultados.
+| Etapa | Tempo |
+| --- | --- |
+| Preparar o ambiente | 10 min |
+| Baixar o Qwen3-8B (16,4 GB de pesos) e subir os dados | 10 min |
+| Treino | 17 min |
+| Comparar o modelo base e o ajustado nos dados separados | 15 min |
+| Mesclar, exportar, baixar, apagar a instância | 15 min |
+| **Total** | **67 min (1,12 h)** |
 
-Para iniciar o treinamento, execute:
+- RTX 4090 no Vast.ai a US$ 0,31/h: 1,12 × US$ 0,31 = **US$ 0,35**
+- RTX 4090 no RunPod a US$ 0,74/h (preço de tabela da página de preços): 1,12 × US$ 0,74 = **US$ 0,83**
+
+**Treino maior:** 20.000 exemplos × 1.000 tokens × 2 épocas = 40 milhões de tokens ÷ 3.500 = 11.429 s, cerca de 3,2 horas. Com os mesmos 50 minutos de preparação e finalização, 4,0 horas: **US$ 1,24** no Vast.ai ou **US$ 2,97** no RunPod.
+
+Para um modelo de 32B, o RunPod lista placas de 48 GB a US$ 0,49/h (A40), US$ 0,53/h (RTX A6000) e US$ 1,09/h (L40S) em setembro de 2026. Não tenho uma vazão publicada de QLoRA de 32B nessas placas, então rode 50 passos, leia o tempo por passo no log e faça a mesma multiplicação antes de se comprometer com um treino longo.
+
+Os preços são os de setembro de 2026 da página de preços do RunPod e do rastreador do getdeploying.com para o Vast.ai. As linhas Secure/data center custam mais do que as ofertas comunitárias mais baratas. O panorama geral está na [comparação de preços de aluguel de GPU](/pt_br/gpu-rental-pricing-comparison-2026/).
+
+## Sirva o resultado
+
+Você tem duas opções: manter o adaptador separado ou mesclá-lo ao modelo.
+
+**Mantê-lo separado com o vLLM.** O vLLM carrega adaptadores LoRA ao lado do modelo base e expõe cada um como um nome de modelo no seu servidor compatível com a OpenAI:
 
 ```bash
-python train.py
+vllm serve Qwen/Qwen3-8B --enable-lora --lora-modules invoices=./out/adapter
 ```
 
-Primeiro, o script baixa os pesos do modelo base (cerca de 16 GB para um modelo de 8B). Isso acontece só uma vez; as execuções seguintes usam os pesos em cache. Depois do carregamento, você vai ver o progresso do treinamento, com o valor da loss impresso a cada 10 passos.
+Os clientes então enviam `"model": "invoices"`. Vários adaptadores podem compartilhar um modelo base numa única GPU.
 
-## Passo 5: monitorar o treinamento
-
-Enquanto o script roda, você precisa acompanhar a saúde da GPU. Se a VRAM saturar ou a temperatura passar dos limites seguros, o processo vai cair, podendo corromper o checkpoint e desperdiçar o tempo de aluguel.
-
-Abra uma segunda janela de terminal na sua máquina local e abra outra conexão SSH com o nó alugado:
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-Execute o comando a seguir para ver as estatísticas da GPU em tempo real:
-
-```bash
-watch -n 1 nvidia-smi
-```
-
-![Terminal exibindo a saída do nvidia-smi com uso de memória e temperatura da GPU](../_images/nvidia-smi-monitoring.png)
-
-Esse utilitário atualiza a cada segundo e mostra o uso de memória, o percentual de utilização da GPU e a temperatura. Em uma RTX 4090 com a configuração deste guia, você deve observar:
-
-- **Uso de memória:** de 18 GB a 22 GB dos 24 GB disponíveis
-- **Utilização da GPU:** de 90% a 100% durante os passos de treinamento
-- **Temperatura:** de 60 °C a 80 °C, dependendo da refrigeração do host
-
-**Solução dos problemas mais comuns:**
-
-**Memória chegando a 24 GB:** se o uso de memória bate no teto o tempo todo, reduza o parâmetro `BATCH_SIZE` do script para 2 ou 1. Outra opção é reduzir `MAX_SEQ_LENGTH` para 256. Qualquer uma das mudanças exige reiniciar o treinamento.
-
-**Utilização da GPU perto de 0%:** normalmente indica um gargalo no carregamento de dados. A CPU não consegue entregar exemplos à GPU na velocidade necessária. Isso é menos comum em nós com NVMe, mas pode acontecer com datasets muito grandes. Considere pré-processar o dataset em um formato mais eficiente (Arrow/Parquet) antes da transferência.
-
-**Temperatura acima de 85 °C:** alguns hosts deixam as GPUs em gabinetes mal ventilados. Temperaturas altas por muito tempo podem ativar o thermal throttling e deixar o treinamento mais lento. Se a temperatura passar de 85 °C com frequência, considere encerrar o aluguel e escolher outro nó. Dano ao hardware é problema do host, mas o tempo perdido e os checkpoints corrompidos são problema seu.
-
-**Interpretando a curva de loss:**
-
-O script de treinamento mostra um valor de loss a cada 10 passos. Esse número representa o quanto as previsões do modelo estão "erradas": quanto menor, melhor. Você deve observar:
-
-- **Loss inicial:** normalmente entre 1,5 e 3,0, dependendo do dataset
-- **Tendência:** queda constante ao longo das primeiras centenas de passos
-- **Loss final:** normalmente entre 0,5 e 1,5 em uma execução bem configurada
-
-Se a loss estagnar logo de cara (sem queda depois de 100 passos), a taxa de aprendizado pode estar baixa demais. Se ela oscilar muito ou subir, a taxa de aprendizado está alta demais. O valor padrão de `2e-4` funciona bem para a maioria dos datasets, mas pode ser preciso ajustar.
-
-Se a loss cair de forma suave e de repente disparar para valores muito altos (10 ou mais), o dataset provavelmente tem exemplos malformados. Pare o treinamento, procure erros de codificação ou caracteres mal escapados no arquivo JSONL e comece de novo.
-
-Um fine-tuning típico com 1.000 exemplos termina em 30 a 60 minutos em uma RTX 4090. Datasets maiores escalam de forma aproximadamente linear: 10.000 exemplos exigem de 5 a 10 horas.
-
-## Passo 6: baixar o modelo e limpar o ambiente
-
-Quando o treinamento termina, os pesos ajustados ficam salvos como um adapter LoRA no diretório definido em `OUTPUT_NAME`. Esse adapter é compacto, normalmente de 100 MB a 500 MB, contra os 16 GB do modelo base completo.
-
-Primeiro, confira se os arquivos do adapter existem:
-
-```bash
-ls -la ~/llama3-finetune/llama-3-8b-custom/
-```
-
-Você deve ver arquivos como `adapter_config.json`, `adapter_model.safetensors` e os arquivos do tokenizer.
-
-**Não faça o merge do adapter no nó alugado.** O merge combina os pesos do LoRA com o modelo base para gerar um modelo ajustado independente. Essa operação exige carregar o modelo base completo em 16 bits na memória, o que pode passar da VRAM disponível em uma placa de 24 GB. Faça o merge na sua própria infraestrutura ou simplesmente carregue o adapter junto com o modelo base na hora da inferência. A biblioteca PEFT faz isso sem complicação:
-
-```python
-from peft import PeftModel
-from transformers import AutoModelForCausalLM
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    device_map="auto",
-)
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-```
-
-Para baixar o adapter, volte ao **terminal local** (não à sessão SSH) e execute:
-
-```bash
-scp -r -P 22345 user@203.0.113.42:~/llama3-finetune/llama-3-8b-custom ./
-```
-
-A opção `-r` copia o diretório inteiro de forma recursiva. Confirme que a transferência deu certo comparando o tamanho dos arquivos locais com o dos remotos.
-
-**Limpando o ambiente remoto:**
-
-É este passo que separa profissionais de amadores. O nó alugado agora contém o seu dataset proprietário, o seu código de treinamento e os pesos do modelo em cache. Deixar esse material em uma máquina que você não controla viola o básico da segurança operacional.
-
-Volte à sessão SSH no nó alugado e execute os comandos a seguir:
-
-```bash
-# Remove your working directory and all contents
-rm -rf ~/llama3-finetune
-
-# Clear the Hugging Face cache (contains downloaded model weights)
-rm -rf ~/.cache/huggingface
-
-# Clear Python package cache
-rm -rf ~/.cache/pip
-
-# Clear bash history
-history -c
-cat /dev/null > ~/.bash_history
-
-# Clear any potential swap residue (may require sudo depending on node config)
-sync
-```
-
-Se o nó tiver o `shred` e você quiser uma garantia extra de que os arquivos apagados não poderão ser recuperados:
-
-```bash
-# Secure deletion (slower but more thorough)
-find ~/llama3-finetune -type f -exec shred -u {} \;
-rm -rf ~/llama3-finetune
-```
-
-Encerre a sessão SSH:
-
-```bash
-exit
-```
-
-Volte ao painel do marketplace e encerre o aluguel, incluindo qualquer volume de armazenamento, para parar de pagar por ele.
-
-## Inferência com o seu modelo ajustado
-
-Com o adapter baixado na sua máquina local, você pode rodar inferência sem depender de nenhuma nuvem. Veja um exemplo mínimo:
+**Mesclar e rodar no Ollama.** Mescle o adaptador em pesos de precisão completa, converta para GGUF com o llama.cpp, quantize e importe:
 
 ```python
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer
 
-# Quantization config (same as training)
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
-)
-
-# Load base model
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    quantization_config=bnb_config,
-    device_map="auto",
-)
-
-# Load your fine-tuned adapter
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
-
-# Generate a response
-prompt = "### Instruction: Summarize the contract clause.\n\n### Input: The Licensee shall not reverse engineer, decompile, or disassemble the Software.\n\n### Response:"
-
-inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.7)
-response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-print(response)
+model = AutoPeftModelForCausalLM.from_pretrained("out/adapter", dtype=torch.bfloat16)
+model.merge_and_unload().save_pretrained("merged")
+AutoTokenizer.from_pretrained("Qwen/Qwen3-8B").save_pretrained("merged")
 ```
 
-Para uso em produção, considere expor isso como uma API com FastAPI ou Flask, ou servir o modelo com servidores de inferência como vLLM ou Text Generation Inference (TGI). Comparamos as opções em [Ollama vs vLLM vs TGI em uma RTX 4090](/pt_br/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/).
+```bash
+python llama.cpp/convert_hf_to_gguf.py merged --outfile invoices-bf16.gguf --outtype bf16
+./llama.cpp/build/bin/llama-quantize invoices-bf16.gguf invoices-Q4_K_M.gguf Q4_K_M
+echo "FROM ./invoices-Q4_K_M.gguf" > Modelfile
+ollama create invoices -f Modelfile
+```
 
-## Conclusão
+O Unsloth faz a mesclagem e a exportação para GGUF numa chamada só (`model.save_pretrained_gguf("dir", tokenizer, quantization_method="q4_k_m")`). A documentação dele avisa que a causa mais comum de respostas ruins depois da exportação é o chat template errado: sirva com o template com que você treinou. Os prós e contras de Ollama, vLLM e TGI estão no [nosso benchmark de inferência na RTX 4090](/pt_br/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/).
 
-Você fez o fine-tuning de um modelo de linguagem grande com dados proprietários, mantendo esses dados em uma única máquina pelo menor tempo possível. E fez isso sem assinar contratos corporativos e sem dar a uma empresa de tecnologia acesso à sua propriedade intelectual.
+### Onde o GPUFlow entra
 
-O custo total da operação, considerando duas horas de treinamento em uma RTX 4090 a US$ 0,45 por hora, foi de noventa centavos de dólar. Uma única A10G na AWS custa cerca de US$ 1,01 por hora, então a execução em si também não sai cara lá. A diferença está no pedido de cota e na configuração.
+O GPUFlow não faz o treino: ele aluga uma API compatível com a OpenAI na GPU de um provedor, sem shell, SSH nem acesso a arquivos. Ele também não serve o seu modelo ajustado. Os locatários não podem subir modelos; os modelos oferecidos são os que cada provedor instalou (normalmente com o Ollama), como `qwen2.5:7b` ou `llama3.1:8b`.
 
-Mais importante: o seu dataset nunca passou por um serviço de armazenamento e foi apagado da máquina alugada assim que você terminou.
+Onde ele ajuda é no passo anterior a tudo isso: verificar, por alguns centavos, se um modelo aberto comum com um bom prompt já resolve, que é o desfecho mais barato da árvore de decisão. Use dados de teste para isso, não os dados privados de que este guia trata: prompts e respostas passam em texto puro pela máquina do provedor enquanto o aluguel dura. Como funciona está no [guia rápido da API](https://docs.gpuflow.app/pt-br/renters/api-quickstart/), e [como usar a chave nos seus apps](/pt_br/use-openai-compatible-api-key-in-apps/) mostra como conectá-la a ferramentas que você já usa.
 
-A era da dependência de APIs fechadas está chegando ao fim. Organizações que precisam de privacidade, pesquisadores que valorizam a soberania e desenvolvedores que querem controle têm uma alternativa. GPUs alugadas devolvem a eles a infraestrutura, os custos e os dados.
+## Fontes
 
-O seu modelo ajustado agora está em um hardware que você controla. As decisões sobre como implantá-lo, quem pode acessá-lo e para que ele vai servir são só suas.
+Tudo verificado em setembro de 2026.
 
----
-
-## O que ler em seguida
-
-Este guia cobriu o fluxo principal de fine-tuning privado de LLMs. Os materiais abaixo aprofundam temas relacionados:
-
-**Entendendo os custos:**
-
-- [Comparação de preços de aluguel de GPU 2026](/pt_br/gpu-rental-pricing-comparison-2026/): análise de custos entre marketplaces e grandes nuvens
-- [O custo real de alugar uma GPU](/pt_br/hidden-fees-in-gpu-rental/): fatores de custo que as páginas de preços não mostram
-
-**Primeiros passos:**
-
-- [O que você precisa para alugar uma GPU em 2026](/pt_br/what-you-need-to-rent-a-gpu/): cadastro, verificação e pagamento em cada plataforma
-- [Como proteger seu dataset em um nó de GPU público](/pt_br/how-to-secure-dataset-on-public-gpu-node/): práticas de segurança antes, durante e depois do treinamento
-
-**Comparando opções:**
-
-- [Comparação RunPod vs Vast.ai](/pt_br/runpod-vs-vastapi-comparison/): no que os dois maiores marketplaces diferem
-- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/pt_br/gpuflow-vs-vast-ai-vs-runpod/): máquinas, contêineres e chaves de API comparados
+- Artigos: [Hu et al., LoRA](https://arxiv.org/abs/2106.09685); [Dettmers et al., QLoRA](https://arxiv.org/abs/2305.14314); [Ovadia et al., Fine-Tuning or Retrieval?](https://arxiv.org/abs/2312.05934); [Carlini et al., Extracting Training Data from Large Language Models](https://arxiv.org/abs/2012.07805)
+- Hugging Face TRL: [SFT Trainer](https://huggingface.co/docs/trl/sft_trainer), [integração com PEFT e QLoRA](https://huggingface.co/docs/trl/peft_integration)
+- Unsloth: [requisitos e tabela de VRAM](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements.md), [benchmarks](https://unsloth.ai/docs/basics/unsloth-benchmarks.md), [como salvar em GGUF](https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-gguf.md), [GitHub](https://github.com/unslothai/unsloth)
+- [Axolotl no GitHub](https://github.com/axolotl-ai-cloud/axolotl)
+- Modelo: [model card do Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)
+- Vazão de treino: [GigaGPU, fine-tuning na RTX 4090](https://gigagpu.com/rtx-4090-fine-tuning-guide/)
+- Hosts e segurança: [FAQ de segurança do Vast.ai](https://docs.vast.ai/documentation/reference/faq/security), [preços do Vast.ai](https://docs.vast.ai/guides/instances/pricing.md), [visão geral dos pods do RunPod](https://docs.runpod.io/pods/overview)
+- Preços: [preços do RunPod](https://www.runpod.io/pricing), getdeploying.com para [Vast.ai](https://getdeploying.com/vast-ai) e [RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090)
+- Como servir: [adaptadores LoRA no vLLM](https://docs.vllm.ai/en/latest/features/lora.html), [quantize do llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md), [importação no Ollama](https://docs.ollama.com/import)
+- GPUFlow: [guia rápido da API](https://docs.gpuflow.app/pt-br/renters/api-quickstart/)

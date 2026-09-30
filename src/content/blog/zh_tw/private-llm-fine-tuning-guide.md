@@ -1,631 +1,346 @@
 ---
-title: "在租用 GPU 上私密微調 LLM 的完整指南"
-description: "用自己的資料集，在租用 GPU 上微調開放權重語言模型的完整教學。守住資料安全、降低運算成本，也不被單一廠商綁住。"
-excerpt: "了解如何在租用 GPU 上微調開放權重 LLM，同時把資料掌握在自己手中。逐步說明安全的資料傳輸、QLoRA 訓練，以及訓練後的環境清理。"
+title: "在租用的 GPU 上私密微調 LLM：實務指南"
+description: "什麼時候微調勝過 RAG 或提示詞、各模型大小的 QLoRA VRAM 需求、TRL、Unsloth 與 Axolotl、在租用 GPU 上保護資料隱私、成本與部署。"
+excerpt: "用 QLoRA 微調 8B 開放模型，一張租來的 24 GB GPU 就夠，每次約 $0.35 到 $0.83。付錢之前，先確認微調是正確的工具，並規劃好資料放在別人的機器上時如何確保仍屬於您。"
 pubDate: 2025-02-23
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "zh_tw"
 category: "tutorials"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "以藍色燈光呈現安全機房處理 AI 資料的抽象示意圖"
+heroImage: "../_images/private-llm-fine-tuning-guide-hero.png"
+heroImageAlt: "示意圖：一份私有資料集在租用的 GPU 伺服器上用來微調語言模型"
 faq:
-  - question: "單張 RTX 4090 能微調大型語言模型嗎？"
-    answer: "可以。使用 QLoRA（Quantized Low-Rank Adaptation）時，最多 8B 參數的模型都能輕鬆放進 24GB VRAM。本教學會具體說明如何針對消費級硬體設定訓練腳本，包括 batch size、序列長度與 LoRA rank 等參數。"
-  - question: "我的資料集放在租用 GPU 上安全嗎？"
-    answer: "資料集安不安全，取決於你的操作習慣。本指南說明如何透過 SCP 加密傳輸、避免經過 S3 或 Google Drive 這類雲端儲存中繼，以及在訓練結束後清理遠端機器。請記得這台機器屬於別人，結束租用前務必刪除所有東西。"
-  - question: "在租用 GPU 上微調 8B 模型要花多少錢？"
-    answer: "用租來的 RTX 4090 微調 8B 參數模型，一次典型的訓練大約花費三到八美元，實際金額取決於資料集大小與訓練 epoch 數。"
-  - question: "租用 GPU 算力來訓練，需要驗證身分嗎？"
-    answer: "通常不需要。Vast.ai 和 RunPod 這類市集只要求電子郵件地址和預付儲值，不需要身分證件。RunPod 只有在第一次用加密貨幣付款前才會要求 KYC。AWS 的新帳號 GPU 配額預設為零，必須另外申請。"
-  - question: "訓練腳本需要什麼格式的資料集？"
-    answer: "腳本需要 JSONL 檔案，每一行是一個含有 text 欄位的 JSON 物件。text 欄位應包含指令、輸入與回應，以換行字元組成單一字串。本指南的步驟 4 提供了格式正確的範例。"
-  - question: "這份教學適用於 Llama 以外的模型嗎？"
-    answer: "適用。這套流程適用於任何開放權重模型，包括 Mistral、Qwen、Falcon 等。範例程式碼使用 Llama-3.1-8B，但只要更換模型識別名稱，就能微調其他基礎模型。"
-  - question: "微調 8B 參數模型需要多久？"
-    answer: "訓練時間取決於資料集大小。1,000 筆範例的典型訓練在 RTX 4090 上約 30 到 60 分鐘完成。更大的資料集大致呈線性增加，10,000 筆範例需要 5 到 10 小時的運算時間。"
-  - question: "訓練完成後，遠端機器該怎麼處理？"
-    answer: "你必須清理環境：刪除資料集、訓練程式碼、Hugging Face 快取與 bash 歷史紀錄。本指南提供具體的安全刪除指令，並可選擇在結束租用前用 shred 徹底銷毀檔案。"
+  - question: "微調 7B 或 8B 模型需要多少 VRAM？"
+    answer: "使用 QLoRA 時，Unsloth 的需求表列出 7B 模型約 5 GB、8B 模型約 6 GB；一般 16-bit LoRA 則分別約 19 GB 和 22 GB。實際訓練時，較長的序列和較大的批次需要額外空間，所以 RTX 3090 或 4090 這類 24 GB 顯示卡是比較寬裕的選擇。"
+  - question: "該微調還是用 RAG？"
+    answer: "模型需要您文件中的事實，尤其是會變動的事實時，用 RAG。Ovadia 等人 2024 年的研究發現，在注入知識這件事上，RAG 一貫勝過非監督式微調。需要提示詞無法穩定做到的固定格式、語氣或特定任務行為時，才微調。"
+  - question: "在租用的 GPU 上微調 LLM 要花多少錢？"
+    answer: "用 2,000 筆範例對 8B 模型跑一次 QLoRA，含準備約一個多小時：在每小時 $0.31 的 Vast.ai RTX 4090 上約 $0.35，以 RunPod 每小時 $0.74 的牌價則是 $0.83（2026 年 9 月）。20,000 筆範例約需四小時，也就是 $1.24 到 $2.97。"
+  - question: "GPU 主機方看得到我的訓練資料嗎？"
+    answer: "硬體是主機方的，所以請假設他們看得到。容器隔離保護的是您不受其他租用者影響，而不是不受機器擁有者影響。敏感資料請使用經過審核的資料中心主機（Vast.ai Secure Cloud、RunPod Secure Cloud），上傳前移除個人資料，完成後刪除執行個體。"
+  - question: "LoRA 和 QLoRA 有什麼不同？"
+    answer: "LoRA 凍結基礎模型，只訓練小型的轉接器矩陣。QLoRA 做法相同，但以 4-bit NF4 精度載入凍結的基礎模型；原始論文靠這一點省下足夠的記憶體，在一張 48 GB GPU 上微調了 65B 模型。"
+  - question: "可以在 GPUFlow 上微調或上傳我的模型嗎？"
+    answer: "不行。GPUFlow 只做推論：您租用的是一個相容 OpenAI 的聊天 API，使用的是提供者安裝在自己機器上的模型，通常透過 Ollama。沒有 shell，也不能存取檔案，所以無法在上面訓練，也無法上傳自己的模型。"
 ---
 
-如果你正在讀這篇文章，你手上很可能有一份不能、或不願意上傳到 OpenAI 的資料集。
-
-有這種顧慮的不只你一個。對許多企業和獨立開發者來說，ChatGPT 再方便，也抵不過資料外洩這個無法接受的風險。無論你處理的是受 HIPAA 規範的醫療紀錄、代表多年工程投入的專有程式碼，還是足以影響市場的敏感財務模型，使用雲端 AI 往往就代表要把最有價值的智慧財產交給第三方。
-
-當這個第三方是一家曾經拿客戶資料訓練新模型的科技巨頭時，「信任」兩個字就顯得很尷尬。
-
-解決之道不是放棄 AI，而是自己掌握基礎設施。
-
-在自己能掌控的硬體上微調開放權重模型，早已不是學術圈的小眾研究，而是重視隱私的組織必須具備的能力。Llama、Mistral、Qwen 以及其他數十種模型都可以商用，不用付 API 費用，也不必分享資料。真正的難題一直是算力。購買 NVIDIA H100 叢集需要數百萬的資本支出；向 AWS 租用則要驗證身分、簽企業合約，而且時薪高到讓長時間的訓練貴得難以負擔。
-
-這份指南提供第三條路。你將學會如何在 GPU 市集上租一張 GPU 來微調開放權重語言模型，這些硬體通常屬於世界各地的個人。內容涵蓋環境建置、在公用節點上作業時的安全規範，以及完整的訓練流程。
-
-範例程式碼以 Llama-3.1-8B 作為具體的參考，但這套流程對任何相容 Hugging Face 的模型都一樣適用。只要換掉模型識別名稱，就能微調 Mistral-7B、Qwen2-7B，或任何符合你需求的開放權重模型。
-
-整個過程不需要簽長期合約，費用也只有傳統雲端服務商的一小部分。
-
-![終端機視窗顯示已連上遠端 GPU 伺服器的 SSH 連線](../_images/terminal-ssh-connection.png)
-
-## 私密微調的成本結構
-
-在進入技術細節之前，先把財務背景講清楚。
-
-在 AWS 上訓練模型，代表要用大型執行個體，還要申請配額。p4d.24xlarge 執行個體（8 張 A100 GPU）每小時 $32.77，而且新的 AWS 帳號 GPU 配額預設為零。
-
-在 GPU 市集上，你直接向硬體擁有者租用算力。這帶來幾個重要的差別：
-
-**成本降低**：在市集上，RTX 4090 每小時的租金大約 $0.30 到 $0.46（2026 年 9 月）。使用 QLoRA 微調 8B 參數模型時，一張 24GB VRAM 的 4090 視資料集大小，兩到六小時就能完成一次微調。總運算成本在三到八美元之間。
-
-**資料只待在一台機器上**：你透過 SSH 把資料集直接複製到租來的機器上，訓練、下載結果，然後刪除所有東西。沒有儲存桶，也沒有第三份副本。
-
-**沒有人把關**：你不需要雲端服務商企業業務團隊的核准，也不用申請提高配額。儲值預付額度，然後租硬體就好。
-
-做個比較：AWS 上單張 A10G（g5.xlarge，有 24GB VRAM 的最便宜選項）在 us-east-1 每小時約 $1.01。再加上申請配額、建置時間，以及設定環境時閒置的算力，第一次訓練的實際成本遠高於在市集上花的那幾美元。
-
-這些成本細節在我們的 [GPU 租用價格比較](/zh_tw/gpu-rental-pricing-comparison-2026/)與[租用 GPU 的真實成本](/zh_tw/hidden-fees-in-gpu-rental/)中有詳細說明。
-
-## 事前準備
-
-本教學假設你熟悉 Linux 命令列。你不需要機器學習的研究所學位，但應該能自在地瀏覽檔案系統、編輯文字檔，並看懂錯誤訊息。
-
-**硬體需求**：
-
-- **GPU**：至少 24GB VRAM。RTX 3090、RTX 4090 和 A10G 都符合。70B 參數模型則需要 48GB 以上（A6000、兩張 A100 或 H100）。
-- **系統記憶體**：32GB 以上。載入模型時，權重會先暫存在系統記憶體，再傳到 GPU。
-- **儲存空間**：100GB 以上的 NVMe SSD 空間。Llama-3 8B 的基礎權重約占 16GB，資料集、檢查點和輸出的 adapter 還會再占用額外空間。
-
-**關於模型選擇**：本教學以 Meta 的 Llama-3.1-8B 作為範例，
-因為在 QLoRA 量化下，這是單張 24GB GPU 能容納的最大一級模型。
-Llama 家族現在也包括 Llama 4 Scout 和 Maverick，但它們採用 Mixture of Experts 架構，
-總參數分別為 109B 和 400B，需要多 GPU 配置，超出單一節點租用的範圍。
-這裡介紹的流程同樣適用於 Mistral-7B、Qwen2-7B、Gemma-2-9B，
-以及任何在你租用硬體 VRAM 限制內、相容 Hugging Face 的模型。
-**軟體需求**：
-
-- Python 3.10 或更新版本
-- 基本的 PyTorch 使用能力
-- Hugging Face 帳號（下載 Llama 這類需要同意授權條款的受限模型時必備）
-- 一個已儲值預付額度的 GPU 市集帳號，而且該市集要能租用整台機器並提供 SSH 存取，例如 Vast.ai、RunPod 或 TensorDock
-
-不確定該選哪個？請參考[租用 GPU 需要準備什麼](/zh_tw/what-you-need-to-rent-a-gpu/)以及 [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/zh_tw/gpuflow-vs-vast-ai-vs-runpod/)。請注意，GPUFlow 本身並不適合這份教學：它透過 API 提供 AI 模型的存取，而不是一台你能登入的機器。
-
-## 步驟 1：取得並保護你的運算節點
-
-第一步是取得硬體。在大型雲端平台上，這代表要建立帳號、申請 GPU 配額，然後等待核准。在市集上，流程直接得多。
-
-打開你選擇的市集並儲值一些額度。介面會列出可用的機器，以及它們的規格、時薪和可靠度分數。
-
-篩選符合以下條件的機器：
-
-- **GPU**：RTX 4090（24GB VRAM）或 RTX 6000 Ada（48GB VRAM）
-- **記憶體**：至少 32GB
-- **儲存空間**：可用空間 100GB 以上
-- **可靠度**：運作時間分數 95% 以上
-
-選好機器後開始租用。選擇已經安裝好 CUDA 和 PyTorch 的映像檔，可以省下建置時間，而建置時間也是要計費的。
-
-**在公用節點上的安全考量**：
-
-在任何遠端網路上租用機器，你存取的都是陌生人擁有、實體上由對方掌控的硬體。虛擬化層確實提供了一定程度的隔離，但你仍然必須謹慎行事：
-
-1. **不要把私密金鑰存放在遠端機器上**。其他系統的 SSH 金鑰、雲端憑證，以及正式環境服務的 API 權杖，都不應該出現在租用節點上。
-
-2. **把檔案系統當成有敵意的環境**。假設你寫入磁碟的任何東西，在你中斷連線後理論上都可能被主機擁有者復原。我們會在步驟 6 說明安全刪除的程序。
-
-3. **傳輸敏感資料時要加密**。我們會在步驟 3 處理這件事。
-
-4. **不要重複使用密碼**。如果租用介面提供預設帳密，請立即變更，或產生新的 SSH 金鑰組。
-
-租用確認後，控制台會提供連線資訊。你會拿到一行類似這樣的 SSH 指令：
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-在本機終端機執行這個指令。出現提示時，接受主機金鑰指紋。現在你已經連上租來的 GPU 節點了。
-
-確認硬體與你訂購的規格相符：
-
-```bash
-nvidia-smi
-```
-
-輸出應該會顯示你租用的 GPU、記憶體容量和已安裝的驅動程式版本。如果看不到 GPU，或規格與訂單不符，請立即中斷連線，並透過市集的客服回報問題。
-
-## 步驟 2：環境設定
-
-確認 SSH 連線正常之後，下一件事是建立乾淨的 Python 環境。大多數租用節點都預先裝好了 NVIDIA 驅動程式和 CUDA 工具包，但如果依賴主機系統層級的 Python 套件，很容易引發相依性衝突，讓你花上好幾個小時除錯。
-
-我們會建立一個獨立的虛擬環境，確保結果可重現、執行穩定。
-
-執行以下指令建立工作區：
-
-```bash
-mkdir ~/llama3-finetune
-cd ~/llama3-finetune
-python3 -m venv venv
-source venv/bin/activate
-```
-
-終端機提示字元現在應該會顯示 `(venv)`，表示虛擬環境已啟用。之後安裝的所有套件都會留在這個目錄裡，不會動到主機系統。
-
-安裝 Python 套件之前，先確認 CUDA 工具包可以使用：
-
-```bash
-nvcc --version
-```
-
-記下 CUDA 的版本號碼，之後要用它來確認與 PyTorch 相容。大多數租用節點執行的是 CUDA 11.8 或 12.1。如果找不到 `nvcc`，可能是 CUDA 工具包不在 PATH 中。通常載入對應的環境設定檔就能解決：
-
-```bash
-source /etc/profile.d/cuda.sh
-```
-
-如果這個檔案不存在，請查閱市集針對該節點配置的文件。
-
-接著安裝 PyTorch 生態系。以下指令會安裝支援 CUDA 12.1 的 PyTorch。如果你的節點執行的是其他版本，請調整 CUDA 版本的後綴：
-
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-然後安裝高效微調所需的函式庫。我們使用 Hugging Face 生態系，搭配負責量化的 bitsandbytes，以及負責參數高效訓練的 PEFT：
-
-```bash
-pip install transformers==4.40.0 datasets==2.19.0 peft==0.10.0 bitsandbytes==0.43.1 trl==0.8.6 accelerate==0.29.0
-```
-
-**鎖定版本很重要**。上面這些版本在撰文時都經過測試且彼此相容。Hugging Face 生態系更新得很快，不鎖定版本的安裝常常會帶來不相容的變更。如果遇到匯入錯誤或意料之外的行為，最可能的原因就是版本不符。
-
-最後，登入 Hugging Face。Llama-3 的權重受授權協議限制，需要 Hugging Face 帳號才能下載。前往 [Meta Llama-3 儲存庫](https://huggingface.co)並接受授權條款，然後在 Hugging Face 的設定頁面產生存取權杖。
-
-執行登入指令：
-
-```bash
-huggingface-cli login
-```
-
-出現提示時貼上你的存取權杖。權杖會儲存在 `~/.cache/huggingface/token`。現在你已經有權限把受限的模型權重直接下載到租用節點上了。
-
-![終端機中顯示 Llama-3 模型設定參數的 Python 程式碼](../_images/python-llama3-config.png)
-
-## 步驟 3：安全傳輸資料
-
-這一節處理的，正是你選擇租機器而不是呼叫 API 的主要原因：資料主權。
-
-標準的雲端流程是先把資料集上傳到儲存桶（S3、Google Cloud Storage、Azure Blob），再下載到運算執行個體。這種做法會在你無法掌控的多個系統中留下敏感資料的副本。儲存服務商能存取，運算服務商也能存取，而且雙方都會保留你的活動紀錄。
-
-我們會用直接的加密傳輸，完全繞過這一步。
-
-SSH 協定內建 `scp`（Secure Copy Protocol），透過你登入終端機時用的同一條加密通道傳輸檔案。資料直接從你的本機電腦送到租用節點，不經過任何中繼儲存空間。
-
-在你的**本機電腦**上開一個**新的終端機視窗**，不要關閉原本連到租用節點的 SSH 工作階段。執行以下指令，並換成你實際的檔案路徑和連線資訊：
-
-```bash
-scp -P 22345 /path/to/your/dataset.jsonl user@203.0.113.42:~/llama3-finetune/
-```
-
-`-P` 旗標用來指定連接埠號碼（注意是大寫 P，跟 ssh 的小寫 `-p` 不同）。資料集很大的話，傳輸可能要花幾分鐘。畫面上會顯示已傳輸位元組數的進度。
-
-**如果資料集超過 1GB**，可以考慮先壓縮再傳：
-
-```bash
-# On your local machine
-gzip -k dataset.jsonl
-scp -P 22345 dataset.jsonl.gz user@203.0.113.42:~/llama3-finetune/
-
-# Then on the remote node
-cd ~/llama3-finetune
-gunzip dataset.jsonl.gz
-```
-
-**額外的安全措施**：
-
-如果你的威脅模型包含技術高超的攻擊者，可以在傳輸前先用 GPG 或 age 加密資料集。這是縱深防禦：即使傳輸過程真的被攔截，內容也無法被讀取。
-
-```bash
-# On your local machine (using age encryption)
-age -p dataset.jsonl > dataset.jsonl.age
-scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/llama3-finetune/
-
-# On the remote node
-age -d dataset.jsonl.age > dataset.jsonl
-rm dataset.jsonl.age
-```
-
-對大多數使用者來說，標準的 SCP 傳輸已經提供足夠的保護。SSH 協定使用 AES-256 加密，主機金鑰驗證可以防止中間人攻擊，而且你的資料不會經過任何第三方儲存系統。
-
-## 步驟 4：微調腳本
-
-我們會使用 TRL（Transformer Reinforcement Learning）函式庫的 `SFTTrainer` 類別來執行監督式微調。這個函式庫把大量複雜細節包裝起來，同時仍保留足夠的設定彈性，能應付正式環境的工作負載。
-
-撰寫訓練腳本之前，你必須先了解資料集應有的格式。
-
-**資料集格式要求**：
-
-腳本需要一個 JSONL（JSON Lines）檔案，每一行都是含有 `text` 欄位的合法 JSON 物件。`text` 欄位應包含完整的訓練範例，並組成單一字串。
-
-以下是三行格式正確的範例：
+您可以用 QLoRA，在一張租來的 24 GB GPU 上用自己的資料微調一個 8B 開放權重模型，一般一次訓練花不到一美元。比較難的問題要先回答：微調到底是不是正確的解法（如果是事實，通常檢索比較好），以及資料放在別人擁有的機器上時，如何保持私密。
+
+本指南兩者都會談，接著是各模型大小需要的 VRAM、目前的工具、一份可用的訓練腳本、成本試算，以及如何部署成果。所有內容都在 2026 年 9 月查核過，來源列在文末。
+
+## 微調、RAG 還是改進提示詞
+
+微調改變的是模型的行為，用來教它事實效果很差。Ovadia 等人比較了兩者注入知識的效果，發現 RAG「一貫勝過」非監督式微調，「無論是訓練中接觸過的既有知識，還是全新的知識」。他們的結論是：LLM 很難透過微調學會新的事實。
+
+所以在租任何東西之前，先走一遍這個決策樹：
+
+<figure>
+<svg viewBox="0 0 720 420" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">在檢索、改進提示詞、微調或更大模型之間做選擇的決策樹</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+<rect width="720" height="420" fill="#ffffff"/>
+<rect x="60" y="15" width="280" height="40" rx="8" fill="#1e1b4b"/>
+<text x="200" y="40" text-anchor="middle" fill="#ffffff">回答的品質不夠好</text>
+<line x1="200" y1="55" x2="200" y2="83" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<rect x="20" y="85" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="115" text-anchor="middle" fill="#1e1b4b">缺少事實，或資料會變動？</text>
+<rect x="440" y="80" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="105" text-anchor="middle" fill="#1e1b4b" font-weight="600">使用 RAG</text>
+<text x="570" y="126" text-anchor="middle" fill="#64748b" font-size="13">每次請求時查詢您的文件</text>
+<line x1="380" y1="110" x2="438" y2="110" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="102" text-anchor="middle" fill="#16a34a" font-size="13">是</text>
+<line x1="200" y1="135" x2="200" y2="173" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="160" fill="#64748b" font-size="13">否</text>
+<rect x="20" y="175" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="205" text-anchor="middle" fill="#1e1b4b">指示和範例能解決嗎？</text>
+<rect x="440" y="170" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="195" text-anchor="middle" fill="#1e1b4b" font-weight="600">改進提示詞</text>
+<text x="570" y="216" text-anchor="middle" fill="#64748b" font-size="13">系統提示詞、few-shot 範例</text>
+<line x1="380" y1="200" x2="438" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="192" text-anchor="middle" fill="#16a34a" font-size="13">是</text>
+<line x1="200" y1="225" x2="200" y2="263" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="250" fill="#64748b" font-size="13">否</text>
+<rect x="20" y="265" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="295" text-anchor="middle" fill="#1e1b4b">需要固定的格式、語氣或技能？</text>
+<rect x="440" y="260" width="260" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="570" y="285" text-anchor="middle" fill="#1e1b4b" font-weight="600">用 QLoRA 微調</text>
+<text x="570" y="306" text-anchor="middle" fill="#64748b" font-size="13">數百筆優質範例</text>
+<line x1="380" y1="290" x2="438" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="282" text-anchor="middle" fill="#16a34a" font-size="13">是</text>
+<line x1="200" y1="315" x2="200" y2="353" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="340" fill="#64748b" font-size="13">否</text>
+<rect x="60" y="355" width="280" height="50" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+<text x="200" y="385" text-anchor="middle" fill="#1e1b4b">試試更大的基礎模型</text>
+<text x="570" y="370" text-anchor="middle" fill="#64748b" font-size="13">RAG 和微調可以搭配使用：</text>
+<text x="570" y="390" text-anchor="middle" fill="#64748b" font-size="13">用微調調行為，用檢索查事實</text>
+</svg>
+<figcaption>大多數「模型不懂我們的東西」的問題，其實是檢索問題。當您每次都需要同樣的行為時，微調才值得它的成本：一個 JSON schema、一種公司內部的寫作風格、一套分類方式。</figcaption>
+</figure>
+
+值得微調的理由：
+
+- **嚴格的輸出格式。** 每次呼叫都把欄位擷取成您的 schema，不必在每個提示詞裡放一整頁指示。
+- **風格和語氣。** 聽起來像您團隊寫的客服回覆，或結構固定的報告。
+- **讓小模型做一件特定的事。** 一個調校過的 8B 模型，可以在單一工作上取代大型通用模型；如果您要在便宜的硬體上部署，這點很重要。
+- **更短的提示詞。** 已經學進權重裡的行為，不需要在每個請求中重複。
+
+## LoRA 和 QLoRA
+
+完整微調會更新每一個權重，所以 GPU 除了模型本身，還要存放所有權重的梯度和最佳化器狀態。LoRA 凍結基礎模型，在各層旁邊訓練小型的低秩矩陣；原始論文指出，和用 Adam 完整微調 GPT-3 175B 相比，可訓練參數少了 10,000 倍，GPU 記憶體少了 3 倍。
+
+QLoRA 更進一步：凍結的基礎模型以 4-bit NF4 精度載入，只有轉接器以 16-bit 訓練。Dettmers 等人用它在單張 48 GB GPU 上微調 65B 模型，「同時保有完整 16-bit 微調的任務表現」。這篇論文加入了三項至今仍被各工具使用的技術：NF4 資料型別、對量化常數再做一次量化（double quantization），以及吸收記憶體尖峰的分頁最佳化器（paged optimizers）。
+
+兩者的產物都是一個轉接器（adapter），也就是一個裝著幾個張量的資料夾，套用在未更動的基礎模型上。您可以讓它保持獨立，也可以合併進權重。
+
+## 需要多少 VRAM
+
+Unsloth 公布了一張依模型大小列出微調最低 VRAM 的表格。以下是它的數字，已包含它的記憶體最佳化；一般的 Hugging Face 訓練需要更多，而較長的序列或較大的批次會讓每一列都往上加。
+
+| 模型大小 | QLoRA（4-bit） | LoRA（16-bit） | 可寬裕跑 QLoRA 的租用顯示卡 |
+| --- | --- | --- | --- |
+| 3B | 3.5 GB | 8 GB | 任何 12 GB 以上的顯示卡 |
+| 8B | 6 GB | 22 GB | RTX 3090 / 4090（24 GB） |
+| 14B | 8.5 GB | 33 GB | RTX 3090 / 4090（24 GB） |
+| 32B | 26 GB | 76 GB | 48 GB 顯示卡（RTX A6000、A40、L40S） |
+| 70B | 41 GB | 164 GB | 80 GB 顯示卡（A100、H100） |
+
+<figure>
+<svg viewBox="0 0 720 320" role="img" aria-labelledby="d2-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d2-title">8B、14B、32B 和 70B 模型以 QLoRA 和 16-bit LoRA 微調所需最低 VRAM 的長條圖，對照 24、48 和 80 GB 顯示卡</title>
+<rect width="720" height="320" fill="#ffffff"/>
+<rect x="200" y="12" width="14" height="14" fill="#6366f1"/>
+<text x="220" y="24" fill="#1e1b4b" font-size="13">QLoRA 4-bit</text>
+<rect x="320" y="12" width="14" height="14" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="340" y="24" fill="#1e1b4b" font-size="13">LoRA 16-bit</text>
+<line x1="262.1" y1="58" x2="262.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="262.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">24 GB</text>
+<line x1="324.2" y1="58" x2="324.2" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="324.2" y="52" text-anchor="middle" fill="#f97316" font-size="12">48 GB</text>
+<line x1="407.1" y1="58" x2="407.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="407.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">80 GB</text>
+<text x="190" y="88" text-anchor="end" fill="#1e1b4b">8B</text>
+<rect x="200" y="66" width="15.5" height="16" fill="#6366f1"/>
+<text x="221" y="79" fill="#1e1b4b" font-size="12">6</text>
+<rect x="200" y="84" width="56.9" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="268" y="97" fill="#1e1b4b" font-size="12">22</text>
+<text x="190" y="138" text-anchor="end" fill="#1e1b4b">14B</text>
+<rect x="200" y="116" width="22" height="16" fill="#6366f1"/>
+<text x="228" y="129" fill="#1e1b4b" font-size="12">8.5</text>
+<rect x="200" y="134" width="85.4" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="291" y="147" fill="#1e1b4b" font-size="12">33</text>
+<text x="190" y="188" text-anchor="end" fill="#1e1b4b">32B</text>
+<rect x="200" y="166" width="67.3" height="16" fill="#6366f1"/>
+<text x="273" y="179" fill="#1e1b4b" font-size="12">26</text>
+<rect x="200" y="184" width="196.7" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="425" y="197" fill="#1e1b4b" font-size="12">76</text>
+<text x="190" y="238" text-anchor="end" fill="#1e1b4b">70B</text>
+<rect x="200" y="216" width="106.1" height="16" fill="#6366f1"/>
+<text x="302" y="229" text-anchor="end" fill="#ffffff" font-size="12">41</text>
+<rect x="200" y="234" width="424.5" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="631" y="247" fill="#1e1b4b" font-size="12">164</text>
+<line x1="200" y1="265" x2="640" y2="265" stroke="#64748b" stroke-width="1"/>
+<text x="200" y="283" text-anchor="middle" fill="#64748b" font-size="12">0</text>
+<text x="303.5" y="283" text-anchor="middle" fill="#64748b" font-size="12">40</text>
+<text x="407.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">80</text>
+<text x="510.6" y="283" text-anchor="middle" fill="#64748b" font-size="12">120</text>
+<text x="614.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">160</text>
+<text x="420" y="306" text-anchor="middle" fill="#64748b" font-size="13">最低 VRAM，單位 GB（Unsloth 需求表）</text>
+</svg>
+<figcaption>正是 QLoRA 讓租來的消費級顯示卡派得上用場：14B 以下放進 24 GB 顯示卡還綽綽有餘，32B 需要 48 GB 顯示卡，70B 需要 80 GB。不用 4-bit 載入的話，連 8B 都只能勉強塞進 24 GB。</figcaption>
+</figure>
+
+我的預設選擇是在 RTX 4090 上跑 8B 或 14B 模型。這是最便宜、又還能容納 2,048 token 序列和合理批次大小的租用顯示卡，而這個範圍的模型之後也容易部署。要依部署時的 VRAM 挑選基礎模型，請看[哪些 AI 模型放得進您 GPU 的 VRAM](/zh_tw/which-ai-models-fit-your-gpu-vram/)。
+
+## 選擇工具：TRL、Unsloth 或 Axolotl
+
+三者都是開源的，也都支援 LoRA 和 QLoRA。
+
+| 工具 | 使用方式 | 優點 | 注意事項 |
+| --- | --- | --- | --- |
+| Hugging Face TRL + PEFT | Python（`SFTTrainer`） | 參考實作；同一套 API 還支援 DPO、GRPO 等 | 同樣的訓練，記憶體用量比 Unsloth 多 |
+| Unsloth | Python，或 Unsloth Studio 網頁介面 | 宣稱快 2 倍、VRAM 少 70%；可直接匯出成 GGUF | Studio 介面採用 AGPL-3.0（核心為 Apache 2.0） |
+| Axolotl | 一個 YAML 檔，`axolotl train config.yml` | 多 GPU（FSDP、DeepSpeed）、大量現成設定 | 需要 Python 3.11 以上和 PyTorch 2.11 以上 |
+
+截至 2026 年 9 月，TRL 是 1.14 版，PEFT 是 0.21 版。Unsloth 需要 Python 3.11 到 3.13，以及 CUDA 運算能力 7.0 以上的 NVIDIA GPU（V100、T4、RTX 20 系列及更新）。Axolotl 建議使用 Python 3.12 和 PyTorch 2.12.1。
+
+想弄懂每一行，用 TRL；VRAM 不夠，或想一行指令匯出 GGUF，用 Unsloth；要用不同設定反覆訓練，或要擴展到多張 GPU，用 Axolotl。下面的腳本用 TRL，因為這是能看見每個環節的最短路徑。
+
+## 準備資料
+
+TRL 的 `SFTTrainer` 讀取的對話格式，和聊天 API 請求的格式相同。在 `train.jsonl` 中每行一個 JSON 物件：
 
 ```json
-{"text": "### Instruction: Summarize the following legal clause in plain English.\n\n### Input: Party A shall indemnify, defend, and hold harmless Party B from any claims, damages, or expenses arising from Party A's negligence or willful misconduct.\n\n### Response: Party A agrees to protect Party B from any legal claims or costs that result from Party A's mistakes or intentional wrongdoing."}
-{"text": "### Instruction: Extract the key financial metrics from this earnings report.\n\n### Input: Q3 revenue reached $4.2B, up 12% YoY. Operating margin improved to 23.5% from 21.2%. Free cash flow was $890M.\n\n### Response: Revenue: $4.2 billion (12% year-over-year growth). Operating margin: 23.5% (up from 21.2%). Free cash flow: $890 million."}
-{"text": "### Instruction: Identify potential HIPAA violations in this process description.\n\n### Input: Patient records are emailed to the billing department as PDF attachments. The billing staff prints these for manual review and shreds them after processing.\n\n### Response: Potential violations include: unencrypted email transmission of PHI, physical documents that may be visible to unauthorized personnel during processing, and lack of documented chain of custody. Recommend encrypted file transfer and on-screen review only."}
+{"messages": [{"role": "system", "content": "Extract the invoice fields as JSON."}, {"role": "user", "content": "Invoice 4471 from Norden AB, due 12 March, total 1,250 EUR"}, {"role": "assistant", "content": "{\"invoice_id\": \"4471\", \"supplier\": \"Norden AB\", \"due\": \"2026-03-12\", \"total\": 1250, \"currency\": \"EUR\"}"}]}
 ```
 
-**格式上的關鍵注意事項**：
+實務上的原則：
 
-1. 每個 JSON 物件必須剛好占一行，不能有跨行的 JSON。
-2. `text` 欄位中的換行必須跳脫為 `\n`。
-3. 文字中的引號必須跳脫為 `\"`。
-4. 檔案必須使用 UTF-8 編碼。
+- **品質重於數量。** 幾百到幾千筆一致、正確的範例，勝過幾萬筆雜亂的範例。資料裡的每個錯誤，都是您花錢教給模型的行為。
+- **與正式環境一致。** 使用您的應用程式實際會送出的系統提示詞和輸入格式。
+- **保留 5% 到 10%。** 留下一些模型從未訓練過的範例，用來並排比較基礎模型和調校後的模型。
+- **移除用不到的東西。** 姓名、電子郵件、帳號和各種 ID，很少能幫模型學會格式。在資料離開您的電腦之前，就換成擬真的佔位值。
 
-如果你的原始資料是其他格式（CSV、Parquet、指令與回應分成不同欄位），就必須在傳輸前先預處理成這種結構。Python 的 `json` 函式庫會自動處理跳脫：
+最後一條原則不只和租來的機器有關。Carlini 等人從 GPT-2 中擷取出數百段逐字的訓練序列，包括姓名、電話號碼和電子郵件地址，其中有些只出現在一份訓練文件中。微調後的模型，可能會把訓練內容重複給之後使用它的任何人。
 
-```python
-import json
+## 在租來的機器上保護資料隱私
 
-with open('dataset.jsonl', 'w') as f:
-    for example in your_data:
-        text = f"### Instruction: {example['instruction']}\n\n### Input: {example['input']}\n\n### Response: {example['output']}"
-        f.write(json.dumps({"text": text}) + '\n')
-```
+在 GPU 市集上，電腦是別人的。Vast.ai 說得很直白：「客戶端被隔離在非特權 Docker 容器中，只能存取自己的資料」，以及「提供者的安全性差異很大」。這種隔離保護的是您不受其他租用者影響，卻擋不住能實際接觸主機、擁有 root 權限的那個人。
 
-資料集就位後，在遠端節點上建立訓練腳本：
+處理私密資料時：
+
+1. **選擇經過審核的資料中心主機。** Vast.ai 的 Secure Cloud 提供者是「經過審核、具 ISO 27001 認證、符合 Tier 3/4 資料中心標準的資料中心」，Vast 也建議敏感工作使用它們。RunPod 的 Secure Cloud 在 T3/T4 資料中心執行；它的 Community Cloud 則是把您連到個別提供者。資料中心等級每小時比較貴，但在這裡值得。
+2. **只上傳清理過的資料集**，透過 SSH（`rsync -avP` 或 `scp`）。不要途中先放到公開的儲存桶或分享連結上。
+3. **日誌留在本機。** 在 TRL 1.14 中，`report_to` 預設為 `"none"`，所以除非您自己開啟，否則不會有任何東西送到實驗追蹤服務。用私密資料訓練的轉接器，不要呼叫 `push_to_hub`。
+4. **先把結果取出，再刪除執行個體。** 下載轉接器和評估結果；如果用過權杖，登出 Hugging Face（`hf auth logout`）；然後刪除執行個體和所有磁碟區。在 Vast.ai 上，儲存空間會一直保留並計費，直到執行個體被刪除，只是停止並不夠。
+
+在容器內刪除檔案，不能保證主機的磁碟會被清除，所以真正的保護是第 1 和第 2 步：選擇誰來保管硬體，並且盡可能少送資料給他們。更多細節請看[如何在公用 GPU 節點上保護資料集](/zh_tw/how-to-secure-dataset-on-public-gpu-node/)。如果您的政策禁止使用任何第三方硬體，同一份腳本也能在您自己的 24 GB 顯示卡上執行。
+
+## 訓練：用 TRL 寫的 QLoRA 腳本
+
+在一台裝有 RTX 3090 或 4090 的租用 Linux 機器上：
 
 ```bash
-cd ~/llama3-finetune
-nano train.py
+python -m venv venv && source venv/bin/activate
+pip install torch trl peft bitsandbytes datasets
 ```
 
-貼上以下設定。這個腳本使用 QLoRA，在 24GB GPU 的記憶體限制內微調 8B 參數模型。範例使用 Llama-3.1-8B，但你只要修改 MODEL_NAME 變數，就能換成任何相容的模型：
+接著是 `train.py`，依照 TRL PEFT 文件中的 QLoRA 寫法。Qwen3-8B 採用 Apache 2.0，不需申請存取，所以不需要 Hugging Face 權杖：
 
 ```python
 import torch
 from datasets import load_dataset
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    TrainingArguments,
-)
 from peft import LoraConfig
-from trl import SFTTrainer
+from transformers import BitsAndBytesConfig
+from trl import SFTConfig, SFTTrainer
 
-# ============================================
-# CONFIGURATION - Modify these values as needed
-# ============================================
-
-# Base model identifier on Hugging Face
-# Change this to fine-tune a different model (e.g., "mistralai/Mistral-7B-v0.1")
-MODEL_NAME = "meta-llama/Llama-3.1-8B"
-
-# Name for your fine-tuned adapter
-OUTPUT_NAME = "llama-3-8b-custom"
-
-# Path to your dataset
-DATASET_PATH = "dataset.jsonl"
-
-# Training hyperparameters
-NUM_EPOCHS = 1
-BATCH_SIZE = 4
-LEARNING_RATE = 2e-4
-MAX_SEQ_LENGTH = 512
-
-# LoRA hyperparameters
-LORA_RANK = 16
-LORA_ALPHA = 16
-LORA_DROPOUT = 0.05
-
-# ============================================
-# QUANTIZATION CONFIGURATION
-# ============================================
+dataset = load_dataset("json", data_files="train.jsonl", split="train")
 
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_compute_dtype=torch.bfloat16,
     bnb_4bit_use_double_quant=True,
 )
 
-# ============================================
-# MODEL LOADING
-# ============================================
-
-print("Loading base model...")
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True,
-)
-model.config.use_cache = False
-
-print("Loading tokenizer...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
-
-# ============================================
-# DATASET LOADING
-# ============================================
-
-print(f"Loading dataset from {DATASET_PATH}...")
-dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
-print(f"Dataset contains {len(dataset)} examples")
-
-# ============================================
-# LORA CONFIGURATION
-# ============================================
-
 peft_config = LoraConfig(
-    r=LORA_RANK,
-    lora_alpha=LORA_ALPHA,
-    lora_dropout=LORA_DROPOUT,
-    bias="none",
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    target_modules="all-linear",
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
 )
 
-# ============================================
-# TRAINING ARGUMENTS
-# ============================================
-
-training_args = TrainingArguments(
-    output_dir="./results",
-    num_train_epochs=NUM_EPOCHS,
-    per_device_train_batch_size=BATCH_SIZE,
-    gradient_accumulation_steps=1,
-    learning_rate=LEARNING_RATE,
-    weight_decay=0.001,
-    fp16=True,
-    logging_steps=10,
-    save_steps=100,
-    save_total_limit=3,
-    optim="paged_adamw_32bit",
+args = SFTConfig(
+    output_dir="out",
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=2e-4,
     lr_scheduler_type="cosine",
-    warmup_ratio=0.03,
-    report_to="none",
+    warmup_steps=20,
+    max_length=2048,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="epoch",
+    model_init_kwargs={"dtype": torch.bfloat16},
 )
 
-# ============================================
-# TRAINER INITIALIZATION AND EXECUTION
-# ============================================
-
-print("Initializing trainer...")
 trainer = SFTTrainer(
-    model=model,
+    model="Qwen/Qwen3-8B",
+    args=args,
     train_dataset=dataset,
+    quantization_config=bnb_config,
     peft_config=peft_config,
-    dataset_text_field="text",
-    max_seq_length=MAX_SEQ_LENGTH,
-    tokenizer=tokenizer,
-    args=training_args,
 )
-
-print("Starting training...")
 trainer.train()
-
-print(f"Saving adapter to {OUTPUT_NAME}...")
-trainer.model.save_pretrained(OUTPUT_NAME)
-tokenizer.save_pretrained(OUTPUT_NAME)
-
-print("Training complete.")
+trainer.save_model("out/adapter")
 ```
 
-按 `Ctrl+O` 儲存檔案，再按 `Ctrl+X` 離開。
+重要的設定：
 
-**認識幾個關鍵參數**：
+- **`learning_rate=2e-4`。** TRL 的文件建議 QLoRA 使用約一般微調 10 倍的學習率。如果訓練損失下降、評估損失卻上升，就是過擬合了：減少 epoch 數。
+- **`r=16`、`target_modules="all-linear"`。** 每個線性層都加上轉接器，這也是 Unsloth 基準測試使用的設定。對格式和風格來說，rank 16 就夠了；較難的任務再調高。
+- **`max_length=2048`。** 更長的範例會被截斷。請檢查您資料的 token 長度；上限越長，需要的 VRAM 越多。
+- **有效批次大小 16**（4 × 4 個累積步驟）。如果記憶體不足，降低 `per_device_train_batch_size`、提高累積步數，讓乘積維持不變。
 
-- **LORA_RANK（r=16）**：控制微調後 adapter 的表達能力。數值越高學到的越多，但也需要更多記憶體。常見的數值介於 8 到 64 之間。
+關掉機器之前，把保留的範例分別丟給基礎模型和調校後的模型，比較結果。只有這個測試能告訴您，這筆錢到底有沒有效果。
 
-- **LORA_ALPHA（16）**：LoRA 權重的縮放係數。常見的經驗法則是設成與 rank 相同。
+## 成本
 
-- **MAX_SEQ_LENGTH（512）**：訓練範例的最大 token 長度。序列越長，需要的記憶體越多。如果遇到 OOM 錯誤，先調低這個值。
+訓練時間 = 總 token 數 ÷ 吞吐量。主機代管公司 GigaGPU 公布了在 RTX 4090 上以 QLoRA 訓練 Llama 3.1 8B 的實測數據：每秒約 3,500 個訓練 token。假設 Qwen3-8B 的速度差不多：
 
-- **BATCH_SIZE（4）**：同時處理的範例數量。記憶體不夠時，請降到 2 或 1。
+**小型訓練：** 2,000 筆範例 × 600 token × 3 個 epoch = 360 萬 token。3,600,000 ÷ 3,500 = 1,029 秒，約 17 分鐘。
 
-- **target_modules**：注入 LoRA adapter 的特定層。對 Llama-3 來說，注意力投影層（q、k、v、o）的效果最好。
+| 步驟 | 時間 |
+| --- | --- |
+| 設定環境 | 10 分鐘 |
+| 下載 Qwen3-8B（16.4 GB 權重）並上傳資料 | 10 分鐘 |
+| 訓練 | 17 分鐘 |
+| 用保留資料比較基礎模型和調校後的模型 | 15 分鐘 |
+| 合併、匯出、下載、刪除執行個體 | 15 分鐘 |
+| **合計** | **67 分鐘（1.12 小時）** |
 
-執行以下指令開始訓練：
+- Vast.ai RTX 4090，每小時 $0.31：1.12 × $0.31 = **$0.35**
+- RunPod RTX 4090，每小時 $0.74（價格頁面牌價）：1.12 × $0.74 = **$0.83**
+
+**大型訓練：** 20,000 筆範例 × 1,000 token × 2 個 epoch = 4,000 萬 token ÷ 3,500 = 11,429 秒，約 3.2 小時。加上同樣 50 分鐘的額外時間，共 4.0 小時：Vast.ai 上 **$1.24**，RunPod 上 **$2.97**。
+
+如果是 32B 模型，截至 2026 年 9 月，RunPod 上的 48 GB 顯示卡價格為每小時 $0.49（A40）、$0.53（RTX A6000）和 $1.09（L40S）。我手上沒有這些顯示卡跑 32B QLoRA 的公開吞吐量數據，所以請先跑 50 步，從日誌讀出每步時間，做同樣的乘法，再決定要不要跑長時間的訓練。
+
+價格是 2026 年 9 月 RunPod 價格頁面，以及 getdeploying.com 對 Vast.ai 的追蹤數據。Secure／資料中心等級比最便宜的社群報價貴。更完整的比較請看 [GPU 租用價格比較](/zh_tw/gpu-rental-pricing-comparison-2026/)。
+
+## 部署成果
+
+有兩種做法：讓轉接器保持獨立，或把它合併進模型。
+
+**用 vLLM 保持獨立。** vLLM 會在基礎模型旁載入 LoRA 轉接器，並在它相容 OpenAI 的伺服器上，把每個轉接器公開成一個模型名稱：
 
 ```bash
-python train.py
+vllm serve Qwen/Qwen3-8B --enable-lora --lora-modules invoices=./out/adapter
 ```
 
-腳本會先下載基礎模型權重（8B 模型約 16GB）。這只會發生一次，之後的執行會使用快取的權重。載入完成後，你會看到訓練進度，每 10 步印出一次 loss 值。
+之後用戶端送出 `"model": "invoices"` 即可。多個轉接器可以在同一張 GPU 上共用一個基礎模型。
 
-## 步驟 5：監控訓練過程
-
-訓練腳本執行時，你必須監控 GPU 的狀態。如果 VRAM 爆滿或溫度超過安全範圍，程序就會當掉，可能損毀你的檢查點，白白浪費租用時間。
-
-在本機電腦上開第二個終端機視窗，再建立一條連到租用節點的 SSH 連線：
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-執行以下指令，即時顯示 GPU 的統計資料：
-
-```bash
-watch -n 1 nvidia-smi
-```
-
-![終端機顯示 nvidia-smi 輸出，包含 GPU 記憶體用量與溫度統計](../_images/nvidia-smi-monitoring.png)
-
-這個工具每秒更新一次，顯示記憶體用量、GPU 使用率和溫度。在 RTX 4090 上執行本指南的設定時，你應該會看到：
-
-- **記憶體用量**：可用的 24GB 中使用 18GB 到 22GB
-- **GPU 使用率**：訓練進行中為 90% 到 100%
-- **溫度**：60°C 到 80°C，視主機的散熱方案而定
-
-**常見問題排解**：
-
-**記憶體接近 24GB**：如果記憶體用量一直頂到上限，請把訓練腳本中的 `BATCH_SIZE` 參數降到 2 或 1，或是把 `MAX_SEQ_LENGTH` 降到 256。不論改哪一項，都需要重新開始訓練。
-
-**GPU 使用率接近 0%**：這通常代表資料載入出現瓶頸，CPU 餵資料給 GPU 的速度跟不上。在配備 NVMe 的節點上比較少見，但資料集非常大時仍可能發生。可以考慮在傳輸前，先把資料集預處理成更有效率的格式（Arrow/Parquet）。
-
-**溫度超過 85°C**：有些主機把 GPU 放在通風不良的機殼裡。長時間高溫可能觸發降頻，拖慢訓練速度。如果溫度持續超過 85°C，可以考慮終止租用，改選其他節點。硬體損壞是主機擁有者的問題，但浪費的時間和損毀的檢查點是你的損失。
-
-**解讀 loss 曲線**：
-
-訓練腳本每 10 步輸出一次 loss 值。這個數字代表模型的預測有多「錯」，越低越好。你應該會觀察到：
-
-- **初始 loss**：通常介於 1.5 到 3.0，視資料集而定
-- **趨勢**：在前幾百步中穩定下降
-- **最終 loss**：設定得當的訓練通常介於 0.5 到 1.5
-
-如果 loss 一開始就停滯不動（100 步後仍未下降），學習率可能太低。如果 loss 劇烈震盪或不降反升，學習率就是太高。預設值 `2e-4` 對大多數資料集都很好用，但必要時仍可調整。
-
-如果 loss 平穩下降後突然暴增到很高的數值（10 以上），資料集裡很可能有格式錯誤的範例。請停止訓練，檢查 JSONL 檔案有沒有編碼錯誤或沒有正確跳脫的字元，然後重新開始。
-
-在 RTX 4090 上，1,000 筆範例的典型微調約 30 到 60 分鐘完成。更大的資料集大致呈線性增加，10,000 筆範例需要 5 到 10 小時。
-
-## 步驟 6：取回模型並清理環境
-
-訓練完成後，微調好的權重會以 LoRA adapter 的形式，存放在 `OUTPUT_NAME` 指定的目錄中。這個 adapter 很小，通常只有 100MB 到 500MB，相較之下完整的基礎模型有 16GB。
-
-首先，確認 adapter 檔案存在：
-
-```bash
-ls -la ~/llama3-finetune/llama-3-8b-custom/
-```
-
-你應該會看到 `adapter_config.json`、`adapter_model.safetensors` 以及 tokenizer 相關檔案。
-
-**不要在租用節點上合併 adapter**。合併是把 LoRA 權重和基礎模型結合，產生一個獨立的微調模型。這項操作需要把完整的 16-bit 基礎模型載入記憶體，可能超出 24GB 顯示卡的 VRAM。請在自己的基礎設施上合併，或者在推論時直接把 adapter 和基礎模型一起載入就好。PEFT 函式庫能順暢處理這件事：
-
-```python
-from peft import PeftModel
-from transformers import AutoModelForCausalLM
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    device_map="auto",
-)
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-```
-
-要下載 adapter，請回到你的**本機終端機**（不是 SSH 工作階段）並執行：
-
-```bash
-scp -r -P 22345 user@203.0.113.42:~/llama3-finetune/llama-3-8b-custom ./
-```
-
-`-r` 旗標會遞迴複製整個目錄。比對本機與遠端的檔案大小是否一致，確認傳輸成功。
-
-**清理遠端環境**：
-
-這一步是專業人士和業餘玩家的分水嶺。你的租用節點上現在有專有的資料集、訓練程式碼和快取的模型權重。把這些東西留在你無法掌控的機器上，違反了最基本的作業安全原則。
-
-回到租用節點的 SSH 工作階段，執行以下指令：
-
-```bash
-# Remove your working directory and all contents
-rm -rf ~/llama3-finetune
-
-# Clear the Hugging Face cache (contains downloaded model weights)
-rm -rf ~/.cache/huggingface
-
-# Clear Python package cache
-rm -rf ~/.cache/pip
-
-# Clear bash history
-history -c
-cat /dev/null > ~/.bash_history
-
-# Clear any potential swap residue (may require sudo depending on node config)
-sync
-```
-
-如果節點上有 `shred`，而且你想進一步確保刪除的檔案無法復原：
-
-```bash
-# Secure deletion (slower but more thorough)
-find ~/llama3-finetune -type f -exec shred -u {} \;
-rm -rf ~/llama3-finetune
-```
-
-中斷 SSH 工作階段：
-
-```bash
-exit
-```
-
-回到市集的控制台終止租用，包括任何儲存磁碟區，才不會繼續被收費。
-
-## 用微調後的模型執行推論
-
-adapter 下載到本機後，你就能在完全不依賴雲端的情況下執行推論。以下是一個最精簡的範例：
+**合併後在 Ollama 中執行。** 把轉接器合併進全精度權重，用 llama.cpp 轉成 GGUF、量化，再匯入：
 
 ```python
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer
 
-# Quantization config (same as training)
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
-)
-
-# Load base model
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    quantization_config=bnb_config,
-    device_map="auto",
-)
-
-# Load your fine-tuned adapter
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
-
-# Generate a response
-prompt = "### Instruction: Summarize the contract clause.\n\n### Input: The Licensee shall not reverse engineer, decompile, or disassemble the Software.\n\n### Response:"
-
-inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.7)
-response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-print(response)
+model = AutoPeftModelForCausalLM.from_pretrained("out/adapter", dtype=torch.bfloat16)
+model.merge_and_unload().save_pretrained("merged")
+AutoTokenizer.from_pretrained("Qwen/Qwen3-8B").save_pretrained("merged")
 ```
 
-若要部署到正式環境，可以考慮用 FastAPI 或 Flask 包裝成 API，或透過 vLLM、Text Generation Inference（TGI）等推論伺服器部署。我們在 [RTX 4090 上的 Ollama vs vLLM vs TGI](/zh_tw/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/) 中比較了這幾種做法。
+```bash
+python llama.cpp/convert_hf_to_gguf.py merged --outfile invoices-bf16.gguf --outtype bf16
+./llama.cpp/build/bin/llama-quantize invoices-bf16.gguf invoices-Q4_K_M.gguf Q4_K_M
+echo "FROM ./invoices-Q4_K_M.gguf" > Modelfile
+ollama create invoices -f Modelfile
+```
 
-## 結論
+Unsloth 用一次呼叫就能完成合併和 GGUF 匯出（`model.save_pretrained_gguf("dir", tokenizer, quantization_method="q4_k_m")`）。它的文件提醒，匯出後回答變差，最常見的原因是聊天範本用錯了：部署時請使用訓練時的範本。Ollama、vLLM 和 TGI 之間的取捨，請看[我們的 RTX 4090 推論基準測試](/zh_tw/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/)。
 
-你已經用專有資料微調了一個大型語言模型，而且資料只在一台機器上停留了盡可能短的時間。整個過程不需要簽企業合約，也沒有讓任何科技公司接觸你的智慧財產。
+### GPUFlow 能幫上什麼
 
-假設在每小時 $0.45 的 RTX 4090 上訓練兩小時，這次操作的總成本是九十美分。AWS 上單張 A10G 每小時約 $1.01，所以單看訓練本身，在那裡也不算貴。真正的差別在於配額申請和環境建置。
+GPUFlow 無法進行訓練：它出租的是在提供者 GPU 上執行、相容 OpenAI 的 API，沒有 shell、SSH 或檔案存取。它也無法部署您微調過的模型。租用者不能上傳模型；可用的模型是各提供者自己安裝的（通常透過 Ollama），例如 `qwen2.5:7b` 或 `llama3.1:8b`。
 
-更重要的是，你的資料集從未經過任何儲存服務，而且在你完成後就已從租來的機器上刪除。
+它能幫上忙的，是這一切之前的那一步：花幾美分確認一個現成的開放模型，搭配好的提示詞，是不是已經能完成工作，這也是決策樹中最便宜的結果。這一步請用測試資料，不要用本指南所談的私密資料：租用期間，提示詞和回答會以明文經過提供者的機器。運作方式請看 [API 快速入門](https://docs.gpuflow.app/zh-tw/renters/api-quickstart/)，而[在應用程式中使用金鑰](/zh_tw/use-openai-compatible-api-key-in-apps/)說明了如何把它接到現有的工具。
 
-依賴閉源 API 的時代正在結束。需要隱私的組織、重視主權的研究人員，以及想要掌控權的開發者，現在都有了替代方案。租用 GPU 讓基礎設施、成本和資料重新回到他們手中。
+## 來源
 
-你微調好的模型現在存放在你能掌控的硬體上。要怎麼部署、誰能存取、用在什麼用途，全都由你一個人決定。
+全部於 2026 年 9 月查核。
 
----
-
-## 延伸閱讀
-
-這份指南介紹了私密微調 LLM 的核心流程。以下資源會更深入探討相關主題：
-
-**了解成本**：
-
-- [2026 GPU 租用價格比較](/zh_tw/gpu-rental-pricing-comparison-2026/)：各大市集與大型雲端的成本分析
-- [租用 GPU 的真實成本](/zh_tw/hidden-fees-in-gpu-rental/)：價格頁面上不會寫出來的成本因素
-
-**開始上手**：
-
-- [2026 年租用 GPU 需要準備什麼](/zh_tw/what-you-need-to-rent-a-gpu/)：各平台的註冊、驗證與付款方式
-- [如何在公用 GPU 節點上保護你的資料集](/zh_tw/how-to-secure-dataset-on-public-gpu-node/)：訓練前、訓練中與訓練後的安全做法
-
-**比較選項**：
-
-- [RunPod vs Vast.ai 比較](/zh_tw/runpod-vs-vastapi-comparison/)：兩大市集有哪些不同
-- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/zh_tw/gpuflow-vs-vast-ai-vs-runpod/)：整台機器、容器與 API 金鑰的比較
+- 論文：[Hu 等人，LoRA](https://arxiv.org/abs/2106.09685)；[Dettmers 等人，QLoRA](https://arxiv.org/abs/2305.14314)；[Ovadia 等人，Fine-Tuning or Retrieval?](https://arxiv.org/abs/2312.05934)；[Carlini 等人，Extracting Training Data from Large Language Models](https://arxiv.org/abs/2012.07805)
+- Hugging Face TRL：[SFT Trainer](https://huggingface.co/docs/trl/sft_trainer)、[PEFT 整合與 QLoRA](https://huggingface.co/docs/trl/peft_integration)
+- Unsloth：[需求與 VRAM 表](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements.md)、[基準測試](https://unsloth.ai/docs/basics/unsloth-benchmarks.md)、[儲存為 GGUF](https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-gguf.md)、[GitHub](https://github.com/unslothai/unsloth)
+- [GitHub 上的 Axolotl](https://github.com/axolotl-ai-cloud/axolotl)
+- 模型：[Qwen3-8B 模型卡](https://huggingface.co/Qwen/Qwen3-8B)
+- 訓練吞吐量：[GigaGPU，在 RTX 4090 上微調](https://gigagpu.com/rtx-4090-fine-tuning-guide/)
+- 主機與安全：[Vast.ai 安全性常見問題](https://docs.vast.ai/documentation/reference/faq/security)、[Vast.ai 價格](https://docs.vast.ai/guides/instances/pricing.md)、[RunPod Pods 概覽](https://docs.runpod.io/pods/overview)
+- 價格：[RunPod 價格](https://www.runpod.io/pricing)，以及 getdeploying.com 上的 [Vast.ai](https://getdeploying.com/vast-ai) 和 [RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090)
+- 部署：[vLLM LoRA 轉接器](https://docs.vllm.ai/en/latest/features/lora.html)、[llama.cpp quantize](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)、[Ollama 匯入](https://docs.ollama.com/import)
+- GPUFlow：[API 快速入門](https://docs.gpuflow.app/zh-tw/renters/api-quickstart/)

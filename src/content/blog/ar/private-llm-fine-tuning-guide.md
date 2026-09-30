@@ -1,634 +1,346 @@
 ---
-title: "الدليل الشامل للضبط الدقيق الخاص لنماذج اللغة الكبيرة على GPU مستأجرة"
-description: "دليل عملي شامل للضبط الدقيق لنماذج اللغة مفتوحة الأوزان ببياناتك الخاصة على GPU مستأجرة. احمِ بياناتك، وخفّض تكاليف الحوسبة، وتجنّب الارتباط بمزوّد واحد."
-excerpt: "تعلّم كيف تضبط نماذج اللغة الكبيرة مفتوحة الأوزان ضبطاً دقيقاً على GPU مستأجرة مع إبقاء بياناتك تحت سيطرتك. خطوات مفصّلة تشمل النقل الآمن للبيانات، والتدريب بتقنية QLoRA، وتنظيف البيئة بعد الانتهاء."
+title: "الضبط الدقيق لنموذج لغوي بشكل خاص على GPU مستأجر: دليل عملي"
+description: "متى يتفوق الضبط الدقيق على RAG أو تحسين الموجّهات، واحتياجات QLoRA من VRAM حسب حجم النموذج، وTRL وUnsloth وAxolotl، وحماية بياناتك على GPU مستأجر، والتكلفة والتشغيل."
+excerpt: "الضبط الدقيق بـ QLoRA لنموذج مفتوح بحجم 8B يتسع في GPU مستأجر واحد بذاكرة 24 GB، ويكلّف نحو $0.35 إلى $0.83 للجولة. قبل أن تدفع، تأكد أن الضبط الدقيق هو الأداة الصحيحة، وخطّط لكيفية بقاء بياناتك ملكك على جهاز يملكه غيرك."
 pubDate: 2025-02-23
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "ar"
 category: "tutorials"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "تمثيل تجريدي لغرفة خوادم آمنة تعالج بيانات الذكاء الاصطناعي بإضاءة زرقاء"
+heroImage: "../_images/private-llm-fine-tuning-guide-hero.png"
+heroImageAlt: "رسم لمجموعة بيانات خاصة تُستخدم في الضبط الدقيق لنموذج لغوي على خادم GPU مستأجر"
 faq:
-  - question: "هل يمكنني الضبط الدقيق لنماذج اللغة الكبيرة على بطاقة RTX 4090 واحدة؟"
-    answer: "نعم. بفضل تقنية QLoRA (التكيّف منخفض الرتبة المُكمَّم)، تتسع النماذج التي يصل حجمها إلى 8B معامل بسهولة في 24GB من ذاكرة VRAM. يوضح هذا الدليل بالتفصيل كيف تضبط سكربت التدريب ليعمل على عتاد استهلاكي، مع قيم محددة لحجم الدفعة وطول التسلسل ورتبة LoRA."
-  - question: "هل تكون بياناتي آمنة على GPU مستأجرة؟"
-    answer: "أمان بياناتك يعتمد على ممارساتك التشغيلية. يشرح هذا الدليل النقل المشفّر عبر SCP، وتجنّب وسطاء التخزين السحابي مثل S3 أو Google Drive، وتنظيف الجهاز البعيد بعد انتهاء التدريب. تذكّر أن الجهاز ملك لشخص آخر، فاحذف كل شيء قبل إنهاء الاستئجار."
-  - question: "كم تكلفة الضبط الدقيق لنموذج 8B على GPU مستأجرة؟"
-    answer: "تتراوح تكلفة جلسة ضبط دقيق نموذجية لنموذج بحجم 8B معامل على RTX 4090 مستأجرة بين ثلاثة وثمانية دولارات، بحسب حجم مجموعة البيانات وعدد حقب التدريب."
-  - question: "هل أحتاج إلى إثبات هويتي لاستئجار GPU للتدريب؟"
-    answer: "في الغالب لا. تطلب أسواق مثل Vast.ai وRunPod بريداً إلكترونياً ورصيداً مدفوعاً مسبقاً، لا وثائق هوية. ولا تطلب RunPod التحقق من الهوية (KYC) إلا قبل أول دفعة بالعملات المشفرة. أما في AWS فتبدأ الحسابات الجديدة بحصة GPU تساوي صفراً، وعليك طلب رفعها."
-  - question: "ما صيغة مجموعة البيانات التي يتوقعها سكربت التدريب؟"
-    answer: "يتوقع السكربت ملف JSONL يحتوي كل سطر فيه على كائن JSON بحقل text. يضم هذا الحقل التعليمة والمدخلات والاستجابة في سلسلة نصية واحدة تفصل بينها أحرف السطر الجديد. ستجد مثالاً بالتنسيق الصحيح في الخطوة 4 من هذا الدليل."
-  - question: "هل يصلح هذا الدليل لنماذج غير Llama؟"
-    answer: "نعم. سير العمل نفسه ينطبق على أي نموذج مفتوح الأوزان، مثل Mistral وQwen وFalcon وغيرها. يستخدم مثال الشيفرة Llama-3.1-8B، ويكفي أن تغيّر معرّف النموذج لتضبط نموذجاً أساسياً آخر."
-  - question: "كم يستغرق الضبط الدقيق لنموذج بحجم 8B معامل؟"
-    answer: "يعتمد زمن التدريب على حجم مجموعة البيانات. تنتهي جلسة نموذجية بـ 1,000 مثال خلال 30 إلى 60 دقيقة على RTX 4090. ويزداد الزمن خطياً تقريباً مع حجم البيانات، إذ تحتاج مجموعة من 10,000 مثال إلى 5 إلى 10 ساعات من وقت الحوسبة."
-  - question: "ماذا أفعل بالجهاز البعيد بعد انتهاء التدريب؟"
-    answer: "عليك تنظيف البيئة بحذف مجموعة البيانات وشيفرة التدريب وذاكرة Hugging Face المؤقتة وسجل أوامر bash. يقدّم هذا الدليل أوامر محددة للحذف الآمن، منها استخدام shred اختيارياً لإتلاف الملفات بالكامل قبل إنهاء الاستئجار."
+  - question: "كم أحتاج من VRAM للضبط الدقيق لنموذج بحجم 7B أو 8B؟"
+    answer: "مع QLoRA، يذكر جدول متطلبات Unsloth نحو 5 GB لنموذج 7B و6 GB لنموذج 8B؛ أما LoRA العادية بدقة 16 بت فتحتاج إلى نحو 19 GB و22 GB. الجولات الحقيقية تحتاج إلى هامش للتسلسلات الأطول والدفعات الأكبر، فبطاقة 24 GB مثل RTX 3090 أو 4090 هي الخيار المريح."
+  - question: "هل أستخدم الضبط الدقيق أم RAG؟"
+    answer: "استخدم RAG عندما يحتاج النموذج إلى معلومات من مستنداتك، خصوصاً المعلومات التي تتغير. وجدت دراسة لـ Ovadia وآخرين في 2024 أن RAG تفوّق باستمرار على الضبط الدقيق غير الموجَّه في إضافة المعرفة. استخدم الضبط الدقيق عندما تحتاج إلى صيغة أو نبرة ثابتة، أو إلى سلوك في مهمة محددة لا يستطيع الموجّه وحده إنتاجه بموثوقية."
+  - question: "كم يكلّف الضبط الدقيق لنموذج لغوي على GPU مستأجر؟"
+    answer: "جولة QLoRA على نموذج 8B بـ 2,000 مثال تستغرق أكثر من ساعة بقليل بما فيها الإعداد، أي نحو $0.35 على RTX 4090 من Vast.ai بسعر $0.31 في الساعة، أو $0.83 بسعر RunPod المعلن $0.74 في الساعة (سبتمبر 2026). وجولة بـ 20,000 مثال تستغرق نحو أربع ساعات، أي من $1.24 إلى $2.97."
+  - question: "هل يستطيع مضيف GPU رؤية بيانات التدريب الخاصة بي؟"
+    answer: "المضيف يملك العتاد، فافترض أنه يستطيع. عزل الحاويات يحميك من المستأجرين الآخرين، لا من مالك الجهاز. استخدم مضيفين من مراكز بيانات خضعت للتدقيق (Vast.ai Secure Cloud، RunPod Secure Cloud) للبيانات الحساسة، واحذف البيانات الشخصية قبل الرفع، واحذف المثيل عند الانتهاء."
+  - question: "ما الفرق بين LoRA وQLoRA؟"
+    answer: "تجمّد LoRA النموذج الأساسي وتدرّب مصفوفات محوّلات (adapters) صغيرة. وQLoRA تفعل الشيء نفسه لكنها تحمّل النموذج الأساسي المجمَّد بدقة NF4 ذات 4 بت، ما خفّض الذاكرة بما يكفي للضبط الدقيق لنموذج 65B على GPU واحد بذاكرة 48 GB في الورقة الأصلية."
+  - question: "هل يمكنني إجراء ضبط دقيق أو رفع نموذجي على GPUFlow؟"
+    answer: "لا. GPUFlow للاستدلال فقط: تستأجر واجهة API للمحادثة متوافقة مع OpenAI لنماذج ثبّتها المزوّدون على أجهزتهم، عادةً باستخدام Ollama. لا يوجد سطر أوامر ولا وصول إلى الملفات، فلا يمكنك التدريب عليه ولا رفع نموذجك الخاص."
 ---
 
-إن كنت تقرأ هذا، فالأرجح أن لديك مجموعة بيانات لا تستطيع رفعها إلى OpenAI، أو لا تريد ذلك.
-
-لست وحدك. كثير من الشركات والمطورين المستقلين يرون أن سهولة ChatGPT لا تبرّر خطر تسرّب البيانات. سواء كنت تتعامل مع سجلات طبية يحكمها قانون HIPAA، أو شيفرة مصدرية خاصة تمثّل سنوات من العمل الهندسي، أو نماذج مالية حساسة قادرة على تحريك الأسواق، فإن استخدام الذكاء الاصطناعي السحابي يعني غالباً أن تأتمن طرفاً ثالثاً على أثمن ما تملك من ملكية فكرية.
-
-وحين يكون هذا الطرف الثالث شركة تقنية عملاقة سبق لها أن استخدمت بيانات عملائها لتدريب نماذجها اللاحقة، تصبح كلمة "الثقة" كلمة مزعجة.
-
-الحل ليس التخلي عن الذكاء الاصطناعي. الحل أن تمتلك البنية التحتية.
-
-لم يعد الضبط الدقيق لنماذج مفتوحة الأوزان على عتاد تتحكم فيه نشاطاً أكاديمياً محدوداً، بل أصبح ضرورة عملية للمؤسسات الحريصة على الخصوصية. نماذج مثل Llama وMistral وQwen وعشرات غيرها متاحة للاستخدام التجاري دون رسوم API ودون أي اشتراط لمشاركة البيانات. التحدي الدائم كان الوصول إلى قدرة الحوسبة. شراء عناقيد NVIDIA H100 يتطلب إنفاقاً رأسمالياً بالملايين. والاستئجار من AWS يستلزم التحقق من الهوية واتفاقيات مؤسسية وأسعاراً بالساعة تجعل جلسات التدريب الطويلة باهظة الكلفة.
-
-يقدّم هذا الدليل طريقاً ثالثاً. ستتعلم كيف تضبط نموذج لغة مفتوح الأوزان ضبطاً دقيقاً على GPU مستأجرة من سوق إلكتروني، وكثيراً ما يكون العتاد مملوكاً لأفراد حول العالم. سنتناول إعداد البيئة، وبروتوكولات الأمان عند العمل على عُقد عامة، وتنفيذ التدريب كاملاً.
-
-تستخدم أمثلة الشيفرة Llama-3.1-8B مرجعاً عملياً ملموساً، لكن سير العمل ينطبق كما هو على أي نموذج متوافق مع Hugging Face. غيّر معرّف النموذج وستتمكن من ضبط Mistral-7B أو Qwen2-7B أو أي إصدار مفتوح الأوزان يناسب حالتك.
-
-وستنجز ذلك دون عقود طويلة الأجل، وبجزء بسيط مما يتقاضاه مزوّدو السحابة التقليديون.
-
-![نافذة طرفية تعرض اتصال SSH نشطاً بخادم GPU بعيد](../_images/terminal-ssh-connection.png)
-
-## اقتصاديات الضبط الدقيق الخاص
-
-قبل الدخول في التنفيذ التقني، لنضع الإطار المالي.
-
-تدريب نموذج على AWS يعني مثيلات ضخمة وطلبات لرفع الحصة. يكلّف المثيل p4d.24xlarge (ثماني بطاقات A100) مبلغ 32.77$ في الساعة، وتبدأ حسابات AWS الجديدة بحصة GPU تساوي صفراً.
-
-أما في سوق GPU، فتستأجر قدرة الحوسبة مباشرة من مالكي العتاد، ولهذا آثار كبيرة:
-
-**خفض التكلفة:** يُستأجر RTX 4090 بنحو 0.30$ إلى 0.46$ في الساعة في الأسواق (سبتمبر 2026). ومع نماذج 8B وتقنية QLoRA، تُنهي بطاقة 4090 واحدة بذاكرة 24GB جلسة ضبط دقيق خلال ساعتين إلى ست ساعات بحسب حجم البيانات. أي أن إجمالي تكلفة الحوسبة يتراوح بين ثلاثة وثمانية دولارات.
-
-**بياناتك تبقى على جهاز واحد:** تنسخ مجموعة البيانات مباشرة إلى الجهاز المستأجر عبر SSH، وتدرّب، وتنزّل النتيجة، ثم تحذف كل شيء. لا حاوية تخزين، ولا نسخة ثالثة.
-
-**لا حرّاس بوابات:** لا تحتاج إلى موافقة فريق المبيعات المؤسسية لدى مزوّد سحابي، ولا إلى رفع الحصة. تضيف رصيداً مدفوعاً مسبقاً وتستأجر العتاد.
-
-للمقارنة: بطاقة A10G واحدة على AWS (المثيل g5.xlarge، أرخص خيار بذاكرة 24GB) تكلّف نحو 1.01$ في الساعة في منطقة us-east-1. أضف إلى ذلك طلب رفع الحصة ووقت الإعداد والحوسبة الخاملة أثناء تهيئة البيئة، وستجد أن التكلفة الفعلية لأول جلسة أعلى بكثير من الدولارات القليلة التي تكفيها في السوق.
-
-تجد هذه الأرقام مفصّلة في [مقارنة أسعار استئجار GPU](/ar/gpu-rental-pricing-comparison-2026/) وفي [التكلفة الحقيقية لاستئجار GPU](/ar/hidden-fees-in-gpu-rental/).
-
-## المتطلبات المسبقة
-
-يفترض هذا الدليل أنك معتاد على سطر أوامر Linux. لا تحتاج إلى شهادة عليا في تعلّم الآلة، لكن يجب أن تكون مرتاحاً للتنقل في نظام الملفات وتحرير الملفات النصية وقراءة رسائل الخطأ.
-
-**متطلبات العتاد:**
-
-- **GPU:** ذاكرة VRAM لا تقل عن 24GB. تفي بالغرض بطاقات RTX 3090 وRTX 4090 وA10G. أما نموذج 70B فيحتاج إلى 48GB أو أكثر (A6000، أو بطاقتي A100، أو H100).
-- **ذاكرة النظام (RAM):** 32GB أو أكثر. عند تحميل النموذج تمرّ الأوزان بذاكرة النظام قبل نقلها إلى GPU.
-- **التخزين:** 100GB أو أكثر على قرص NVMe SSD. تشغل أوزان Llama-3 8B الأساسية نحو 16GB، وتضيف مجموعة البيانات ونقاط الحفظ والمحوّل الناتج مساحة إضافية.
-
-**ملاحظة حول اختيار النموذج:** يستخدم هذا الدليل نموذج Llama-3.1-8B من Meta مثالاً عملياً
-لأنه يمثّل أكبر فئة من النماذج تتسع في GPU واحدة بذاكرة 24GB
-مع تكميم QLoRA. تضم عائلة Llama الآن نموذجي Llama 4 Scout وMaverick،
-لكنهما يعتمدان معمارية مزيج الخبراء (Mixture of Experts) بإجمالي 109B و400B معامل
-على التوالي، ويحتاجان إلى إعدادات متعددة البطاقات تتجاوز نطاق استئجار
-عقدة واحدة. سير العمل الموصوف هنا ينطبق بالقدر نفسه على Mistral-7B وQwen2-7B وGemma-2-9B،
-وعلى أي نموذج آخر متوافق مع Hugging Face تتسع له ذاكرة
-VRAM في العتاد المستأجر.
-
-**المتطلبات البرمجية:**
-
-- Python 3.10 أو أحدث
-- إلمام أساسي بـ PyTorch
-- حساب على Hugging Face (ضروري لتنزيل النماذج المقيّدة مثل Llama التي تشترط قبول الترخيص)
-- حساب برصيد مدفوع مسبقاً في سوق GPU يؤجّر أجهزة كاملة مع وصول SSH، مثل Vast.ai أو RunPod أو TensorDock
-
-لست متأكداً أيها تختار؟ اطّلع على [ما تحتاجه لاستئجار GPU](/ar/what-you-need-to-rent-a-gpu/) و[GPUFlow مقابل Vast.ai مقابل RunPod مقابل SaladCloud](/ar/gpuflow-vs-vast-ai-vs-runpod/). لاحظ أن GPUFlow نفسها لا تناسب هذا الدليل: فهي تؤجّر الوصول إلى نماذج الذكاء الاصطناعي عبر API، لا جهازاً يمكنك تسجيل الدخول إليه.
-
-## الخطوة 1: تأمين عقدة الحوسبة
-
-الخطوة الأولى هي الحصول على العتاد. في منصات السحابة الكبرى يعني ذلك إنشاء حساب وطلب حصة GPU وانتظار الموافقة. أما في السوق فالعملية أبسط بكثير.
-
-افتح السوق الذي اخترته وأضف بعض الرصيد. تعرض الواجهة الأجهزة المتاحة بمواصفاتها وأسعارها بالساعة ودرجات موثوقيتها.
-
-صفِّ النتائج لتظهر الأجهزة ذات المواصفات التالية:
-
-- **GPU:** RTX 4090 (ذاكرة VRAM بسعة 24GB) أو RTX 6000 Ada (ذاكرة VRAM بسعة 48GB)
-- **RAM:** 32GB على الأقل
-- **التخزين:** 100GB متاحة أو أكثر
-- **الموثوقية:** درجة تشغيل 95% أو أعلى
-
-اختر جهازاً وابدأ الاستئجار. اختر صورة مثبّتاً عليها CUDA وPyTorch مسبقاً، فهذا يوفّر وقت الإعداد، ووقت الإعداد مدفوع.
-
-**اعتبارات الأمان على العُقد العامة:**
-
-حين تستأجر جهازاً على أي شبكة بعيدة، فأنت تستخدم عتاداً يملكه غريب ويتحكم فيه فعلياً. توفّر طبقة المحاكاة الافتراضية عزلاً حقيقياً، لكن عليك أن تتصرف بالحذر المناسب:
-
-1. **لا تخزّن مفاتيح خاصة على الجهاز البعيد.** مفاتيح SSH لأنظمة أخرى، وبيانات اعتماد السحابة، ورموز API لخدمات الإنتاج، يجب ألا توجد أبداً على عقدة مستأجرة.
-
-2. **تعامل مع نظام الملفات على أنه معادٍ.** افترض أن كل ما تكتبه على القرص يمكن نظرياً أن يستعيده المضيف بعد قطع اتصالك. سنشرح إجراءات الحذف الآمن في الخطوة 6.
-
-3. **شفّر البيانات الحساسة أثناء النقل.** نتناول ذلك في الخطوة 3.
-
-4. **لا تُعِد استخدام كلمات المرور.** إن وفّرت واجهة الاستئجار بيانات دخول افتراضية، فغيّرها فوراً أو أنشئ زوج مفاتيح SSH جديداً.
-
-بعد تأكيد الاستئجار، تعرض لوحة التحكم تفاصيل الاتصال. ستحصل على أمر SSH يشبه ما يلي:
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-افتح الطرفية على جهازك المحلي ونفّذ هذا الأمر. اقبل بصمة مفتاح المضيف عند طلبها. أنت الآن متصل بعقدة GPU المستأجرة.
-
-تحقّق من أن العتاد يطابق ما طلبته:
-
-```bash
-nvidia-smi
-```
-
-يجب أن تعرض المخرجات بطاقة GPU المستأجرة وسعة ذاكرتها وإصدار برنامج التشغيل المثبّت. إن لم تظهر البطاقة أو اختلفت المواصفات عمّا طلبت، فاقطع الاتصال فوراً وأبلغ عن التباين عبر دعم السوق.
-
-## الخطوة 2: تهيئة البيئة
-
-بعد التحقق من اتصال SSH، الأولوية التالية هي بناء بيئة Python نظيفة. تأتي معظم العُقد المستأجرة ببرامج تشغيل NVIDIA وأدوات CUDA مثبّتة مسبقاً، لكن الاعتماد على حزم Python المثبّتة على مستوى نظام المضيف يفتح الباب لتعارضات في الاعتماديات تستهلك ساعات من التصحيح.
-
-سننشئ بيئة افتراضية معزولة لضمان قابلية التكرار والاستقرار.
-
-نفّذ الأوامر التالية لإنشاء مساحة العمل:
-
-```bash
-mkdir ~/llama3-finetune
-cd ~/llama3-finetune
-python3 -m venv venv
-source venv/bin/activate
-```
-
-يجب أن يعرض موجّه الطرفية الآن `(venv)`، ما يعني أن البيئة الافتراضية مفعّلة. كل الحزم التي ستثبّتها بعد ذلك ستبقى داخل هذا المجلد، دون المساس بنظام المضيف.
-
-قبل تثبيت حزم Python، تحقّق من إمكانية الوصول إلى أدوات CUDA:
-
-```bash
-nvcc --version
-```
-
-دوّن رقم إصدار CUDA، فستحتاج إليه لضمان التوافق مع PyTorch. تعمل معظم العُقد المستأجرة بإصدار CUDA 11.8 أو 12.1. إن لم يُعثر على `nvcc`، فقد لا تكون أدوات CUDA ضمن متغير PATH. تُحل المشكلة عادةً بتحميل ملف البيئة المناسب:
-
-```bash
-source /etc/profile.d/cuda.sh
-```
-
-إن لم يكن هذا الملف موجوداً، فراجع توثيق السوق الخاص بإعدادات عقدتك.
-
-ثبّت الآن منظومة PyTorch. يثبّت الأمر التالي PyTorch مع دعم CUDA 12.1. عدّل لاحقة إصدار CUDA إن كانت عقدتك تعمل بإصدار مختلف:
-
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-بعد ذلك، ثبّت المكتبات اللازمة للضبط الدقيق الفعّال. نستخدم منظومة Hugging Face مع bitsandbytes للتكميم وPEFT للتدريب الفعّال من حيث المعاملات:
-
-```bash
-pip install transformers==4.40.0 datasets==2.19.0 peft==0.10.0 bitsandbytes==0.43.1 trl==0.8.6 accelerate==0.29.0
-```
-
-**تثبيت الإصدارات مهم.** الإصدارات أعلاه مختبرة ومتوافقة حتى وقت كتابة هذا الدليل. تتطور منظومة Hugging Face بسرعة، وكثيراً ما تجلب عمليات التثبيت دون تحديد الإصدار تغييرات تكسر الشيفرة. إن واجهت أخطاء استيراد أو سلوكاً غير متوقع، فعدم تطابق الإصدارات هو السبب الأرجح.
-
-أخيراً، سجّل الدخول إلى Hugging Face. أوزان Llama-3 مقيّدة باتفاقية ترخيص تتطلب حساباً على Hugging Face. انتقل إلى [مستودع Meta Llama-3](https://huggingface.co) واقبل شروط الترخيص، ثم أنشئ رمز وصول من صفحة إعدادات Hugging Face.
-
-نفّذ أمر المصادقة:
-
-```bash
-huggingface-cli login
-```
-
-الصق رمز الوصول عند طلبه. يُخزَّن الرمز في `~/.cache/huggingface/token`. أصبح لديك الآن تصريح بتنزيل أوزان النماذج المقيّدة مباشرة إلى العقدة المستأجرة.
-
-![شيفرة Python معروضة في طرفية تُظهر معاملات إعداد نموذج Llama-3](../_images/python-llama3-config.png)
-
-## الخطوة 3: النقل الآمن للبيانات
-
-يتناول هذا القسم السبب الرئيسي لاستئجارك جهازاً بدلاً من استدعاء API: السيادة على البيانات.
-
-سير العمل السحابي المعتاد يعني رفع مجموعة البيانات إلى حاوية تخزين، مثل S3 أو Google Cloud Storage أو Azure Blob، ثم تنزيلها إلى مثيل الحوسبة. ينشئ هذا النهج نسخاً متعددة من بياناتك الحساسة على أنظمة لا تتحكم فيها. مزوّد التخزين يصل إليها، ومزوّد الحوسبة يصل إليها، وكلاهما يحتفظ بسجلات لنشاطك.
-
-سنتجاوز كل ذلك بالنقل المباشر المشفّر.
-
-يتضمن بروتوكول SSH الأداة `scp` (بروتوكول النسخ الآمن)، التي تنقل الملفات عبر القناة المشفّرة نفسها التي تستخدمها للوصول إلى الطرفية. تنتقل بياناتك مباشرة من جهازك المحلي إلى العقدة المستأجرة دون المرور بأي تخزين وسيط.
-
-افتح **نافذة طرفية جديدة** على **جهازك المحلي**. لا تغلق جلسة SSH المفتوحة مع العقدة المستأجرة. نفّذ الأمر التالي بعد استبدال مسار الملف وتفاصيل الاتصال بقيمك الفعلية:
-
-```bash
-scp -P 22345 /path/to/your/dataset.jsonl user@203.0.113.42:~/llama3-finetune/
-```
-
-يحدد الخيار `-P` رقم المنفذ (لاحظ أنه حرف P كبير، بخلاف الخيار `-p` الصغير في ssh). قد يستغرق نقل مجموعات البيانات الكبيرة عدة دقائق، وسترى مخرجات تبيّن تقدّم النقل بالبايت.
-
-**لمجموعات البيانات التي تتجاوز 1GB**، فكّر في ضغطها قبل النقل:
-
-```bash
-# On your local machine
-gzip -k dataset.jsonl
-scp -P 22345 dataset.jsonl.gz user@203.0.113.42:~/llama3-finetune/
-
-# Then on the remote node
-cd ~/llama3-finetune
-gunzip dataset.jsonl.gz
-```
-
-**إجراءات أمان إضافية:**
-
-إن كان نموذج التهديد لديك يشمل خصوماً متمرّسين، فقد ترغب في تشفير مجموعة البيانات قبل النقل باستخدام GPG أو age. هذا يضيف طبقة دفاع إضافية: حتى لو اعتُرض النقل بطريقة ما، يبقى المحتوى غير قابل للقراءة.
-
-```bash
-# On your local machine (using age encryption)
-age -p dataset.jsonl > dataset.jsonl.age
-scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/llama3-finetune/
-
-# On the remote node
-age -d dataset.jsonl.age > dataset.jsonl
-rm dataset.jsonl.age
-```
-
-لمعظم المستخدمين، يوفّر النقل المعتاد عبر SCP حماية كافية. يستخدم بروتوكول SSH تشفير AES-256، ويمنع التحقق من مفتاح المضيف هجمات الوسيط، ولا تمر بياناتك بأي نظام تخزين تابع لطرف ثالث.
-
-## الخطوة 4: سكربت الضبط الدقيق
-
-سنستخدم الصنف `SFTTrainer` من مكتبة TRL (Transformer Reinforcement Learning) لتنفيذ الضبط الدقيق الموجَّه. تُخفي هذه المكتبة قدراً كبيراً من التعقيد مع بقائها قابلة للتهيئة لأعباء العمل الإنتاجية.
-
-قبل كتابة سكربت التدريب، عليك فهم صيغة مجموعة البيانات المتوقعة.
-
-**متطلبات صيغة مجموعة البيانات:**
-
-يتوقع السكربت ملف JSONL (أسطر JSON) يحتوي كل سطر فيه على كائن JSON صالح بحقل `text`. يجب أن يضم الحقل `text` مثال التدريب كاملاً في سلسلة نصية واحدة.
-
-إليك مثالاً لثلاثة أسطر بتنسيق صحيح:
+تستطيع إجراء ضبط دقيق لنموذج مفتوح الأوزان بحجم 8B على بياناتك باستخدام QLoRA على GPU مستأجر واحد بذاكرة 24 GB، والجولة المعتادة تكلّف أقل من دولار. الأسئلة الأصعب تأتي أولاً: هل الضبط الدقيق هو الحل الصحيح أصلاً (للمعلومات، الاسترجاع يفوز عادةً)، وكيف تبقى بياناتك خاصة على جهاز يملكه غيرك.
+
+يتناول هذا الدليل الأمرين، ثم VRAM الذي تحتاج إليه حسب حجم النموذج، والأدوات الحالية، وسكربت تدريب يعمل، وحساباً فعلياً للتكلفة، وطريقة تشغيل النتيجة. راجعنا كل شيء في سبتمبر 2026، والمصادر في آخر المقال.
+
+## الضبط الدقيق أم RAG أم موجّهات أفضل
+
+الضبط الدقيق يغيّر طريقة تصرّف النموذج. وهو طريقة سيئة لتعليمه المعلومات. قارن Ovadia وآخرون بين الأسلوبين في حقن المعرفة، ووجدوا أن RAG "يتفوق باستمرار" على الضبط الدقيق غير الموجَّه، "سواء في المعرفة الموجودة التي مرّت أثناء التدريب أو في المعرفة الجديدة كلياً". وخلاصتهم: النماذج اللغوية الكبيرة تجد صعوبة في تعلّم معلومات جديدة عبر الضبط الدقيق.
+
+لذا امشِ في هذه الشجرة قبل أن تستأجر أي شيء:
+
+<figure>
+<svg viewBox="0 0 720 420" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">شجرة قرار للاختيار بين الاسترجاع وتحسين الموجّهات والضبط الدقيق ونموذج أكبر</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+<rect width="720" height="420" fill="#ffffff"/>
+<rect x="60" y="15" width="280" height="40" rx="8" fill="#1e1b4b"/>
+<text x="200" y="40" text-anchor="middle" fill="#ffffff" direction="rtl">الإجابات ليست جيدة بما يكفي</text>
+<line x1="200" y1="55" x2="200" y2="83" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<rect x="20" y="85" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="115" text-anchor="middle" fill="#1e1b4b" direction="rtl">معلومات ناقصة، أو بيانات تتغير؟</text>
+<rect x="440" y="80" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="105" text-anchor="middle" fill="#1e1b4b" font-weight="600" direction="rtl">استخدم RAG</text>
+<text x="570" y="126" text-anchor="middle" fill="#64748b" font-size="13" direction="rtl">ابحث في مستنداتك مع كل طلب</text>
+<line x1="380" y1="110" x2="438" y2="110" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="102" text-anchor="middle" fill="#16a34a" font-size="13" direction="rtl">نعم</text>
+<line x1="200" y1="135" x2="200" y2="173" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="160" fill="#64748b" font-size="13" text-anchor="end" direction="rtl">لا</text>
+<rect x="20" y="175" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="205" text-anchor="middle" fill="#1e1b4b" direction="rtl">هل تحلّها التعليمات والأمثلة؟</text>
+<rect x="440" y="170" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="195" text-anchor="middle" fill="#1e1b4b" font-weight="600" direction="rtl">حسّن الموجّه</text>
+<text x="570" y="216" text-anchor="middle" fill="#64748b" font-size="13" direction="rtl">موجّه النظام وأمثلة few-shot</text>
+<line x1="380" y1="200" x2="438" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="192" text-anchor="middle" fill="#16a34a" font-size="13" direction="rtl">نعم</text>
+<line x1="200" y1="225" x2="200" y2="263" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="250" fill="#64748b" font-size="13" text-anchor="end" direction="rtl">لا</text>
+<rect x="20" y="265" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="295" text-anchor="middle" fill="#1e1b4b" direction="rtl">تحتاج إلى صيغة أو نبرة أو مهارة ثابتة؟</text>
+<rect x="440" y="260" width="260" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="570" y="285" text-anchor="middle" fill="#1e1b4b" font-weight="600" direction="rtl">ضبط دقيق بـ QLoRA</text>
+<text x="570" y="306" text-anchor="middle" fill="#64748b" font-size="13" direction="rtl">مئات الأمثلة الجيدة</text>
+<line x1="380" y1="290" x2="438" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="282" text-anchor="middle" fill="#16a34a" font-size="13" direction="rtl">نعم</text>
+<line x1="200" y1="315" x2="200" y2="353" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="340" fill="#64748b" font-size="13" text-anchor="end" direction="rtl">لا</text>
+<rect x="60" y="355" width="280" height="50" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+<text x="200" y="385" text-anchor="middle" fill="#1e1b4b" direction="rtl">جرّب نموذجاً أساسياً أكبر</text>
+<text x="570" y="370" text-anchor="middle" fill="#64748b" font-size="13" direction="rtl">RAG والضبط الدقيق يعملان معاً جيداً:</text>
+<text x="570" y="390" text-anchor="middle" fill="#64748b" font-size="13" direction="rtl">اضبط السلوك، واسترجع المعلومات</text>
+</svg>
+<figcaption>معظم مشكلات "النموذج لا يعرف أشياءنا" هي مشكلات استرجاع. الضبط الدقيق يستحق تكلفته عندما تحتاج إلى السلوك نفسه في كل مرة: مخطط JSON، أو أسلوب كتابة خاص بالشركة، أو نظام تصنيف.</figcaption>
+</figure>
+
+أسباب وجيهة للضبط الدقيق:
+
+- **صيغة مخرجات صارمة.** استخراج الحقول إلى المخطط الذي تريده في كل استدعاء، دون صفحة من التعليمات في كل موجّه.
+- **الأسلوب والنبرة.** ردود دعم تبدو كأن فريقك كتبها، أو تقارير ببنية ثابتة.
+- **مهمة محددة ينفّذها نموذج صغير.** نموذج 8B مضبوط يمكن أن يحل محل نموذج عام كبير في مهمة واحدة، وهذا مهم عندما تشغّله على عتاد رخيص.
+- **موجّهات أقصر.** السلوك الذي تعلّمته الأوزان لا يحتاج إلى تكراره في كل طلب.
+
+## LoRA وQLoRA
+
+الضبط الدقيق الكامل يحدّث كل وزن، فيتعيّن على GPU أن يحمل التدرجات وحالة المُحسِّن (optimizer) لكل الأوزان فوق النموذج نفسه. أما LoRA فتجمّد النموذج الأساسي وتدرّب مصفوفات صغيرة منخفضة الرتبة بجانب طبقاته؛ وأفادت الورقة الأصلية بمعاملات قابلة للتدريب أقل 10,000 مرة وذاكرة GPU أقل ثلاث مرات مقارنةً بالضبط الدقيق الكامل لـ GPT-3 175B باستخدام Adam.
+
+وQLoRA تذهب أبعد: يُحمَّل النموذج الأساسي المجمَّد بدقة NF4 ذات 4 بت، ولا تُدرَّب إلا المحوّلات بدقة 16 بت. استخدمها Dettmers وآخرون للضبط الدقيق لنموذج 65B على GPU واحد بذاكرة 48 GB "مع الحفاظ على أداء الضبط الدقيق الكامل بدقة 16 بت". وأضافت الورقة ثلاثة عناصر لا تزال الأدوات تستخدمها: نوع البيانات NF4، والتكميم المزدوج لثوابت التكميم، والمُحسِّنات المُقسَّمة إلى صفحات (paged optimizers) التي تمتص قفزات الذاكرة.
+
+نتيجة أيٍّ منهما محوِّل (adapter)، أي مجلد فيه بضعة موتّرات (tensors)، تطبّقه فوق النموذج الأساسي دون تغييره. يمكنك إبقاؤه منفصلاً أو دمجه في الأوزان.
+
+## كم تحتاج من VRAM
+
+تنشر Unsloth جدولاً بالحد الأدنى من VRAM للضبط الدقيق حسب حجم النموذج. هذه أرقامها، مع تحسينات الذاكرة لديها؛ التدريب العادي عبر Hugging Face يحتاج إلى أكثر، والتسلسلات الأطول أو الدفعات الأكبر ترفع كل صف.
+
+| حجم النموذج | QLoRA ‏(4 بت) | LoRA ‏(16 بت) | بطاقة مستأجرة تتسع لـ QLoRA بارتياح |
+| --- | --- | --- | --- |
+| 3B | 3.5 GB | 8 GB | أي بطاقة 12 GB فأكثر |
+| 8B | 6 GB | 22 GB | RTX 3090 / 4090 ‏(24 GB) |
+| 14B | 8.5 GB | 33 GB | RTX 3090 / 4090 ‏(24 GB) |
+| 32B | 26 GB | 76 GB | بطاقة 48 GB ‏(RTX A6000، A40، L40S) |
+| 70B | 41 GB | 164 GB | بطاقة 80 GB ‏(A100، H100) |
+
+<figure>
+<svg viewBox="0 0 720 320" role="img" aria-labelledby="d2-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d2-title">مخطط أشرطة للحد الأدنى من VRAM للضبط الدقيق لنماذج 8B و14B و32B و70B باستخدام QLoRA وLoRA بدقة 16 بت، مقارنةً ببطاقات 24 و48 و80 GB</title>
+<rect width="720" height="320" fill="#ffffff"/>
+<rect x="200" y="12" width="14" height="14" fill="#6366f1"/>
+<text x="220" y="24" fill="#1e1b4b" font-size="13" text-anchor="end" direction="rtl">QLoRA ‏4 بت</text>
+<rect x="320" y="12" width="14" height="14" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="340" y="24" fill="#1e1b4b" font-size="13" text-anchor="end" direction="rtl">LoRA ‏16 بت</text>
+<line x1="262.1" y1="58" x2="262.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="262.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">24 GB</text>
+<line x1="324.2" y1="58" x2="324.2" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="324.2" y="52" text-anchor="middle" fill="#f97316" font-size="12">48 GB</text>
+<line x1="407.1" y1="58" x2="407.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="407.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">80 GB</text>
+<text x="190" y="88" text-anchor="end" fill="#1e1b4b">8B</text>
+<rect x="200" y="66" width="15.5" height="16" fill="#6366f1"/>
+<text x="221" y="79" fill="#1e1b4b" font-size="12">6</text>
+<rect x="200" y="84" width="56.9" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="268" y="97" fill="#1e1b4b" font-size="12">22</text>
+<text x="190" y="138" text-anchor="end" fill="#1e1b4b">14B</text>
+<rect x="200" y="116" width="22" height="16" fill="#6366f1"/>
+<text x="228" y="129" fill="#1e1b4b" font-size="12">8.5</text>
+<rect x="200" y="134" width="85.4" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="291" y="147" fill="#1e1b4b" font-size="12">33</text>
+<text x="190" y="188" text-anchor="end" fill="#1e1b4b">32B</text>
+<rect x="200" y="166" width="67.3" height="16" fill="#6366f1"/>
+<text x="273" y="179" fill="#1e1b4b" font-size="12">26</text>
+<rect x="200" y="184" width="196.7" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="425" y="197" fill="#1e1b4b" font-size="12">76</text>
+<text x="190" y="238" text-anchor="end" fill="#1e1b4b">70B</text>
+<rect x="200" y="216" width="106.1" height="16" fill="#6366f1"/>
+<text x="302" y="229" text-anchor="end" fill="#ffffff" font-size="12">41</text>
+<rect x="200" y="234" width="424.5" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="631" y="247" fill="#1e1b4b" font-size="12">164</text>
+<line x1="200" y1="265" x2="640" y2="265" stroke="#64748b" stroke-width="1"/>
+<text x="200" y="283" text-anchor="middle" fill="#64748b" font-size="12">0</text>
+<text x="303.5" y="283" text-anchor="middle" fill="#64748b" font-size="12">40</text>
+<text x="407.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">80</text>
+<text x="510.6" y="283" text-anchor="middle" fill="#64748b" font-size="12">120</text>
+<text x="614.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">160</text>
+<text x="420" y="306" text-anchor="middle" fill="#64748b" font-size="13" direction="rtl">الحد الأدنى من VRAM بالـ GB (جدول متطلبات Unsloth)</text>
+</svg>
+<figcaption>QLoRA هي ما يجعل البطاقات الاستهلاكية المستأجرة مفيدة هنا: حتى 14B يتسع في بطاقة 24 GB مع هامش مريح، و32B يحتاج إلى بطاقة 48 GB، و70B إلى بطاقة 80 GB. ودون التحميل بدقة 4 بت، حتى 8B بالكاد يتسع في 24 GB.</figcaption>
+</figure>
+
+خياري الافتراضي نموذج 8B أو 14B على RTX 4090. إنها أرخص بطاقة مستأجرة تترك مساحة لتسلسلات من 2,048 توكن ودفعة معقولة، والنماذج في هذا النطاق سهلة التشغيل بعد ذلك. لاختيار نموذج أساسي حسب VRAM الذي ستشغّله عليه، راجع [أي نماذج الذكاء الاصطناعي تتسع في VRAM لديك](/ar/which-ai-models-fit-your-gpu-vram/).
+
+## اختر أداة: TRL أو Unsloth أو Axolotl
+
+الثلاث مفتوحة المصدر، وكلها تدعم LoRA وQLoRA.
+
+| الأداة | طريقة الاستخدام | نقطة القوة | انتبه إلى |
+| --- | --- | --- | --- |
+| Hugging Face TRL + PEFT | Python ‏(`SFTTrainer`) | التطبيق المرجعي؛ DPO وGRPO وغيرها عبر الواجهة البرمجية نفسها | تستهلك ذاكرة أكثر من Unsloth في الجولة نفسها |
+| Unsloth | Python، أو واجهة الويب Unsloth Studio | تدّعي سرعة مضاعفة وVRAM أقل بـ 70%؛ تصدّر إلى GGUF مباشرة | واجهة Studio بترخيص AGPL-3.0 (النواة Apache 2.0) |
+| Axolotl | ملف YAML واحد، `axolotl train config.yml` | تعدد GPU ‏(FSDP، DeepSpeed)، ووصفات كثيرة | تحتاج إلى Python 3.11 فأحدث وPyTorch 2.11 فأحدث |
+
+حتى سبتمبر 2026، TRL في الإصدار 1.14 وPEFT في 0.21. تحتاج Unsloth إلى Python من 3.11 إلى 3.13 وGPU من NVIDIA بقدرة CUDA ‏7.0 أو أحدث (V100، T4، سلسلة RTX 20 فما فوق). وتوصي Axolotl بـ Python 3.12 وPyTorch 2.12.1.
+
+استخدم TRL إن أردت فهم كل سطر، وUnsloth إن كانت VRAM لديك محدودة أو أردت التصدير إلى GGUF باستدعاء واحد، وAxolotl إن كنت ستكرر الجولات بإعدادات مختلفة أو ستنتقل إلى عدة GPU. السكربت أدناه يستخدم TRL، لأنها أقصر طريق يُظهر كل جزء متحرك.
+
+## جهّز البيانات
+
+يقرأ `SFTTrainer` في TRL المحادثات بالشكل نفسه لطلب API المحادثة. كائن JSON واحد في كل سطر من `train.jsonl`:
 
 ```json
-{"text": "### Instruction: Summarize the following legal clause in plain English.\n\n### Input: Party A shall indemnify, defend, and hold harmless Party B from any claims, damages, or expenses arising from Party A's negligence or willful misconduct.\n\n### Response: Party A agrees to protect Party B from any legal claims or costs that result from Party A's mistakes or intentional wrongdoing."}
-{"text": "### Instruction: Extract the key financial metrics from this earnings report.\n\n### Input: Q3 revenue reached $4.2B, up 12% YoY. Operating margin improved to 23.5% from 21.2%. Free cash flow was $890M.\n\n### Response: Revenue: $4.2 billion (12% year-over-year growth). Operating margin: 23.5% (up from 21.2%). Free cash flow: $890 million."}
-{"text": "### Instruction: Identify potential HIPAA violations in this process description.\n\n### Input: Patient records are emailed to the billing department as PDF attachments. The billing staff prints these for manual review and shreds them after processing.\n\n### Response: Potential violations include: unencrypted email transmission of PHI, physical documents that may be visible to unauthorized personnel during processing, and lack of documented chain of custody. Recommend encrypted file transfer and on-screen review only."}
+{"messages": [{"role": "system", "content": "Extract the invoice fields as JSON."}, {"role": "user", "content": "Invoice 4471 from Norden AB, due 12 March, total 1,250 EUR"}, {"role": "assistant", "content": "{\"invoice_id\": \"4471\", \"supplier\": \"Norden AB\", \"due\": \"2026-03-12\", \"total\": 1250, \"currency\": \"EUR\"}"}]}
 ```
 
-**ملاحظات تنسيق مهمة:**
+قواعد عملية:
 
-1. يجب أن يشغل كل كائن JSON سطراً واحداً بالضبط. لا كائنات JSON متعددة الأسطر.
-2. يجب تهريب أحرف السطر الجديد داخل الحقل `text` بالصيغة `\n`.
-3. يجب تهريب علامات الاقتباس داخل النص بالصيغة `\"`.
-4. يجب أن يكون الملف بترميز UTF-8.
+- **الجودة قبل العدد.** بضع مئات إلى بضعة آلاف من الأمثلة المتسقة والصحيحة تتفوق على عشرات الآلاف من الأمثلة المشوّشة. كل خطأ في البيانات سلوك تدفع لتعليمه.
+- **طابِق بيئة الإنتاج.** استخدم موجّه النظام وصيغة المدخلات التي سيرسلها تطبيقك فعلاً.
+- **احتفظ بـ 5 إلى 10% جانباً.** أبقِ أمثلة لا يتدرب عليها النموذج أبداً، لتقارن بها النموذج الأساسي والنموذج المضبوط جنباً إلى جنب.
+- **احذف ما لا تحتاج إليه.** الأسماء وعناوين البريد وأرقام الحسابات والمعرّفات نادراً ما تساعد النموذج على تعلّم صيغة. استبدلها بقيم بديلة واقعية قبل أن تغادر البيانات جهازك.
 
-إن كانت بياناتك المصدرية بصيغة مختلفة (CSV، أو Parquet، أو أعمدة منفصلة للتعليمة والاستجابة)، فعليك تحويلها إلى هذه البنية قبل النقل. تتولى مكتبة `json` في Python التهريب تلقائياً:
+القاعدة الأخيرة تتجاوز الجهاز المستأجر. استخرج Carlini وآخرون مئات التسلسلات الحرفية من بيانات تدريب GPT-2، منها أسماء وأرقام هواتف وعناوين بريد إلكتروني، وبعضها لم يظهر إلا في مستند تدريب واحد. النموذج المضبوط قد يكرر ما تدرّب عليه لأي شخص يستخدمه لاحقاً.
 
-```python
-import json
+## حافظ على خصوصية البيانات على جهاز مستأجر
 
-with open('dataset.jsonl', 'w') as f:
-    for example in your_data:
-        text = f"### Instruction: {example['instruction']}\n\n### Input: {example['input']}\n\n### Response: {example['output']}"
-        f.write(json.dumps({"text": text}) + '\n')
-```
+في سوق GPU، يملك الكمبيوتر شخص آخر. تقولها Vast.ai صراحة: "العملاء معزولون في حاويات Docker بلا صلاحيات مميزة، ولا يصلون إلا إلى بياناتهم"، و"أمان المزوّدين يتفاوت كثيراً". هذا العزل يحميك من المستأجرين الآخرين. ولا يحميك من الشخص الذي يملك وصولاً فعلياً إلى الجهاز وصلاحيات root على المضيف.
 
-بعد أن تصبح مجموعة البيانات في مكانها، أنشئ سكربت التدريب على العقدة البعيدة:
+للبيانات الخاصة:
+
+1. **اختر مضيفاً من مركز بيانات خضع للتدقيق.** مزوّدو Secure Cloud في Vast.ai هم "مراكز بيانات خضعت للتدقيق وحاصلة على شهادة ISO 27001 ومعايير مراكز البيانات من الفئة 3/4"، وتوصي بهم Vast للأعمال الحساسة. وتعمل Secure Cloud في RunPod في مراكز بيانات من الفئة T3/T4؛ أما Community Cloud فتوصلك بمزوّدين أفراد. فئات مراكز البيانات أغلى في الساعة، وتستحق ذلك هنا.
+2. **لا ترفع إلا مجموعة البيانات المنظّفة،** عبر SSH ‏(`rsync -avP` أو `scp`). لا تضعها مؤقتاً في حاوية تخزين عامة أو رابط مشاركة في الطريق.
+3. **أبقِ السجلات محلية.** في TRL 1.14 القيمة الافتراضية لـ `report_to` هي `"none"`، فلا يذهب شيء إلى أداة تتبّع التجارب ما لم تفعّلها. لا تستدعِ `push_to_hub` مع محوِّل مدرَّب على بيانات خاصة.
+4. **أخرج النتائج، ثم احذف المثيل.** نزّل المحوِّل ومخرجات التقييم، وسجّل الخروج من Hugging Face ‏(`hf auth logout`) إذا استخدمت توكن، واحذف المثيل وأي وحدة تخزين. على Vast.ai يُفوتر التخزين ويُحتفظ به حتى يُحذف المثيل، لا حين يُوقف فقط.
+
+حذف الملفات داخل حاوية لا يضمن مسح قرص المضيف، فالحماية الحقيقية هي الخطوتان 1 و2: اختر من يملك العتاد، وأرسل إليه أقل ما يمكن. مزيد من التفاصيل في [كيف تؤمّن مجموعة بياناتك على عقدة GPU عامة](/ar/how-to-secure-dataset-on-public-gpu-node/). وإذا كانت سياستك تمنع أي عتاد لطرف ثالث، فالسكربت نفسه يعمل على بطاقتك الخاصة ذات 24 GB.
+
+## التدريب: سكربت QLoRA باستخدام TRL
+
+على جهاز Linux مستأجر فيه RTX 3090 أو 4090:
 
 ```bash
-cd ~/llama3-finetune
-nano train.py
+python -m venv venv && source venv/bin/activate
+pip install torch trl peft bitsandbytes datasets
 ```
 
-الصق الإعدادات التالية. يستخدم هذا السكربت QLoRA لضبط نموذج بحجم 8B معامل ضمن حدود ذاكرة GPU بسعة 24GB. يستخدم المثال Llama-3.1-8B، ويمكنك استبداله بأي نموذج متوافق بتغيير المتغير MODEL_NAME:
+ثم `train.py`، وفق نمط QLoRA في وثائق PEFT لدى TRL. النموذج Qwen3-8B مرخّص بـ Apache 2.0 وغير محميّ بموافقة، فلا حاجة إلى توكن Hugging Face:
 
 ```python
 import torch
 from datasets import load_dataset
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    TrainingArguments,
-)
 from peft import LoraConfig
-from trl import SFTTrainer
+from transformers import BitsAndBytesConfig
+from trl import SFTConfig, SFTTrainer
 
-# ============================================
-# CONFIGURATION - Modify these values as needed
-# ============================================
-
-# Base model identifier on Hugging Face
-# Change this to fine-tune a different model (e.g., "mistralai/Mistral-7B-v0.1")
-MODEL_NAME = "meta-llama/Llama-3.1-8B"
-
-# Name for your fine-tuned adapter
-OUTPUT_NAME = "llama-3-8b-custom"
-
-# Path to your dataset
-DATASET_PATH = "dataset.jsonl"
-
-# Training hyperparameters
-NUM_EPOCHS = 1
-BATCH_SIZE = 4
-LEARNING_RATE = 2e-4
-MAX_SEQ_LENGTH = 512
-
-# LoRA hyperparameters
-LORA_RANK = 16
-LORA_ALPHA = 16
-LORA_DROPOUT = 0.05
-
-# ============================================
-# QUANTIZATION CONFIGURATION
-# ============================================
+dataset = load_dataset("json", data_files="train.jsonl", split="train")
 
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_compute_dtype=torch.bfloat16,
     bnb_4bit_use_double_quant=True,
 )
 
-# ============================================
-# MODEL LOADING
-# ============================================
-
-print("Loading base model...")
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True,
-)
-model.config.use_cache = False
-
-print("Loading tokenizer...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
-
-# ============================================
-# DATASET LOADING
-# ============================================
-
-print(f"Loading dataset from {DATASET_PATH}...")
-dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
-print(f"Dataset contains {len(dataset)} examples")
-
-# ============================================
-# LORA CONFIGURATION
-# ============================================
-
 peft_config = LoraConfig(
-    r=LORA_RANK,
-    lora_alpha=LORA_ALPHA,
-    lora_dropout=LORA_DROPOUT,
-    bias="none",
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    target_modules="all-linear",
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
 )
 
-# ============================================
-# TRAINING ARGUMENTS
-# ============================================
-
-training_args = TrainingArguments(
-    output_dir="./results",
-    num_train_epochs=NUM_EPOCHS,
-    per_device_train_batch_size=BATCH_SIZE,
-    gradient_accumulation_steps=1,
-    learning_rate=LEARNING_RATE,
-    weight_decay=0.001,
-    fp16=True,
-    logging_steps=10,
-    save_steps=100,
-    save_total_limit=3,
-    optim="paged_adamw_32bit",
+args = SFTConfig(
+    output_dir="out",
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=2e-4,
     lr_scheduler_type="cosine",
-    warmup_ratio=0.03,
-    report_to="none",
+    warmup_steps=20,
+    max_length=2048,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="epoch",
+    model_init_kwargs={"dtype": torch.bfloat16},
 )
 
-# ============================================
-# TRAINER INITIALIZATION AND EXECUTION
-# ============================================
-
-print("Initializing trainer...")
 trainer = SFTTrainer(
-    model=model,
+    model="Qwen/Qwen3-8B",
+    args=args,
     train_dataset=dataset,
+    quantization_config=bnb_config,
     peft_config=peft_config,
-    dataset_text_field="text",
-    max_seq_length=MAX_SEQ_LENGTH,
-    tokenizer=tokenizer,
-    args=training_args,
 )
-
-print("Starting training...")
 trainer.train()
-
-print(f"Saving adapter to {OUTPUT_NAME}...")
-trainer.model.save_pretrained(OUTPUT_NAME)
-tokenizer.save_pretrained(OUTPUT_NAME)
-
-print("Training complete.")
+trainer.save_model("out/adapter")
 ```
 
-احفظ الملف بـ `Ctrl+O`، ثم اخرج بـ `Ctrl+X`.
+الخيارات المهمة:
 
-**فهم المعاملات الأساسية:**
+- **`learning_rate=2e-4`.** توصي وثائق TRL بنحو 10 أضعاف معدل الضبط الدقيق المعتاد مع QLoRA. إذا ارتفعت خسارة التقييم بينما تنخفض خسارة التدريب، فأنت تفرط في التعلّم (overfitting): قلّل عدد الحقب.
+- **`r=16`، `target_modules="all-linear"`.** محوّلات على كل طبقة خطية، وهو الإعداد الذي تستخدمه اختبارات Unsloth المعيارية. الرتبة 16 تكفي للصيغة والأسلوب؛ ارفعها للمهام الأصعب.
+- **`max_length=2048`.** الأمثلة الأطول تُقتطع. افحص أطوال بياناتك بالتوكنات؛ الحد الأطول يحتاج إلى VRAM أكثر.
+- **دفعة فعلية 16** ‏(4 × 4 خطوات تراكم). إذا نفدت الذاكرة، اخفض `per_device_train_batch_size` وارفع التراكم ليبقى الناتج نفسه.
 
-- **LORA_RANK (r=16):** تتحكم في قدرة المحوّل المضبوط على التعبير. القيم الأعلى تتعلم أكثر لكنها تستهلك ذاكرة أكبر. القيم المعتادة بين 8 و64.
+قبل أن تطفئ الجهاز، مرّر الأمثلة التي احتفظت بها جانباً عبر النموذج الأساسي والنموذج المضبوط وقارن بينهما. هذا هو الاختبار الوحيد الذي يخبرك هل أنجز المال شيئاً.
 
-- **LORA_ALPHA (16):** معامل تحجيم لأوزان LoRA. قاعدة شائعة تجعله مساوياً للرتبة.
+## كم يكلّف
 
-- **MAX_SEQ_LENGTH (512):** أقصى طول بالرموز (tokens) لأمثلة التدريب. التسلسلات الأطول تحتاج إلى ذاكرة أكبر. إن واجهت أخطاء نفاد الذاكرة (OOM)، فابدأ بخفض هذه القيمة.
+وقت التدريب = إجمالي التوكنات ÷ الإنتاجية. نشرت GigaGPU، وهي شركة استضافة، قياساً قدره نحو 3,500 توكن تدريب في الثانية لـ Llama 3.1 8B مع QLoRA على RTX 4090. بافتراض معدل مماثل لـ Qwen3-8B:
 
-- **BATCH_SIZE (4):** عدد الأمثلة التي تُعالَج في آن واحد. اخفضها إلى 2 أو 1 إن لم تكفِ الذاكرة.
+**جولة صغيرة:** 2,000 مثال × 600 توكن × 3 حقب = 3.6 مليون توكن. ‏3,600,000 ÷ 3,500 = 1,029 ثانية، أي نحو 17 دقيقة.
 
-- **target_modules:** الطبقات المحددة التي تُحقن فيها محوّلات LoRA. في Llama-3، تعطي طبقات إسقاط الانتباه (q وk وv وo) أفضل النتائج.
+| الخطوة | الوقت |
+| --- | --- |
+| إعداد البيئة | 10 دقائق |
+| تنزيل Qwen3-8B ‏(16.4 GB من الأوزان) ورفع البيانات | 10 دقائق |
+| التدريب | 17 دقيقة |
+| مقارنة النموذج الأساسي والمضبوط على البيانات المحتفظ بها | 15 دقيقة |
+| الدمج والتصدير والتنزيل وحذف المثيل | 15 دقيقة |
+| **الإجمالي** | **67 دقيقة (1.12 ساعة)** |
 
-لبدء التدريب، نفّذ:
+- RTX 4090 على Vast.ai بسعر $0.31 في الساعة: 1.12 × $0.31 = **$0.35**
+- RTX 4090 على RunPod بسعر $0.74 في الساعة (السعر المعلن في صفحة الأسعار): 1.12 × $0.74 = **$0.83**
+
+**جولة أكبر:** 20,000 مثال × 1,000 توكن × 2 حقبة = 40 مليون توكن ÷ 3,500 = 11,429 ثانية، أي نحو 3.2 ساعة. مع 50 دقيقة من الأعباء نفسها، 4.0 ساعات: **$1.24** على Vast.ai أو **$2.97** على RunPod.
+
+لنموذج 32B، تعرض RunPod بطاقات 48 GB بسعر $0.49 في الساعة (A40) و$0.53 في الساعة (RTX A6000) و$1.09 في الساعة (L40S) حتى سبتمبر 2026. ليس لدي رقم إنتاجية منشور لـ QLoRA على 32B بهذه البطاقات، فشغّل 50 خطوة، واقرأ زمن الخطوة من السجل، وأجرِ الضرب نفسه قبل أن تلتزم بجولة طويلة.
+
+الأسعار أرقام سبتمبر 2026 من صفحة أسعار RunPod ومن أداة تتبّع getdeploying.com لـ Vast.ai. فئات Secure ومراكز البيانات أغلى من أرخص عروض المجتمع. الصورة الأشمل في [مقارنة أسعار استئجار GPU](/ar/gpu-rental-pricing-comparison-2026/).
+
+## شغّل النتيجة
+
+لديك خياران: إبقاء المحوِّل منفصلاً، أو دمجه في النموذج.
+
+**أبقِه منفصلاً مع vLLM.** يحمّل vLLM محوّلات LoRA بجانب النموذج الأساسي ويعرض كل واحد منها كاسم نموذج على خادمه المتوافق مع OpenAI:
 
 ```bash
-python train.py
+vllm serve Qwen/Qwen3-8B --enable-lora --lora-modules invoices=./out/adapter
 ```
 
-سينزّل السكربت أولاً أوزان النموذج الأساسي (نحو 16GB لنموذج 8B). يحدث ذلك مرة واحدة فقط، وتستخدم الجلسات اللاحقة الأوزان المخزّنة مؤقتاً. بعد اكتمال التحميل، سترى تقدّم التدريب مع قيم الخسارة (loss) كل 10 خطوات.
+ثم يرسل العملاء `"model": "invoices"`. ويمكن لعدة محوّلات أن تتشارك نموذجاً أساسياً واحداً على GPU واحد.
 
-## الخطوة 5: مراقبة جلسة التدريب
-
-أثناء تنفيذ سكربت التدريب، عليك مراقبة حالة GPU. إن امتلأت ذاكرة VRAM أو تجاوزت الحرارة الحدود الآمنة، سيتعطل التدريب، وقد تتلف نقطة الحفظ ويضيع وقت الاستئجار.
-
-افتح نافذة طرفية ثانية على جهازك المحلي وأنشئ اتصال SSH آخر مع العقدة المستأجرة:
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-نفّذ الأمر التالي لعرض إحصاءات GPU لحظة بلحظة:
-
-```bash
-watch -n 1 nvidia-smi
-```
-
-![طرفية تعرض مخرجات nvidia-smi مع استهلاك ذاكرة GPU وإحصاءات الحرارة](../_images/nvidia-smi-monitoring.png)
-
-تتحدّث هذه الأداة كل ثانية، وتعرض استهلاك الذاكرة ونسبة استخدام GPU ودرجة الحرارة. على RTX 4090 بالإعدادات المحددة في هذا الدليل، يُفترض أن ترى:
-
-- **استهلاك الذاكرة:** من 18GB إلى 22GB من أصل 24GB المتاحة
-- **استخدام GPU:** من 90% إلى 100% أثناء خطوات التدريب الفعلية
-- **الحرارة:** من 60°C إلى 80°C بحسب نظام التبريد لدى المضيف
-
-**حل المشكلات الشائعة:**
-
-**الذاكرة تقترب من 24GB:** إن رأيت استهلاك الذاكرة يلامس السقف باستمرار، فاخفض المعامل `BATCH_SIZE` في سكربت التدريب إلى 2 أو 1. أو اخفض `MAX_SEQ_LENGTH` إلى 256. كلا التغييرين يتطلب إعادة تشغيل التدريب.
-
-**استخدام GPU قريب من 0%:** يشير هذا عادةً إلى اختناق في تحميل البيانات، إذ لا يستطيع المعالج المركزي تغذية GPU بالأمثلة بالسرعة الكافية. هذا أقل شيوعاً على العُقد المزوّدة بأقراص NVMe، لكنه قد يحدث مع مجموعات البيانات الكبيرة جداً. فكّر في تحويل مجموعة البيانات إلى صيغة أكفأ (Arrow/Parquet) قبل النقل.
-
-**الحرارة تتجاوز 85°C:** يشغّل بعض المضيفين بطاقات GPU في هياكل سيئة التهوية. قد تؤدي الحرارة المرتفعة المستمرة إلى خنق حراري يبطئ التدريب. إن تجاوزت الحرارة 85°C باستمرار، ففكّر في إنهاء الاستئجار واختيار عقدة أخرى. تلف العتاد مشكلة المضيف، أما الوقت الضائع ونقاط الحفظ التالفة فمشكلتك أنت.
-
-**قراءة منحنى الخسارة:**
-
-يطبع سكربت التدريب قيمة الخسارة كل 10 خطوات. يمثّل هذا الرقم مدى "خطأ" تنبؤات النموذج، وكلما انخفض كان أفضل. يُفترض أن تلاحظ ما يلي:
-
-- **الخسارة الأولية:** بين 1.5 و3.0 عادةً بحسب مجموعة البيانات
-- **الاتجاه:** انخفاض مطّرد خلال المئات الأولى من الخطوات
-- **الخسارة النهائية:** بين 0.5 و1.5 عادةً في جلسة مضبوطة جيداً
-
-إن توقفت الخسارة عن التغير منذ البداية (لا انخفاض بعد 100 خطوة)، فقد يكون معدل التعلم منخفضاً جداً. وإن تذبذبت الخسارة بشدة أو ارتفعت، فمعدل التعلم مرتفع جداً. القيمة الافتراضية `2e-4` مناسبة لمعظم مجموعات البيانات، لكن قد تحتاج إلى تعديلها.
-
-إن انخفضت الخسارة بسلاسة ثم قفزت فجأة إلى قيم مرتفعة جداً (10 فأكثر)، فالأرجح أن مجموعة البيانات تحتوي على أمثلة تالفة. أوقف التدريب، وافحص ملف JSONL بحثاً عن أخطاء ترميز أو أحرف غير مهرَّبة بشكل صحيح، ثم أعد التشغيل.
-
-تنتهي جلسة ضبط دقيق نموذجية على 1,000 مثال خلال 30 إلى 60 دقيقة على RTX 4090. ويزداد الزمن خطياً تقريباً مع حجم البيانات، إذ تحتاج 10,000 مثال إلى 5 إلى 10 ساعات.
-
-## الخطوة 6: استرجاع النموذج وتنظيف البيئة
-
-عند انتهاء التدريب، تكون الأوزان المضبوطة محفوظة على شكل محوّل LoRA في المجلد المحدد بالمتغير `OUTPUT_NAME`. هذا المحوّل صغير الحجم، عادةً بين 100MB و500MB، مقارنة بحجم النموذج الأساسي الكامل البالغ 16GB.
-
-أولاً، تحقّق من وجود ملفات المحوّل:
-
-```bash
-ls -la ~/llama3-finetune/llama-3-8b-custom/
-```
-
-يجب أن ترى ملفات منها `adapter_config.json` و`adapter_model.safetensors` وملفات المُرمِّز (tokenizer).
-
-**لا تدمج المحوّل على العقدة المستأجرة.** الدمج يجمع أوزان LoRA مع النموذج الأساسي لإنتاج نموذج مضبوط مستقل. تتطلب هذه العملية تحميل النموذج الأساسي كاملاً بدقة 16-bit في الذاكرة، وهو ما قد يتجاوز ذاكرة VRAM المتاحة في بطاقة 24GB. نفّذ الدمج على بنيتك التحتية المحلية، أو ببساطة حمّل المحوّل مع النموذج الأساسي أثناء الاستدلال. تتولى مكتبة PEFT ذلك بسلاسة:
-
-```python
-from peft import PeftModel
-from transformers import AutoModelForCausalLM
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    device_map="auto",
-)
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-```
-
-لتنزيل المحوّل، عُد إلى **الطرفية المحلية** (لا جلسة SSH) ونفّذ:
-
-```bash
-scp -r -P 22345 user@203.0.113.42:~/llama3-finetune/llama-3-8b-custom ./
-```
-
-يفعّل الخيار `-r` النسخ التكراري للمجلد بأكمله. تحقّق من اكتمال النقل بنجاح بمطابقة أحجام الملفات المحلية مع البعيدة.
-
-**تنظيف البيئة البعيدة:**
-
-هذه الخطوة تميّز المحترفين عن الهواة. تحتوي العقدة المستأجرة الآن على مجموعة بياناتك الخاصة وشيفرة التدريب وأوزان النموذج المخزّنة مؤقتاً. ترك هذه المواد على جهاز لا تتحكم فيه يخالف أبسط قواعد الأمن التشغيلي.
-
-عُد إلى جلسة SSH على العقدة المستأجرة ونفّذ الأوامر التالية:
-
-```bash
-# Remove your working directory and all contents
-rm -rf ~/llama3-finetune
-
-# Clear the Hugging Face cache (contains downloaded model weights)
-rm -rf ~/.cache/huggingface
-
-# Clear Python package cache
-rm -rf ~/.cache/pip
-
-# Clear bash history
-history -c
-cat /dev/null > ~/.bash_history
-
-# Clear any potential swap residue (may require sudo depending on node config)
-sync
-```
-
-إن كانت الأداة `shred` متوفرة على العقدة وأردت ضماناً إضافياً بأن الملفات المحذوفة لا يمكن استعادتها:
-
-```bash
-# Secure deletion (slower but more thorough)
-find ~/llama3-finetune -type f -exec shred -u {} \;
-rm -rf ~/llama3-finetune
-```
-
-اقطع اتصال جلسة SSH:
-
-```bash
-exit
-```
-
-عُد إلى لوحة تحكم السوق وأنهِ الاستئجار، بما في ذلك أي وحدة تخزين مرتبطة به، حتى تتوقف عن الدفع.
-
-## تشغيل الاستدلال بنموذجك المضبوط
-
-بعد تنزيل المحوّل إلى جهازك المحلي، يمكنك تشغيل الاستدلال دون أي اعتماد على السحابة. إليك مثالاً مختصراً:
+**ادمجه وشغّله في Ollama.** ادمج المحوِّل في أوزان بالدقة الكاملة، وحوّلها إلى GGUF باستخدام llama.cpp، وكمّمها، ثم استوردها:
 
 ```python
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer
 
-# Quantization config (same as training)
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
-)
-
-# Load base model
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    quantization_config=bnb_config,
-    device_map="auto",
-)
-
-# Load your fine-tuned adapter
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
-
-# Generate a response
-prompt = "### Instruction: Summarize the contract clause.\n\n### Input: The Licensee shall not reverse engineer, decompile, or disassemble the Software.\n\n### Response:"
-
-inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.7)
-response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-print(response)
+model = AutoPeftModelForCausalLM.from_pretrained("out/adapter", dtype=torch.bfloat16)
+model.merge_and_unload().save_pretrained("merged")
+AutoTokenizer.from_pretrained("Qwen/Qwen3-8B").save_pretrained("merged")
 ```
 
-للنشر في بيئة الإنتاج، فكّر في تغليف هذه الشيفرة بواجهة API باستخدام FastAPI أو Flask، أو النشر عبر خوادم استدلال مثل vLLM أو Text Generation Inference (TGI). نقارن بينها في [Ollama مقابل vLLM مقابل TGI على RTX 4090](/ar/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/).
+```bash
+python llama.cpp/convert_hf_to_gguf.py merged --outfile invoices-bf16.gguf --outtype bf16
+./llama.cpp/build/bin/llama-quantize invoices-bf16.gguf invoices-Q4_K_M.gguf Q4_K_M
+echo "FROM ./invoices-Q4_K_M.gguf" > Modelfile
+ollama create invoices -f Modelfile
+```
 
-## الخلاصة
+تُجري Unsloth الدمج والتصدير إلى GGUF باستدعاء واحد (`model.save_pretrained_gguf("dir", tokenizer, quantization_method="q4_k_m")`). وتحذّر وثائقها من أن السبب الأكثر شيوعاً للإجابات السيئة بعد التصدير هو قالب المحادثة الخاطئ: شغّل النموذج بالقالب الذي درّبت به. والمفاضلة بين Ollama وvLLM وTGI موجودة في [اختبارنا لأداء الاستدلال على RTX 4090](/ar/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/).
 
-لقد ضبطت نموذج لغة كبيراً على بيانات خاصة، وأبقيت تلك البيانات على جهاز واحد لأقصر وقت ممكن. وأنجزت ذلك دون توقيع عقود مؤسسية، ودون منح شركة تقنية حق الوصول إلى ملكيتك الفكرية.
+### أين يقع GPUFlow من هذا
 
-إجمالي تكلفة هذه العملية، بافتراض جلسة تدريب مدتها ساعتان على RTX 4090 بسعر 0.45$ في الساعة، كان تسعين سنتاً. بطاقة A10G واحدة على AWS تكلّف نحو 1.01$ في الساعة، أي أن الجلسة نفسها ليست مكلفة هناك أيضاً. الفرق يكمن في طلب رفع الحصة وفي الإعداد.
+لا يستطيع GPUFlow تنفيذ التدريب: فهو يؤجّر واجهة API متوافقة مع OpenAI على GPU لدى مزوّد، دون سطر أوامر أو SSH أو وصول إلى الملفات. ولا يستطيع أيضاً تشغيل نموذجك المضبوط. لا يستطيع المستأجرون رفع نماذج؛ النماذج المعروضة هي ما ثبّته كل مزوّد (عادةً باستخدام Ollama)، مثل `qwen2.5:7b` أو `llama3.1:8b`.
 
-والأهم أن مجموعة بياناتك لم تمر قط بأي خدمة تخزين، وحُذفت من الجهاز المستأجر حين انتهيت.
+ما يمكن أن يفيد فيه هو الخطوة التي تسبق هذا كله: أن تتحقق، ببضعة سنتات، هل ينجز نموذج مفتوح جاهز مع موجّه جيد المهمة أصلاً، وهي النتيجة الأرخص في شجرة القرار. استخدم لذلك بيانات اختبار، لا البيانات الخاصة التي يدور حولها هذا الدليل: الموجّهات والإجابات تمر عبر جهاز المزوّد نصاً غير مشفّر طوال مدة الاستئجار. طريقة العمل في [البدء السريع مع API](https://docs.gpuflow.app/ar/renters/api-quickstart/)، ومقال [استخدام المفتاح في التطبيقات](/ar/use-openai-compatible-api-key-in-apps/) يشرح ربطه بالأدوات الموجودة.
 
-عصر الاعتماد على واجهات API مغلقة المصدر يقترب من نهايته. المؤسسات التي تحتاج إلى الخصوصية، والباحثون الذين يقدّرون السيادة على بياناتهم، والمطورون الذين يريدون التحكم، لديهم الآن بديل. وحدات GPU المستأجرة تعيد إليهم البنية التحتية والتكاليف والبيانات.
+## المصادر
 
-نموذجك المضبوط موجود الآن على عتاد تتحكم فيه. وقرارات نشره، ومن يحق له الوصول إليه، والأغراض التي يخدمها، تعود إليك وحدك.
+راجعناها كلها في سبتمبر 2026.
 
----
-
-## ماذا تقرأ بعد ذلك
-
-غطّى هذا الدليل سير العمل الأساسي للضبط الدقيق الخاص لنماذج اللغة الكبيرة. تتناول المصادر التالية موضوعات ذات صلة بتعمّق أكبر:
-
-**فهم التكاليف:**
-
-- [مقارنة أسعار استئجار GPU لعام 2026](/ar/gpu-rental-pricing-comparison-2026/) — تحليل التكاليف في الأسواق ومنصات السحابة الكبرى
-- [التكلفة الحقيقية لاستئجار GPU](/ar/hidden-fees-in-gpu-rental/) — عوامل التكلفة التي لا تذكرها صفحات الأسعار
-
-**البدء:**
-
-- [ما تحتاجه لاستئجار GPU في 2026](/ar/what-you-need-to-rent-a-gpu/) — التسجيل والتحقق والدفع على كل منصة
-- [كيف تؤمّن مجموعة بياناتك على عقدة GPU عامة](/ar/how-to-secure-dataset-on-public-gpu-node/) — ممارسات الأمان قبل التدريب وأثناءه وبعده
-
-**مقارنة الخيارات:**
-
-- [مقارنة بين RunPod وVast.ai](/ar/runpod-vs-vastapi-comparison/) — أوجه الاختلاف بين أكبر سوقين
-- [GPUFlow مقابل Vast.ai مقابل RunPod مقابل SaladCloud](/ar/gpuflow-vs-vast-ai-vs-runpod/) — مقارنة بين الأجهزة والحاويات ومفاتيح API
+- الأوراق: [Hu وآخرون، LoRA](https://arxiv.org/abs/2106.09685)؛ [Dettmers وآخرون، QLoRA](https://arxiv.org/abs/2305.14314)؛ [Ovadia وآخرون، Fine-Tuning or Retrieval?](https://arxiv.org/abs/2312.05934)؛ [Carlini وآخرون، Extracting Training Data from Large Language Models](https://arxiv.org/abs/2012.07805)
+- Hugging Face TRL: ‏[SFT Trainer](https://huggingface.co/docs/trl/sft_trainer)، [تكامل PEFT وQLoRA](https://huggingface.co/docs/trl/peft_integration)
+- Unsloth: ‏[المتطلبات وجدول VRAM](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements.md)، [الاختبارات المعيارية](https://unsloth.ai/docs/basics/unsloth-benchmarks.md)، [الحفظ بصيغة GGUF](https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-gguf.md)، [GitHub](https://github.com/unslothai/unsloth)
+- [Axolotl على GitHub](https://github.com/axolotl-ai-cloud/axolotl)
+- النموذج: [بطاقة نموذج Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)
+- إنتاجية التدريب: [GigaGPU، الضبط الدقيق على RTX 4090](https://gigagpu.com/rtx-4090-fine-tuning-guide/)
+- المضيفون والأمان: [الأسئلة الشائعة عن الأمان في Vast.ai](https://docs.vast.ai/documentation/reference/faq/security)، [أسعار Vast.ai](https://docs.vast.ai/guides/instances/pricing.md)، [نظرة عامة على الـ Pods في RunPod](https://docs.runpod.io/pods/overview)
+- الأسعار: [أسعار RunPod](https://www.runpod.io/pricing)، وgetdeploying.com لـ [Vast.ai](https://getdeploying.com/vast-ai) و[RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090)
+- التشغيل: [محوّلات LoRA في vLLM](https://docs.vllm.ai/en/latest/features/lora.html)، [أداة quantize في llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)، [الاستيراد في Ollama](https://docs.ollama.com/import)
+- GPUFlow: [البدء السريع مع API](https://docs.gpuflow.app/ar/renters/api-quickstart/)

@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "بطاقة رسومات للألعاب بثلاث مراوح على رف أبيض"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "رسم توضيحي لبطاقة رسومات بجانب أكوام من العملات المعدنية تزداد ارتفاعًا"
 faq:
   - question: "كم يمكن أن تربح RTX 4090 شهرياً على سوق لتأجير GPU؟"
     answer: "بسعر معتاد في سبتمبر 2026 يبلغ نحو $0.38 في الساعة، وبعد رسوم GPUFlow البالغة 12% ومتوسط سعر الكهرباء في الولايات المتحدة، يتبقى من RTX 4090 نحو $0.25 عن كل ساعة استئجار. أي نحو $30 شهرياً إذا استُؤجرت 4 ساعات يومياً، ونحو $91 عند 12 ساعة يومياً، قبل احتساب الطاقة التي يستهلكها باقي الكمبيوتر."

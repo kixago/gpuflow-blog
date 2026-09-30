@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "Eine Gaming-Grafikkarte mit drei Lüftern auf einem weißen Regal"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "Illustration einer Grafikkarte neben wachsenden Münzstapeln"
 faq:
   - question: "Wie viel kann eine RTX 4090 pro Monat auf einem GPU-Vermietungsmarktplatz verdienen?"
     answer: "Bei einem typischen Preis von etwa 0,38 $ pro Stunde im September 2026, der Gebühr von 12 % bei GPUFlow und dem US-Durchschnittsstrompreis bleiben bei einer RTX 4090 etwa 0,25 $ pro vermieteter Stunde. Das sind rund 30 $ im Monat bei 4 vermieteten Stunden am Tag und etwa 91 $ bei 12 Stunden am Tag, noch ohne den Strom für den restlichen PC."

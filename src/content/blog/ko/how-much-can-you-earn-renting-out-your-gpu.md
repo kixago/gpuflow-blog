@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "흰색 선반 위에 놓인 트리플 팬 게이밍 그래픽카드"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "그래픽카드 옆에 점점 높아지는 동전 더미를 그린 일러스트"
 faq:
   - question: "GPU 대여 마켓플레이스에서 RTX 4090으로 한 달에 얼마를 벌 수 있나요?"
     answer: "2026년 9월의 일반적인 가격인 시간당 약 $0.38, GPUFlow 수수료 12%, 미국 평균 전기료를 기준으로 하면 RTX 4090은 대여 1시간당 약 $0.25가 남습니다. 하루 4시간 대여되면 월 약 $30, 하루 12시간이면 약 $91입니다. PC의 나머지 부품이 쓰는 전력은 빼기 전 금액입니다."

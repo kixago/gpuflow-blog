@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "सफ़ेद शेल्फ़ पर रखा तीन पंखों वाला गेमिंग ग्राफ़िक्स कार्ड"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "ग्राफ़िक्स कार्ड के पास बढ़ते सिक्कों के ढेर का चित्र"
 faq:
   - question: "GPU रेंटल मार्केटप्लेस पर RTX 4090 हर महीने कितना कमा सकता है?"
     answer: "सितंबर 2026 की लगभग $0.38 प्रति घंटे की आम कीमत, GPUFlow के 12% शुल्क और अमेरिका की औसत बिजली दर पर, RTX 4090 किराये के हर घंटे पर लगभग $0.25 की शुद्ध कमाई करता है। अगर यह रोज़ 4 घंटे किराये पर रहे तो महीने के लगभग $30, और रोज़ 12 घंटे पर लगभग $91 बनते हैं, बाक़ी PC की बिजली घटाने से पहले।"

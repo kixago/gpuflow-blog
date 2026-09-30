@@ -700,6 +700,55 @@ article {
   width: 100%;
 }
 
+.toc {
+  max-width: min(750px, calc(100% - 3rem));
+  margin: 2rem auto 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgb(var(--gray-light));
+  border-radius: 8px;
+  background: rgba(var(--gray-light), 35%);
+}
+
+.toc-title {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+}
+
+.toc ol {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  line-height: 1.6;
+}
+
+.toc a {
+  color: rgb(var(--accent));
+  text-decoration: none;
+}
+
+.toc a:hover {
+  text-decoration: underline;
+}
+
+.article-content figure {
+  margin: 2.5rem 0;
+}
+
+.article-content figure svg {
+  /* Diagrams are drawn left to right; Arabic and Hebrew labels carry their
+     own direction, so an RTL page must not flip the whole drawing. */
+  direction: ltr;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.article-content figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: rgb(var(--gray));
+  text-align: center;
+}
+
 .faq-section {
   max-width: 800px;
   margin: 0 auto;

@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "白い棚に置かれた 3 連ファンのゲーミング用グラフィックカード"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "グラフィックカードと、高くなっていくコインの山のイラスト"
 faq:
   - question: "GPU レンタルのマーケットプレイスで、RTX 4090 は月にいくら稼げますか？"
     answer: "2026 年 9 月の一般的な価格である 1 時間約 $0.38、GPUFlow の手数料 12%、米国の平均的な電気代で計算すると、RTX 4090 の手取りは貸し出し 1 時間あたり約 $0.25 です。1 日 4 時間貸し出せば月約 $30、1 日 12 時間なら月約 $91 になります。ただし、PC のほかの部品が使う電力は含んでいません。"

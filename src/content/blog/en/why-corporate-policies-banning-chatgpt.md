@@ -1,9 +1,9 @@
 ---
-title: "Why Corporate AI Policies are Banning ChatGPT (And What to Use Instead)"
-description: "An analysis of why enterprises are restricting employee access to ChatGPT and cloud AI services. Understand the data privacy risks, regulatory compliance failures, and intellectual property concerns driving corporate AI bans—plus practical alternatives using open-weights models on private infrastructure."
-excerpt: "Major corporations are banning ChatGPT over data privacy and compliance concerns. Learn why enterprise AI policies are tightening and how open-weights models on infrastructure you control provide an alternative."
+title: "Why Companies Ban ChatGPT at Work and What They Use Instead"
+description: "Companies restrict public AI chat apps because staff paste in data the firm has no contract to share. The real cases, 2026 rules and alternatives that work."
+excerpt: "Most corporate ChatGPT bans are about contracts and defaults. Here is what went wrong at Samsung, what the business plans promise today, and where your prompt goes in each option."
 pubDate: 2026-02-26
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "en"
 category: "case-studies"
 featured: false
@@ -12,472 +12,191 @@ author: "GPUFlow Team"
 heroImage: "../_images/corporate-ai-policy-restriction.png"
 heroImageAlt: "Corporate office environment with digital lock symbols overlaying computer screens representing AI access restrictions"
 faq:
-  - question: "Why are companies banning ChatGPT?"
-    answer: "Companies ban ChatGPT primarily due to data privacy risks, regulatory compliance concerns, and intellectual property protection. When employees input proprietary code, customer data, or strategic documents into ChatGPT, that information is transmitted to OpenAI servers where it may be used for model training, stored indefinitely, or potentially exposed through security breaches. Industries subject to HIPAA, GDPR, SOX, or financial regulations face additional liability when sensitive data leaves controlled environments."
-  - question: "Which major companies have banned ChatGPT?"
-    answer: "Notable companies that have restricted or banned ChatGPT include Samsung, Apple, JPMorgan Chase, Bank of America, Goldman Sachs, Citigroup, Deutsche Bank, Amazon, Verizon, and Accenture. Many law firms, healthcare organizations, and government agencies have implemented similar restrictions. The bans range from complete prohibition to limited approved use cases with strict data handling requirements."
-  - question: "Is it legal to use ChatGPT for work?"
-    answer: "Legality depends on your jurisdiction, industry, and the nature of data being processed. Using ChatGPT with publicly available information is generally legal. However, inputting personal data of EU citizens may violate GDPR. Processing patient information violates HIPAA. Sharing confidential business information may breach fiduciary duties or employment agreements. Many organizations prohibit use regardless of legality due to risk management concerns."
-  - question: "What are the alternatives to ChatGPT for enterprises?"
-    answer: "Enterprise alternatives include deploying open-weights models like Llama, Mistral, or Qwen on private infrastructure. Organizations can fine-tune these models on proprietary data without exposing information to third parties. Deployment options include on-premises servers, private cloud instances, or rented GPUs for work on non-sensitive data."
-  - question: "Can ChatGPT see my company data?"
-    answer: "Yes. Any text you input into ChatGPT is transmitted to OpenAI servers. According to OpenAI's data usage policies, inputs may be used to improve their models unless you specifically opt out through enterprise agreements or API configurations. Even with opt-out settings, data is still processed on OpenAI infrastructure and subject to their security practices, employee access controls, and potential legal disclosure requirements."
-  - question: "How do I use AI without violating corporate policy?"
-    answer: "First, review your organization's specific AI acceptable use policy. For compliant AI usage, consider open-weights models deployed on infrastructure you control. This includes local workstations with sufficient GPU resources and private cloud instances within your security perimeter. The key principle is ensuring data remains within systems governed by your organization's security controls."
-  - question: "What is the difference between ChatGPT and open-weights models?"
-    answer: "ChatGPT is a closed-source service operated by OpenAI where all processing occurs on their infrastructure. You cannot inspect the model, control where data is processed, or prevent potential use in training. Open-weights models like Llama or Mistral provide downloadable model files you can run on any hardware. You maintain complete control over data processing, can operate air-gapped from the internet, and face no third-party data exposure."
-  - question: "Are enterprise versions of ChatGPT safe for corporate use?"
-    answer: "ChatGPT Enterprise and API access with data opt-out provide improved privacy over the consumer product but do not eliminate all concerns. Data still transits to and processes on OpenAI infrastructure. Organizations must trust OpenAI's security practices, employee vetting, and compliance certifications. For highly regulated industries or sensitive intellectual property, many security teams consider any third-party processing unacceptable regardless of contractual protections."
+  - question: "Why do companies ban ChatGPT for employees?"
+    answer: "Because staff paste company and customer data into a consumer account the company has no contract with. On consumer ChatGPT plans the default allows OpenAI to use content to improve its models, and there is no data processing agreement or HIPAA business associate agreement covering the company."
+  - question: "Does ChatGPT Enterprise train on company data?"
+    answer: "No, not by default. OpenAI's enterprise privacy page says it does not train on data from ChatGPT Enterprise, Business, Edu or the API unless the customer opts in, and it lists SOC 2 Type 2 audits and admin-controlled retention for Enterprise."
+  - question: "Which companies restricted ChatGPT?"
+    answer: "Samsung restricted generative AI on company devices in 2023 after reported leaks of source code and internal data. Apple, JPMorgan, Bank of America, Citi, Deutsche Bank, Goldman Sachs, Wells Fargo, Walmart and Verizon were also reported to restrict it that year."
+  - question: "Is it legal to put customer data into ChatGPT under GDPR?"
+    answer: "Only with a lawful basis and a processor contract that meets Article 28 GDPR. A business plan with a data processing agreement can meet that; an employee's personal account cannot, because the company has no contract with the vendor for that account."
+  - question: "When do the EU AI Act high-risk rules apply?"
+    answer: "After the AI Omnibus amendment, which entered into force on 27 July 2026, high-risk rules for stand-alone systems such as CV screening apply from 2 December 2027 and for AI in regulated products from 2 August 2028. Transparency duties under Article 50 have applied since 2 August 2026."
+  - question: "Can I use GPUFlow for confidential company data?"
+    answer: "No. On GPUFlow the model runs on a provider's own computer, so prompts and answers pass through that machine in plaintext. The terms forbid providers from recording them, but that is a contract rule, not a technical block, so use it only for data you could share with a stranger."
 ---
 
-The memo satisfies no one but changes everything.
+Most companies that "ban ChatGPT" have nothing against AI. They object to employees pasting company data into a consumer account the company has no contract with, where by default the vendor may use it to improve its models. The usual fix is an approved tool: a business plan with no-training and retention terms, a model endpoint inside the company's own cloud account, or an open-weights model on hardware the company runs. With the right contract in place, the public tools are fine for a lot of work.
 
-When Samsung's semiconductor division discovered that engineers had uploaded proprietary chip designs to ChatGPT, the response was immediate and absolute. A company-wide ban. No exceptions. No appeals process. The tool that had become synonymous with AI productivity was now prohibited on all corporate networks.
+Below: what actually happened in the cases everyone quotes, which rules apply in 2026, what each vendor's business terms say today, and where your text goes in each option. Everything was checked against primary sources in September 2026; they are listed at the end.
 
-Samsung was not alone. Within months, similar announcements emerged from JPMorgan Chase, Apple, Amazon, Goldman Sachs, Deutsche Bank, and dozens of other enterprises. Law firms that counsel Fortune 500 companies prohibited associates from using the service. Healthcare systems blocked access at the firewall level. Government agencies issued guidance that effectively ended any ambiguity about acceptable use.
+## What happened at Samsung and the banks
 
-The pattern revealed something that technology enthusiasts had overlooked in their excitement about AI capabilities: enterprise adoption operates under constraints that consumer adoption does not.
+Samsung is the case everyone cites. In early 2023 its semiconductor business allowed engineers to use ChatGPT. Korean media then reported three separate incidents: staff pasted source code to fix bugs, used the tool to write meeting minutes, and entered equipment measurement and yield data. Samsung did not confirm the details at the time. At the end of April 2023 a memo told staff in one of its biggest divisions that generative AI was temporarily restricted on company computers. In an internal survey the month before, 65% of respondents had said they were worried about the security risks.
 
-This article examines why corporate AI policies are tightening, what specific risks drive these decisions, and how organizations can maintain AI capabilities without accepting unacceptable data exposure. The path forward does not require abandoning AI. It requires understanding that the infrastructure matters as much as the intelligence.
+Apple restricted ChatGPT and GitHub Copilot in May 2023, according to the Wall Street Journal, because it feared confidential data would end up with developers who train models on user data. The same reports listed JPMorgan, Bank of America, Citi, Deutsche Bank, Goldman Sachs, Wells Fargo, Walmart and Verizon as having restricted ChatGPT.
 
-![Corporate security team reviewing AI usage policies on multiple displays](../_images/enterprise-ai-policy-review.png)
+Two things about these cases are easy to miss.
 
-## The Incidents That Changed Everything
+First, nobody was hacked. The data went exactly where the employee sent it. The worry was what happens after that: who keeps it, for how long, whether it trains a model, and whether a court can make the vendor hand it over.
 
-Corporate AI bans did not emerge from theoretical risk assessments. They followed actual incidents where confidential information escaped organizational control.
+Second, the bans did not last as bans. JPMorgan built its own internal platform, LLM Suite, which gives staff access to large language models "in a secure environment". It was released in summer 2024 and reached 200,000 onboarded users within eight months. That is the typical arc: block the consumer app, then give people something approved.
 
-**The Samsung Semiconductor Breach**
+## What the risk actually is
 
-In early 2023, Samsung Electronics employees used ChatGPT to debug source code and optimize semiconductor manufacturing processes. Engineers pasted proprietary code directly into the chat interface. Others uploaded meeting notes containing strategic planning discussions. Within three weeks of ChatGPT being permitted for internal use, Samsung's information security team identified multiple instances of confidential data transmission to OpenAI servers.
+When an employee uses a personal consumer account, four separate problems stack up.
 
-The semiconductor industry operates on margins measured in nanometers and competitive advantages measured in months. The possibility that Samsung's fabrication processes now resided in OpenAI's training corpus—potentially accessible to competitors using the same service—was unacceptable. Samsung implemented a complete ban and began developing internal AI tools that would never transmit data externally.
+**Training by default.** On ChatGPT Free, Plus and Pro, content may be used to improve OpenAI's models unless the user turns off "Improve the model for everyone" in Data controls. If the user clicks thumbs up or down, the whole conversation may be used even after opting out. Anthropic's consumer Claude plans use chats for training if the user allows model improvement. So whether your source code ends up in a training set depends on one setting in someone else's account.
 
-**Financial Services Industry Response**
+**Retention you don't control.** Business data on OpenAI's platform is deleted within 30 days of the user deleting it, "unless we are legally required to retain them". That last clause is real. In the New York Times lawsuit, a court order from June 2025 to 26 September 2025 required OpenAI to keep consumer ChatGPT and standard API content it would otherwise have deleted. ChatGPT Enterprise, Edu and API customers with zero data retention were not covered.
 
-JPMorgan Chase restricted ChatGPT access before any publicized incident, recognizing the regulatory implications proactively. When bank employees analyze customer portfolios, discuss merger strategies, or evaluate credit risks, they handle information subject to SEC regulations, banking secrecy laws, and fiduciary duties. Transmitting such information to a third-party AI service—regardless of that service's stated privacy policies—creates compliance exposure that no general counsel would accept.
+**No contract.** This one matters most legally. Under GDPR, a company that lets a vendor process personal data must use a processor that gives "sufficient guarantees" and must have a binding contract with it (Article 28). A healthcare provider needs a business associate agreement. An employee's personal account has neither, so the breach happens at the moment of pasting, whether or not anything ever leaks.
 
-Goldman Sachs, Citigroup, Bank of America, and Deutsche Bank followed with similar restrictions. The financial services industry's coordinated response reflected not paranoia but professional understanding of regulatory liability. A data breach originating from employee ChatGPT usage would require disclosure, trigger regulatory investigation, and potentially result in enforcement action.
+**No records.** Regulated firms must supervise and archive business communications. A chat in a personal account sits outside every archive the compliance team runs.
 
-**Legal Industry Implications**
+## The rules that apply in 2026
 
-The American Bar Association has not issued a blanket prohibition on AI tools, but the practical effect of attorney-client privilege requirements approximates one. When a lawyer discusses client matters with ChatGPT, the conversation may waive privilege protection. Information disclosed to third parties—even AI systems—can lose the confidentiality that makes legal advice protected.
+### GDPR
 
-Major law firms including Davis Polk, Cravath, and Sullivan & Cromwell implemented restrictions varying from complete bans to approved-use-only policies requiring partner authorization. The legal profession's response demonstrated that AI risks extend beyond data security into fundamental questions of professional responsibility.
+Personal data of EU customers or staff in a prompt is processing. It needs a lawful basis, a processor contract under Article 28, and a legal route for any transfer outside the EU. For US vendors the EU-US Data Privacy Framework is still valid: the EU General Court dismissed the Latombe challenge on 3 September 2025 (case T-553/23). An appeal is pending at the Court of Justice as C-703/25 P, so keep an eye on it.
 
-## The Technical Reality of Cloud AI Data Handling
+Regulators have acted on chat services directly. Italy's Garante temporarily blocked ChatGPT in late March 2023, and in December 2024 it fined OpenAI €15 million for processing personal data to train ChatGPT without an adequate legal basis, not notifying a March 2023 breach, weak transparency and missing age checks. OpenAI called the fine disproportionate and said it would appeal.
 
-Understanding why enterprises ban ChatGPT requires examining what actually happens when you send a message to a cloud AI service.
+### HIPAA
 
-**Data Transmission Path**
+Any service that receives, stores or transmits electronic protected health information for a covered entity is a business associate and needs a signed BAA. HHS is explicit that a cloud provider which only holds encrypted data and has no key is still a business associate. OpenAI says it can sign BAAs for its API. A clinician's personal ChatGPT account comes with no BAA at all.
 
-When you type a prompt into ChatGPT, your text travels from your device through your corporate network, across the public internet, to OpenAI's infrastructure. OpenAI operates primarily on Microsoft Azure, meaning your data transits Microsoft's network and resides on Microsoft-managed servers.
+### Financial services
 
-This transmission occurs regardless of content sensitivity. The system cannot distinguish between a request to write a poem and a request to analyze confidential merger terms. Every character you input follows the same path to the same destination.
+FINRA's Regulatory Notice 24-09 (27 June 2024) says its rules apply to generative AI "just as they apply when member firms use any other technology or tool". Supervision, communications with the public and recordkeeping all still apply. Most of the 2023 bank restrictions followed from exactly that.
 
-**Data Retention Policies**
+### EU AI Act
 
-OpenAI's data usage policies have evolved over time, but certain fundamentals remain consistent. User inputs are logged. Conversations are stored. The duration and purpose of storage depend on your subscription tier and specific agreements.
+The AI Act entered into force on 1 August 2024. The bans on prohibited practices and the AI literacy duty applied from 2 February 2025, and the obligations for general-purpose AI model providers from 2 August 2025. The AI Omnibus amendment, Regulation (EU) 2026/1744, was published on 24 July 2026 and entered into force on 27 July 2026. It moved the high-risk deadlines: 2 December 2027 for stand-alone high-risk systems, which include AI used in hiring such as CV sorting, and 2 August 2028 for AI built into regulated products. Transparency duties under Article 50 applied on schedule from 2 August 2026, and the AI literacy duty was softened to taking measures to "support" it.
 
-For free-tier and Plus subscribers, OpenAI explicitly reserves the right to use inputs for model improvement. Your prompts become training data. The confidential code you pasted to debug a problem may influence how the model responds to future users—potentially including your competitors.
+For a company that uses a chat assistant to draft emails, the AI Act adds little. If the same assistant starts ranking job applicants, you are deploying a high-risk system and the December 2027 date applies to you.
 
-API users and Enterprise subscribers can opt out of training data contribution, but their inputs still process on OpenAI infrastructure. Data still exists on servers you do not control, managed by employees you have not vetted, subject to legal processes you cannot influence.
+## What the business plans promise
 
-**The Third-Party Problem**
+Every major vendor now sells a business tier with different defaults from the consumer app. The table summarises what each vendor's own page says as of September 2026.
 
-Enterprise security architectures distinguish between first-party systems (infrastructure you own and operate), second-party systems (vendors with direct contractual relationships and audited security controls), and third-party systems (services accessed without detailed security integration).
+| Offering | Trains on your data by default? | Retention and control | Compliance notes |
+| --- | --- | --- | --- |
+| ChatGPT Free, Plus, Pro | May, unless the user opts out | Per user account | No company contract |
+| ChatGPT Business, Enterprise, Edu | No | Workspace admins set retention | SOC 2 Type 2 for Enterprise and Business |
+| OpenAI API | No | Deleted after 30 days; zero data retention for eligible uses | BAA available |
+| Claude Team, Enterprise, API | No | Feedback may be kept up to 5 years; owners can turn feedback off | Commercial terms |
+| Microsoft 365 Copilot and Copilot Chat | No, not used to train foundation models | Your retention policies, labels and audit apply | DPA, EU Data Boundary (Anthropic models excluded) |
+| Gemini in Google Workspace | Not used for training outside your domain without permission | Existing Workspace controls apply | HIPAA support, FedRAMP High |
 
-ChatGPT, for most users, operates as an unaudited third party. Unless your organization has negotiated a specific enterprise agreement with security addenda, penetration testing rights, and compliance certifications mapped to your requirements, ChatGPT sits outside your security perimeter with access to whatever data employees choose to share.
+The model endpoints inside the big clouds go further. Microsoft says prompts and completions for models sold by Azure in Microsoft Foundry are "NOT available to OpenAI or other providers" and are processed within the geography you pick, unless you choose a Global or DataZone deployment. On Amazon Bedrock, models run in deployment accounts that the model providers cannot access, so they never see your prompts or completions.
 
-This architectural reality explains why security teams treat ChatGPT differently than they treat Microsoft Office or Salesforce. Those systems, despite being cloud-based, operate under enterprise agreements with defined security controls, audit rights, and liability terms. ChatGPT, for a user with a $20/month subscription, offers none of those protections.
+What a business plan does not change: the text still sits on the vendor's servers for as long as the retention terms allow, and a court order can still reach it. That is the same trust you already place in your email and document providers. For most internal work it is a reasonable trade. For trade secrets, regulated data without a BAA, or material a client contract forbids sending to subprocessors, it may not be.
 
-![Diagram showing data flow from corporate network to cloud AI servers with security boundary markers](../_images/cloud-ai-data-flow-diagram.png)
+## Where your prompt goes in each option
 
-## Regulatory Frameworks Driving Enterprise Caution
+The honest way to compare options is to follow one prompt and ask who can read it.
 
-Corporate AI policies do not exist in a vacuum. They respond to legal requirements that predate ChatGPT and will outlast it.
-
-**GDPR and European Data Protection**
-
-The General Data Protection Regulation imposes strict requirements on processing personal data of EU residents. When an employee pastes customer information into ChatGPT, they initiate a data transfer to a US-based processor. This transfer requires legal basis—either adequacy decisions, standard contractual clauses, or binding corporate rules.
-
-OpenAI's data processing agreements may satisfy GDPR requirements for some use cases, but most employees using the consumer product have no such agreement in place. They are simply transmitting personal data to a foreign corporation without authorization.
-
-Italian regulators temporarily banned ChatGPT in 2023 specifically over GDPR concerns. While the service resumed after OpenAI made compliance adjustments, the incident demonstrated regulatory willingness to act. European enterprises face direct liability for employee actions that violate GDPR, creating strong incentives for restrictive policies.
-
-**HIPAA and Healthcare Data**
-
-The Health Insurance Portability and Accountability Act prohibits disclosure of protected health information (PHI) except under specific authorized circumstances. A healthcare worker discussing patient cases with ChatGPT discloses PHI to an unauthorized recipient.
-
-No business associate agreement exists between typical healthcare organizations and OpenAI. No security audit has verified ChatGPT's compliance with HIPAA technical safeguards. No legal framework authorizes the disclosure.
-
-Healthcare organizations that discover employees have shared PHI via ChatGPT face breach notification requirements, potential OCR investigation, and penalties reaching $1.5 million per violation category per year. These consequences explain why hospital systems block ChatGPT at the network level rather than relying on policy compliance.
-
-**Financial Regulations**
-
-Banks, broker-dealers, and investment advisers operate under SEC, FINRA, OCC, and Federal Reserve regulations that mandate recordkeeping and supervision of business communications. When an analyst uses ChatGPT to draft client correspondence, that conversation should be captured in compliance archives.
-
-ChatGPT provides no integration with enterprise archiving systems. No supervision tools flag potentially problematic usage. The conversation exists only on OpenAI's servers and the employee's device—neither of which satisfy regulatory recordkeeping requirements.
-
-Beyond recordkeeping, financial regulators express concern about AI-generated investment advice, AI involvement in credit decisions, and AI analysis that could constitute market manipulation. The regulatory landscape remains unsettled, and compliance officers respond to uncertainty by restricting usage rather than permitting it pending clarity.
-
-**Emerging AI-Specific Regulation**
-
-The European AI Act, expected to take effect progressively through 2025 and 2026, will impose additional requirements on AI system deployment. High-risk AI applications—including those affecting employment, credit, and education—require conformity assessments, documentation, and human oversight.
-
-Organizations using ChatGPT in these contexts may find themselves operating non-compliant AI systems once regulations take effect. Proactive enterprises are restricting usage now rather than facing compliance remediation later.
-
-## Intellectual Property: The Risk No Contract Resolves
-
-Regulatory compliance represents one category of concern. Intellectual property protection represents another—and for many enterprises, the more consequential one.
-
-**Trade Secrets and Confidentiality**
-
-Trade secret protection under the Defend Trade Secrets Act and state equivalents requires that information remain confidential through reasonable protective measures. When an employee pastes proprietary algorithms, manufacturing processes, or strategic plans into ChatGPT, the organization's protective measures have failed.
-
-Courts evaluating trade secret claims examine whether the claiming party took reasonable steps to maintain secrecy. Permitting employees to share confidential information with third-party AI services undermines this requirement. Even if the information never leaks from OpenAI's systems, the act of disclosure itself may compromise legal protection.
-
-This concern extends beyond hypothetical litigation. Companies regularly assert trade secret claims against departing employees and competitors. If discovery reveals that the "secret" information was previously shared with ChatGPT—accessible to millions of users through potential model training—the claim weakens substantially.
-
-**Source Code and Technical Assets**
-
-Software companies face particular exposure. Developers naturally want to use AI tools to debug code, generate boilerplate, and accelerate development. But source code represents the core asset of a software business. Once transmitted to ChatGPT, that code exists outside organizational control.
-
-The training data concern is not theoretical. Large language models learn from their inputs. While OpenAI states that Enterprise and API customers can opt out of training contribution, the consumer product carries no such guarantee. Code shared by one developer may influence completions shown to another—potentially at a competing company.
-
-Amazon's internal warning to employees specifically cited the risk that ChatGPT responses might resemble Amazon confidential information, suggesting that similar data had already been incorporated into the model. Whether this represented actual Amazon code in training data or simply similar patterns remains unclear. The ambiguity itself drove the restrictive policy.
-
-**Client and Customer Information**
-
-Professional services firms—consultants, accountants, lawyers, architects—work with client information that belongs to those clients, not to the service provider. Sharing client data with ChatGPT may violate engagement letters, confidentiality agreements, and professional ethics rules.
-
-A consultant who uploads a client's financial projections to ChatGPT for analysis has shared that client's confidential information with a third party. The consultant's firm may face breach of contract claims, professional discipline, and loss of client relationships if discovered.
-
-These concerns apply equally to any business handling customer data. A sales representative who pastes customer correspondence into ChatGPT to draft a response has transmitted customer communications to OpenAI. Depending on the industry and applicable agreements, this may violate customer data handling commitments.
-
-![Legal document with confidentiality stamp alongside a glowing AI interface representing intellectual property risks](../_images/intellectual-property-ai-risk.png)
-
-## The Inadequacy of Enterprise AI Agreements
-
-OpenAI offers ChatGPT Enterprise specifically to address corporate concerns. Microsoft provides Azure OpenAI Service with enterprise security features. These products improve upon consumer offerings but do not eliminate fundamental concerns for high-sensitivity use cases.
-
-**What Enterprise Agreements Provide**
-
-ChatGPT Enterprise includes several meaningful improvements:
-
-- Data is not used for model training
-- SOC 2 Type 2 compliance certification
-- Data encryption at rest and in transit
-- SSO integration and administrative controls
-- Data retention controls
-
-These features satisfy requirements for many corporate use cases. A marketing team drafting campaign copy faces minimal risk. A customer service department generating response templates operates within acceptable parameters.
-
-**What Enterprise Agreements Cannot Provide**
-
-For regulated industries and sensitive intellectual property, enterprise agreements fall short in fundamental ways.
-
-First, data still processes on infrastructure you do not control. Your information resides on OpenAI servers, managed by OpenAI employees, subject to OpenAI's security practices. You trust their implementation. You trust their personnel vetting. You trust their incident response. This trust may be warranted, but it is trust nonetheless—not verification.
-
-Second, data remains subject to legal process. A subpoena served on OpenAI could compel disclosure of your conversations. A government investigation into another customer could potentially expose shared infrastructure. National security letters and FISA court orders operate under secrecy requirements that would prevent OpenAI from notifying you of access.
-
-Third, the attack surface includes OpenAI's entire organization. Your security perimeter no longer ends at your network boundary. Every OpenAI employee with system access, every vendor with infrastructure access, every security vulnerability in OpenAI's systems becomes part of your risk profile.
-
-Fourth, exit and portability remain constrained. Your conversation history, fine-tuned behaviors, and organizational knowledge accumulated in ChatGPT belong to interactions with OpenAI's system. Migration to an alternative requires rebuilding from scratch.
-
-For a pharmaceutical company developing novel compounds, a defense contractor handling classified-adjacent research, or a financial institution with trading algorithms representing billions in potential value, these limitations matter. Enterprise agreements reduce risk. They do not eliminate it.
-
-## The Open-Weights Alternative
-
-The restrictions driving corporate ChatGPT bans do not apply to AI generally. They apply specifically to cloud AI services where data leaves organizational control. A different architecture eliminates these concerns entirely.
-
-**What Open-Weights Models Provide**
-
-Open-weights models—Llama from Meta, Mistral from Mistral AI, Qwen from Alibaba, and dozens of others—provide downloadable model files that run on any compatible hardware. The model weights are public. The inference code is open source. You can execute the entire system on infrastructure you own and operate.
-
-When you run Llama on your own server, your prompts never leave your network. No third party receives your data. No cloud service logs your queries. No training pipeline incorporates your inputs. The model runs locally, processes locally, and stores nothing beyond what you explicitly configure.
-
-This architecture satisfies every concern that drives ChatGPT bans:
-
-- **Regulatory compliance:** Data remains within your security perimeter, subject to your controls, governed by your policies. GDPR data transfers do not occur because data does not transfer. HIPAA concerns dissolve because no disclosure to unauthorized parties takes place.
-
-- **Intellectual property protection:** Trade secrets remain secret. Source code never leaves your systems. Client confidentiality is maintained because no third party receives client information.
-
-- **Security control:** Your attack surface remains your own. You verify your security practices. You vet your personnel. You control your incident response. No external organization's vulnerabilities affect your data.
-
-- **Audit and compliance:** Every query, every response, every model interaction can be logged according to your requirements. Regulatory recordkeeping integrates with your existing archive systems.
-
-**Capability Comparison**
-
-The natural question is whether open-weights models match ChatGPT's capabilities. The honest answer: it depends on the use case.
-
-For general knowledge queries, ChatGPT's training on internet-scale data provides breadth that smaller open models cannot match. GPT-4's reasoning capabilities on complex problems exceed what Llama-3-8B achieves.
-
-But enterprise use cases rarely require internet-scale knowledge. A legal team analyzing contracts needs document understanding and precise language generation—capabilities where fine-tuned open models excel. A development team debugging code needs pattern recognition within specific codebases—a task where custom training dramatically outperforms generic models.
-
-The critical insight is that fine-tuning transforms generic models into domain specialists. A Llama-3-8B model fine-tuned on your organization's documents, coding standards, and communication patterns will outperform GPT-4 for your specific tasks while maintaining complete data isolation.
-
-Our pillar guide on [private LLM fine-tuning on rented GPUs](/en/private-llm-fine-tuning-guide/) provides the complete technical workflow for this process.
-
-## Infrastructure Options for Private AI Deployment
-
-Running open-weights models requires GPU compute. Organizations have several options for acquiring this capability.
-
-**On-Premises Hardware**
-
-Purchasing NVIDIA GPUs for internal data centers provides maximum control. The hardware sits in your facility, managed by your staff, connected to your network. No external party has any access.
-
-The challenge is capital expenditure and lead time. An NVIDIA H100 GPU costs approximately $30,000. A meaningful cluster for training requires multiple units. Procurement timelines stretch to months. Ongoing maintenance requires specialized expertise.
-
-For large enterprises with existing data center operations, on-premises AI infrastructure represents a natural extension. For smaller organizations or those without GPU expertise, the barriers are substantial.
-
-**Private Cloud Instances**
-
-AWS, GCP, and Azure offer GPU instances that provide more control than SaaS AI products. You configure the environment. You control access. Your data processes on dedicated instances rather than shared services.
-
-This approach improves upon ChatGPT's architecture but retains cloud provider involvement. Your data still resides on infrastructure you do not physically control. Cloud provider employees with sufficient access could theoretically access your systems. Legal process served on the cloud provider could reach your data.
-
-Additionally, private cloud GPU instances carry significant costs. AWS p4d.24xlarge instances (8x A100 GPUs) run approximately $32 per hour. Extended training runs or continuous inference services generate substantial monthly expenses. New accounts also start with a GPU quota of zero and have to request access.
-
-**Rented GPUs from Marketplaces**
-
-A third option avoids capital expenditure: renting consumer GPUs by the hour from marketplaces such as Vast.ai, RunPod or GPUFlow, where much of the hardware belongs to individuals.
-
-What this offers:
-
-- **Low cost:** RTX 4090 rentals cost roughly $0.30 to $0.46 per hour in September 2026, a fraction of data-center GPU instances. Our [GPU rental pricing comparison](/en/gpu-rental-pricing-comparison-2026/) details the economics.
-
-- **Fast start:** No enterprise sales process and no quota request. You add prepaid credit and rent.
-
-- **Open-weights models on demand:** You choose the model, and nothing is shared with a model vendor.
-
-What it doesn't offer: the hardware belongs to someone else, and there are no compliance certifications. It is not a place for regulated or confidential data. It fits well for training on public or de-identified data, and for testing models before you buy hardware.
-
-The workflow involves transferring your data directly to the rented machine via encrypted SSH connection, running your training or inference job, downloading results, and sanitizing the remote environment before disconnecting. Our guide on [securing your dataset on a public GPU node](/en/how-to-secure-dataset-on-public-gpu-node/) covers the operational security practices in detail. On API-based rentals such as GPUFlow, prompts pass through the provider's machine, so the same rule applies: no sensitive data.
-
-
-## Implementing a Compliant AI Strategy
-
-Organizations moving from ChatGPT bans to private AI deployment should approach the transition systematically.
-
-**Phase 1: Policy Development**
-
-Begin by articulating what your AI policy actually prohibits and permits. Many initial ChatGPT bans were reactive—blanket prohibitions implemented quickly to stop immediate risk. A mature policy distinguishes between:
-
-- Data categories that may never be processed by external AI systems
-- Use cases where cloud AI services are acceptable with appropriate controls
-- Approved tools and platforms for different sensitivity levels
-- Approval processes for new AI tool adoption
-- Incident reporting requirements for policy violations
-
-This framework allows AI usage to continue where appropriate while protecting sensitive operations.
-
-**Phase 2: Infrastructure Evaluation**
-
-Assess your options for private AI deployment based on organizational resources and requirements:
-
-- **Existing GPU resources:** Many organizations have workstations or servers with NVIDIA GPUs used for other purposes (visualization, rendering, scientific computing) that could support AI workloads.
-
-- **Cloud budget and risk tolerance:** If your security team accepts cloud provider involvement with appropriate controls, private cloud GPU instances offer simpler operations than on-premises hardware or rented GPUs.
-
-- **Privacy requirements:** If your use case involves data that cannot touch cloud provider infrastructure under any circumstances, on-premises hardware becomes necessary.
-
-- **Scale and frequency:** Occasional fine-tuning jobs suit rental models. Continuous inference serving may justify capital investment.
-
-**Phase 3: Model Selection and Customization**
-
-Generic open-weights models provide a starting point, but organizational value comes from customization. Fine-tuning on your data creates models that understand your domain, your terminology, and your requirements.
-
-Consider which use cases offer highest value:
-
-- **Document analysis:** Legal contracts, regulatory filings, internal policies
-- **Code assistance:** Development within your specific frameworks and standards
-- **Customer communication:** Responses reflecting your brand voice and product knowledge
-- **Internal knowledge:** Querying organizational documentation and institutional knowledge
-
-Each use case may warrant a separate fine-tuned model, or a single model trained on diverse organizational data may serve multiple purposes.
-
-**Phase 4: Operational Integration**
-
-Private AI deployment requires operational capabilities that SaaS products abstract away:
-
-- **Model serving infrastructure:** Running inference at scale requires GPU resources, load balancing, and API interfaces. Tools like vLLM, Text Generation Inference, and Ollama simplify deployment.
-
-- **Access controls:** Who can query the model? What logging occurs? How do you audit usage?
-
-- **Update procedures:** How do you incorporate new training data? How do you deploy improved model versions?
-
-- **Incident response:** What happens if a model generates problematic output? Who reviews edge cases?
-
-Organizations accustomed to SaaS simplicity may underestimate this operational overhead. Budget appropriately for ongoing maintenance, not just initial deployment.
-
-## Case Study: Financial Services Compliance Architecture
-
-A regional bank with $50 billion in assets faced a familiar dilemma. Relationship managers wanted AI assistance drafting client communications and analyzing portfolio positions. Compliance officers recognized that transmitting client financial data to ChatGPT violated both regulatory requirements and fiduciary duties.
-
-The solution architecture illustrates how organizations can satisfy both constituencies.
-
-**Data Classification**
-
-The bank established three tiers of AI-permissible data:
-
-- **Tier 1 (Public):** Marketing materials, public financial education content, general product descriptions. Cloud AI services permitted with standard acceptable use guidelines.
-
-- **Tier 2 (Internal):** Internal policies, training materials, operational procedures. Cloud AI services permitted with enterprise agreements and data handling addenda.
-
-- **Tier 3 (Restricted):** Client data, portfolio information, transaction details, strategic planning. No external AI processing under any circumstances.
-
-This classification allowed AI adoption where risk was acceptable while maintaining absolute protection for sensitive categories.
-
-**Private Infrastructure Deployment**
-
-For Tier 3 use cases, the bank deployed a fine-tuned Llama model on on-premises GPU servers within their existing data center. The model was trained on:
-
-- Anonymized historical client communications (with client consent)
-- Internal compliance guidelines and regulatory interpretations
-- Product documentation and investment research
-- Communication templates approved by compliance
-
-The resulting model understood banking terminology, regulatory constraints, and organizational communication standards. Relationship managers could draft client letters with AI assistance, knowing that no client data left the bank's security perimeter.
-
-**Operational Controls**
-
-Every model interaction logged to the bank's existing compliance archive system. Supervisors could review AI-assisted communications alongside traditional correspondence. Audit trails satisfied regulatory recordkeeping requirements.
-
-The model itself operated within guardrails preventing certain outputs—investment recommendations, guarantee language, or statements that could constitute advice requiring specific licensing. These constraints were implemented at the application layer, not relying on model behavior alone.
-
-**Measured Outcomes**
-
-Six months after deployment, the bank reported:
-
-- 40% reduction in time spent drafting routine client communications
-- Zero compliance incidents related to AI usage
-- Successful regulatory examination with no findings related to AI deployment
-- Relationship manager satisfaction scores increased
-
-The investment in private infrastructure—approximately $200,000 including hardware, development, and integration—generated returns within the first year through productivity gains alone.
-
-## Case Study: Healthcare Research Institution
-
-A major academic medical center conducting clinical research faced HIPAA constraints that made any cloud AI usage with patient data legally problematic. Researchers wanted to use AI for literature review, protocol development, and data analysis.
-
-**The Hybrid Approach**
-
-Rather than choosing between complete prohibition and unacceptable risk, the institution implemented a hybrid architecture:
-
-- **Public research tasks** (literature review, methodology questions, statistical approaches) used cloud AI services with clear policies prohibiting any patient data input.
-
-- **Patient data analysis** used locally deployed models on air-gapped workstations within the secure research environment. These machines had no internet connectivity. Data could not leave regardless of user behavior.
-
-**Training on Rented GPUs**
-
-The institution lacked capital budget for training-capable GPU hardware but needed models fine-tuned on medical literature and research protocols. They used rented GPUs for training runs using only public medical literature and de-identified datasets with no HIPAA implications.
-
-The training workflow followed the security practices outlined in our [dataset security guide](/en/how-to-secure-dataset-on-public-gpu-node/):
-
-1. Transfer only non-sensitive training data to rental nodes
-2. Execute fine-tuning jobs
-3. Download resulting model weights
-4. Sanitize remote environments completely
-5. Deploy trained models to air-gapped internal infrastructure
-
-This approach provided customized medical AI capabilities without exposing any protected health information to external systems.
-
-**Regulatory Validation**
-
-The institution's IRB reviewed the AI deployment as part of research protocol amendments. The clear separation between public data training (external) and patient data inference (internal, air-gapped) satisfied privacy requirements. HIPAA compliance officers approved the architecture after security assessment.
-
-![Medical research environment with secure workstations showing isolated AI deployment architecture](../_images/healthcare-ai-secure-deployment.png)
-
-## The Strategic Imperative
-
-Organizations that view AI policy solely through a risk mitigation lens miss the larger picture. The enterprises banning ChatGPT today are not abandoning AI. They are repositioning for sustainable advantage.
-
-**Competitive Differentiation Through Data**
-
-The most valuable AI capabilities emerge from proprietary data. A generic language model trained on internet text provides generic capabilities available to everyone. A model fine-tuned on your customer interactions, your operational data, and your institutional knowledge provides capabilities unique to your organization.
-
-This differentiation requires keeping proprietary data proprietary. Organizations that feed their competitive advantages into cloud AI services contribute to models that benefit all users—including competitors. Organizations that maintain data control while deploying private AI accumulate advantages that compound over time.
-
-**Regulatory Trajectory**
-
-AI regulation is tightening, not loosening. The EU AI Act establishes precedent that other jurisdictions will follow. US agencies including the FTC, SEC, and banking regulators are developing AI-specific guidance. China has implemented AI regulations affecting model training and deployment.
-
-Organizations building private AI infrastructure now are preparing for regulatory environments that will increasingly constrain cloud AI usage. The investment in compliant architecture becomes more valuable as compliance requirements intensify.
-
-**Supply Chain Considerations**
-
-Dependence on a single AI provider creates strategic vulnerability. OpenAI's pricing, policies, and capabilities change at their discretion. Service disruptions affect all customers simultaneously. Policy changes can prohibit previously acceptable use cases overnight.
-
-Private AI deployment eliminates single-vendor dependency. Open-weights models are downloadable and permanently available. Multiple hardware options exist for deployment. The organization controls its AI supply chain rather than depending on external decisions.
-
-## Implementation Roadmap
-
-For organizations ready to move beyond ChatGPT bans toward private AI capability, we recommend a phased approach.
-
-**Immediate Actions (Week 1-2)**
-
-1. Audit current AI usage across the organization
-2. Classify data types by sensitivity and regulatory requirements
-3. Document which use cases require private infrastructure versus acceptable cloud usage
-4. Establish interim policy clarifying prohibited and permitted activities
-
-**Short-Term Development (Month 1-3)**
-
-1. Evaluate infrastructure options based on sensitivity requirements and budget
-2. Select initial use cases for private AI deployment
-3. Identify training data sources for model customization
-4. Establish security protocols for external GPU usage if applicable
-
-**Medium-Term Deployment (Month 3-6)**
-
-1. Fine-tune models on organizational data following [our technical guide](/en/private-llm-fine-tuning-guide/)
-2. Deploy inference infrastructure with appropriate access controls
-3. Integrate with existing compliance and audit systems
-4. Train users on approved workflows and tools
-
-**Ongoing Operations**
-
-1. Regular model updates incorporating new training data
-2. Security assessments of AI infrastructure
-3. Policy updates reflecting regulatory changes
-4. Capability expansion to additional use cases
-
-## Conclusion
-
-The corporate bans on ChatGPT reflect rational risk management, not technophobia. When Samsung prohibited the tool after discovering proprietary semiconductor designs had been uploaded, they made the correct decision. When JPMorgan restricted access proactively, they demonstrated appropriate regulatory awareness. When healthcare systems block access at the firewall, they protect patient privacy as required by law.
-
-But prohibition is not strategy. Organizations that stop at "no" forfeit productivity advantages their competitors will capture. The enterprises that thrive will be those that recognize a third path exists.
-
-Open-weights models running on private infrastructure provide AI capability without data exposure. The models are available now. The infrastructure is accessible. The technical workflows are documented. The only barrier is organizational will to implement.
-
-Your competitors who are fine-tuning models on their proprietary data—training systems that understand their customers, their products, and their operations—are building advantages you cannot replicate by subscribing to a generic service. While you debate policy, they are deploying capability.
-
-The infrastructure decisions you make today determine whether AI becomes your competitive advantage or your competitors' advantage over you. Cloud AI services turn your data into shared resources. Private AI deployment turns your data into unique capability.
-
-The choice is not whether to use AI. The choice is whether to control it.
-
----
-
-## Related Resources
-
-This article addresses the strategic and regulatory context for enterprise AI decisions. The following resources provide technical implementation guidance:
-
-**Core Implementation Guide**
-
-- [The Ultimate Guide to Private LLM Fine-Tuning on Rented GPUs](/en/private-llm-fine-tuning-guide/) — Complete technical workflow for training custom models
-
-**Security and Operations**
-
-- [How to Secure Your Dataset on a Public GPU Node](/en/how-to-secure-dataset-on-public-gpu-node/) — Operational security practices for rented compute
-- [What You Need to Rent a GPU in 2026](/en/what-you-need-to-rent-a-gpu/) — Sign-up, verification and payment on each platform
-
-**Platform and Economics**
-
-- [GPU Rental Pricing Comparison 2026](/en/gpu-rental-pricing-comparison-2026/) — Cost analysis across deployment options
-- [Hourly GPU or Per-Token API?](/en/hourly-gpu-vs-per-token-api/) — What running an open model really costs
-- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/en/gpuflow-vs-vast-ai-vs-runpod/) — Machines, containers and API keys compared
-
-**Technical Comparisons**
-
-- [Ollama vs vLLM vs TGI: Benchmarking Inference Speeds on Consumer GPUs](/en/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/) — Inference server selection for deployment
-- [RunPod vs Vast.ai Comparison](/en/runpod-vs-vastapi-comparison/) — Marketplace evaluation for GPU rentals
+<figure>
+<svg viewBox="0 0 720 470" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">Where an employee's prompt goes in five different AI setups, and what protects it in each</title>
+<rect x="0" y="0" width="720" height="470" fill="#ffffff"/>
+<text x="325" y="30" text-anchor="middle" fill="#64748b">Where the text goes</text>
+<text x="475" y="30" fill="#64748b">What protects it</text>
+<rect x="20" y="200" width="140" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="90" y="231" text-anchor="middle" fill="#1e1b4b">Employee</text>
+<text x="90" y="252" text-anchor="middle" fill="#1e1b4b">prompt</text>
+<line x1="160" y1="235" x2="200" y2="80" stroke="#6366f1" stroke-width="2"/>
+<line x1="160" y1="235" x2="200" y2="160" stroke="#6366f1" stroke-width="2"/>
+<line x1="160" y1="235" x2="200" y2="240" stroke="#6366f1" stroke-width="2"/>
+<line x1="160" y1="235" x2="200" y2="320" stroke="#6366f1" stroke-width="2"/>
+<line x1="160" y1="235" x2="200" y2="400" stroke="#6366f1" stroke-width="2"/>
+<rect x="200" y="50" width="250" height="60" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="325" y="76" text-anchor="middle" fill="#1e1b4b">Consumer chat app</text>
+<text x="325" y="97" text-anchor="middle" fill="#64748b" font-size="13">personal Free, Plus or Pro account</text>
+<text x="475" y="76" fill="#1e1b4b" font-size="14">Training allowed by default</text>
+<text x="475" y="97" fill="#1e1b4b" font-size="14">No contract with your company</text>
+<rect x="200" y="130" width="250" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="325" y="156" text-anchor="middle" fill="#1e1b4b">Vendor business plan</text>
+<text x="325" y="177" text-anchor="middle" fill="#64748b" font-size="13">vendor's servers, company account</text>
+<text x="475" y="156" fill="#1e1b4b" font-size="14">No training by default</text>
+<text x="475" y="177" fill="#1e1b4b" font-size="14">DPA, retention controls</text>
+<rect x="200" y="210" width="250" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="325" y="236" text-anchor="middle" fill="#1e1b4b">Model endpoint in your cloud</text>
+<text x="325" y="257" text-anchor="middle" fill="#64748b" font-size="13">Azure Foundry, Amazon Bedrock</text>
+<text x="475" y="236" fill="#1e1b4b" font-size="14">Your tenant and region</text>
+<text x="475" y="257" fill="#1e1b4b" font-size="14">Model maker never sees it</text>
+<rect x="200" y="290" width="250" height="60" rx="10" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+<text x="325" y="316" text-anchor="middle" fill="#1e1b4b">Your own servers</text>
+<text x="325" y="337" text-anchor="middle" fill="#64748b" font-size="13">open-weights model, your network</text>
+<text x="475" y="316" fill="#1e1b4b" font-size="14">Nothing leaves your network</text>
+<text x="475" y="337" fill="#1e1b4b" font-size="14">You run and patch everything</text>
+<rect x="200" y="370" width="250" height="60" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="325" y="396" text-anchor="middle" fill="#1e1b4b">Marketplace GPU (GPUFlow)</text>
+<text x="325" y="417" text-anchor="middle" fill="#64748b" font-size="13">a provider's own computer</text>
+<text x="475" y="396" fill="#1e1b4b" font-size="14">Plaintext on that machine</text>
+<text x="475" y="417" fill="#1e1b4b" font-size="14">Terms forbid recording it</text>
+<text x="360" y="458" text-anchor="middle" fill="#64748b" font-size="13">Orange: fine for public data only. Green: fine for anything your own IT may hold.</text>
+</svg>
+<figcaption>The same prompt, five destinations. Only the self-hosted option keeps it inside your network; the business plan and cloud endpoint options keep it under a contract your company signed.</figcaption>
+</figure>
+
+## Running open-weights models yourself
+
+The strongest option for confidential data is also the most work: download an open-weights model (Llama, Qwen, Mistral, Gemma and others) and run it on machines inside your own network. Prompts never leave. You choose what gets logged and for how long, which makes recordkeeping and GDPR retention rules easier to meet, and nobody else's retention clause or court order touches the data.
+
+The costs are real, though. You now operate an inference service: GPUs, an engine such as Ollama or vLLM, authentication, logging, updates and someone on call. And an 8B or 14B model that fits on a single workstation card is weaker than a frontier model at long reasoning. It is usually good enough for classifying, extracting fields, summarising internal documents and drafting routine text. Test it on your own tasks before you decide. Our [Ollama vs vLLM vs TGI benchmark](/en/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/) covers engine choice, and the [private LLM fine-tuning guide](/en/private-llm-fine-tuning-guide/) covers adapting a model to your documents.
+
+There is a middle path that many firms take: run the open model on GPU instances inside the cloud account you already have. The cloud provider is then a processor under a DPA you have already negotiated for everything else, and no model vendor is involved at all.
+
+## Where rented GPUs and GPUFlow fit
+
+GPU marketplaces are the cheap end of the market, and they belong in this comparison only with a clear label.
+
+GPUFlow is one of them. You rent a GPU for a number of hours and get an OpenAI-compatible API key for the open model the provider runs on it, usually through Ollama. The model runs on the provider's own computer. That means your prompts and the answers pass through that machine in plaintext while the rental runs. GPUFlow's terms forbid providers from recording, reading, keeping or sharing renters' requests or answers, and GPUFlow itself does not store the text. But the provider has root on the machine, and the rule against recording is enforced by contract; nothing technical stops it.
+
+So GPUFlow is **not** the answer for regulated or confidential data. Don't send it customer records, health data, source code you care about, or anything a client contract restricts. Our own docs say it more bluntly: don't send passwords, card numbers or other secrets you wouldn't share with a stranger.
+
+Where it does fit: trying an open model on real hardware before you buy a card, running prompts over public or synthetic data, and building and testing an app against an OpenAI-compatible API before you point it at your own server. Community-cloud machines on other marketplaces raise the same question for anything you upload; [How to secure your dataset on a public GPU node](/en/how-to-secure-dataset-on-public-gpu-node/) covers that side.
+
+## A policy people will actually follow
+
+A flat ban with no alternative mostly moves usage to personal phones, where you can see even less. What works better is short enough to remember:
+
+| Data class | Examples | Allowed tools |
+| --- | --- | --- |
+| Public | Published docs, marketing copy | Any approved tool, including consumer apps |
+| Internal | Policies, internal wikis, non-sensitive code | Business plans with a DPA and training off |
+| Confidential | Client data, trade secrets, deal terms | Cloud endpoint in your tenant, or self-hosted |
+| Regulated | Health data, card data, personal data at scale | Self-hosted, or a vendor with the specific agreement (BAA, DPA) |
+
+Then do the unglamorous parts:
+
+1. Buy one business plan or cloud endpoint and make it the default, with single sign-on so accounts close when people leave.
+2. Set retention to the shortest period that meets your recordkeeping duties, and confirm training is off in the admin console.
+3. Block consumer AI chat sites on managed devices only once the approved tool is live.
+4. Keep an inventory of AI uses. Anything touching hiring, credit or similar decisions needs a separate review before December 2027.
+5. Tell people what to do instead of only what not to do. The Samsung memo arrived after the data had left.
+
+For the running cost side of self-hosting versus per-token services, see [Hourly GPU or per-token API?](/en/hourly-gpu-vs-per-token-api/).
+
+## Sources
+
+- Samsung restriction and survey: [CNBC, 2 May 2023](https://www.cnbc.com/2023/05/02/samsung-bans-use-of-ai-like-chatgpt-for-staff-after-misuse-of-chatbot.html); incident details: [The Register, 2 May 2023](https://www.theregister.com/2023/05/02/samsung_generative_ai_ban/)
+- Apple and other companies: [TechCrunch, 19 May 2023](https://techcrunch.com/2023/05/19/apple-reportedly-limits-internal-use-of-ai-powered-tools-like-chatgpt-and-github-copilot/)
+- JPMorgan LLM Suite: [JPMorganChase technology blog, 3 June 2025](https://www.jpmorganchase.com/about/technology/blog/llmsuite-ab-award)
+- OpenAI business terms: [Enterprise privacy](https://openai.com/enterprise-privacy/); consumer training settings: [How your data is used to improve model performance](https://help.openai.com/en/articles/5722486-how-your-data-is-used-to-improve-model-performance)
+- NYT preservation order: [OpenAI, response to NYT data demands](https://openai.com/index/response-to-nyt-data-demands/)
+- Anthropic: [commercial data and training](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training), [consumer data and training](https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training)
+- Microsoft: [Enterprise data protection in Microsoft 365 Copilot and Copilot Chat](https://learn.microsoft.com/en-us/copilot/microsoft-365/enterprise-data-protection), [Data, privacy and security for Foundry Models sold by Azure](https://learn.microsoft.com/en-us/azure/ai-foundry/responsible-ai/openai/data-privacy)
+- Google: [Generative AI in Google Workspace Privacy Hub](https://knowledge.workspace.google.com/admin/generative-ai/generative-ai-in-google-workspace-privacy-hub)
+- AWS: [Data protection in Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html)
+- GDPR Article 28: [gdpr-info.eu](https://gdpr-info.eu/art-28-gdpr/)
+- Data Privacy Framework ruling: [Jones Day, September 2025](https://www.jonesday.com/en/insights/2025/09/eu-general-court-upholds-euus-data-privacy-framework); appeal: [Digital Policy Alert](https://digitalpolicyalert.org/event/35459-latombe-filed-appeal-against-general-court-dismissal-of-challenge-to-european-unionunited-states-data-protection-framework-adequacy-decision-in-latombe-v-commission)
+- Garante fine: [The Hacker News, December 2024](https://thehackernews.com/2024/12/italy-fines-openai-15-million-for.html)
+- HIPAA and cloud providers: [HHS, Guidance on HIPAA and cloud computing](https://www.hhs.gov/hipaa/for-professionals/special-topics/health-information-technology/cloud-computing/index.html)
+- FINRA: [Regulatory Notice 24-09](https://www.finra.org/rules-guidance/notices/24-09)
+- EU AI Act: [European Commission, AI Act](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai); Omnibus: [White & Case, EU AI Omnibus enters into force](https://www.whitecase.com/insight-alert/eu-ai-omnibus-enters-force-amending-ai-act)
+- GPUFlow: [API quickstart](https://docs.gpuflow.app/renters/api-quickstart/), [What renters can and can't reach](https://docs.gpuflow.app/providers/security/), [Terms](https://gpuflow.app/en/terms), [Privacy policy](https://gpuflow.app/en/privacy)
+
+All checked in September 2026.

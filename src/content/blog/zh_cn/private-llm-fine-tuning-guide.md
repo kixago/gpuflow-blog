@@ -1,627 +1,346 @@
 ---
-title: "在租用 GPU 上私有化微调大模型：完整指南"
-description: "手把手教你在租用的 GPU 上用自己的数据集微调开源权重大语言模型。数据不外流，算力成本更低，也不会被单一厂商绑定。"
-excerpt: "学习如何在租用的 GPU 上微调开源权重大模型，同时把数据牢牢握在自己手里。分步讲解加密传输数据、QLoRA 训练和训练后的环境清理。"
+title: "在租用的 GPU 上私密微调 LLM：实用指南"
+description: "什么时候微调比 RAG 或改提示词更合适，各尺寸模型的 QLoRA 显存需求，TRL、Unsloth 和 Axolotl，在租用 GPU 上保护数据隐私，以及成本和部署。"
+excerpt: "一个 8B 开源模型的 QLoRA 微调，一块租来的 24 GB GPU 就能跑，每次约 $0.35 到 $0.83。花钱之前，先确认微调是不是对的办法，再想清楚数据放在别人的机器上时怎样保证不外泄。"
 pubDate: 2025-02-23
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "zh_cn"
 category: "tutorials"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/secure-server-room-abstract.png"
-heroImageAlt: "蓝色灯光下处理 AI 数据的安全服务器机房抽象图"
+heroImage: "../_images/private-llm-fine-tuning-guide-hero.png"
+heroImageAlt: "插图：用一份私有数据集在租用的 GPU 服务器上微调语言模型"
 faq:
-  - question: "单张 RTX 4090 能微调大语言模型吗？"
-    answer: "能。借助 QLoRA（量化低秩适配），8B 参数以内的模型可以轻松放进 24GB 显存。本教程会具体说明如何针对消费级硬件配置训练脚本，包括批大小、序列长度和 LoRA 秩等参数。"
-  - question: "我的数据集放在租来的 GPU 上安全吗？"
-    answer: "数据集安不安全，取决于你的操作习惯。本指南介绍了如何通过 SCP 加密传输、如何绕开 S3 或 Google Drive 这类云存储中转，以及训练结束后如何清理远程机器。别忘了，这台机器属于别人，结束租用前一定要把所有东西删干净。"
-  - question: "在租用 GPU 上微调一个 8B 模型要花多少钱？"
-    answer: "用租来的 RTX 4090 微调一个 8B 参数模型，一次典型的训练花费在 3 到 8 美元之间，具体取决于数据集大小和训练轮数。"
-  - question: "租 GPU 算力做训练需要实名认证吗？"
-    answer: "通常不需要。Vast.ai、RunPod 这类平台只要求邮箱地址和预充值，不需要身份证件。RunPod 只有在你第一次用加密货币付款前才要求 KYC。在 AWS 上，新账户的 GPU 配额默认是零，需要单独申请。"
-  - question: "训练脚本需要什么格式的数据集？"
-    answer: "脚本需要一个 JSONL 文件，每行是一个包含 text 字段的 JSON 对象。text 字段应把指令、输入和回答拼成一个字符串，中间用换行符分隔。本指南第 4 步给出了格式正确的示例。"
-  - question: "这个教程适用于 Llama 以外的模型吗？"
-    answer: "适用。这套流程适用于任何开源权重模型，包括 Mistral、Qwen、Falcon 等。示例代码用的是 Llama-3.1-8B，要微调其他基础模型，只需更换模型标识符。"
-  - question: "微调一个 8B 参数模型需要多长时间？"
-    answer: "训练时长取决于数据集大小。在 RTX 4090 上，1,000 条样本的典型训练需要 30 到 60 分钟。数据集更大时，时间大致线性增长：10,000 条样本需要 5 到 10 小时的算力时间。"
-  - question: "训练完成后，远程机器该怎么处理？"
-    answer: "你必须清理环境：删除数据集、训练代码、Hugging Face 缓存和 bash 历史记录。本指南给出了具体的安全删除命令，还介绍了如何选用 shred 在结束租用合约前彻底销毁文件。"
+  - question: "微调 7B 或 8B 模型需要多少显存？"
+    answer: "用 QLoRA 时，Unsloth 的需求表列出 7B 模型约需 5 GB、8B 模型约需 6 GB；普通的 16 位 LoRA 分别约需 19 GB 和 22 GB。实际训练要为更长的序列和更大的批次留出余量，所以 RTX 3090 或 4090 这类 24 GB 显卡是宽裕的选择。"
+  - question: "该用微调还是 RAG？"
+    answer: "模型需要你文档里的事实，尤其是会变化的事实时，用 RAG。Ovadia 等人 2024 年的研究发现，在补充知识方面，RAG 一直优于无监督微调。当你需要稳定的格式、语气或窄任务行为，而提示词又做不到稳定时，再微调。"
+  - question: "在租用的 GPU 上微调 LLM 要花多少钱？"
+    answer: "用 2,000 条样本对 8B 模型做一次 QLoRA 训练，连同准备工作一个多小时：在每小时 $0.31 的 Vast.ai RTX 4090 上约 $0.35，按 RunPod 每小时 $0.74 的标价约 $0.83（2026 年 9 月）。20,000 条样本的训练约需四小时，即 $1.24 到 $2.97。"
+  - question: "GPU 主机能看到我的训练数据吗？"
+    answer: "硬件归主机所有，所以要假定对方能看到。容器隔离保护你不受其他租用者影响，但防不了机器的主人。敏感数据请使用经过审核的数据中心主机（Vast.ai Secure Cloud、RunPod Secure Cloud），上传前删掉个人数据，用完后删除实例。"
+  - question: "LoRA 和 QLoRA 有什么区别？"
+    answer: "LoRA 冻结基础模型，只训练小的适配器矩阵。QLoRA 做法相同，但把冻结的基础模型以 4 位 NF4 精度加载；在原始论文中，这让显存省到了能在一块 48 GB GPU 上微调 65B 模型的程度。"
+  - question: "能在 GPUFlow 上微调或上传自己的模型吗？"
+    answer: "不能。GPUFlow 只做推理：你租用的是 OpenAI 兼容聊天 API，背后是提供商在自己机器上安装的模型，通常用 Ollama 运行。没有 shell，也不能访问文件，所以既不能在上面训练，也不能上传自己的模型。"
 ---
 
-如果你在读这篇文章，手里多半有一份不能、也不愿上传给 OpenAI 的数据集。
-
-有这种顾虑的不止你一个。对很多企业和独立开发者来说，ChatGPT 再方便，也抵不过数据泄露这个无法接受的风险。无论你处理的是受 HIPAA 约束的医疗记录、凝聚多年工程投入的私有代码库，还是足以影响市场的敏感金融模型，使用云端 AI 往往意味着把最有价值的知识产权交给第三方。
-
-如果这个第三方还是一家曾拿客户数据训练后续模型的科技巨头，"信任"二字就很难说出口了。
-
-解决办法不是放弃 AI，而是掌握基础设施。
-
-在自己掌控的硬件上微调开源权重模型，早已不是学术圈的小众玩法。对重视隐私的组织来说，这是一项业务刚需。Llama、Mistral、Qwen 等数十个模型都允许商用，没有 API 费用，也不要求共享数据。难点一直在于算力。买一套 NVIDIA H100 集群需要数百万美元的资本支出。从 AWS 租则要身份验证、签企业协议，按小时计的价格也让长时间训练贵得难以承受。
-
-本指南介绍第三条路。你将学会如何在 GPU 市场上租一块 GPU 来微调开源权重语言模型，这些硬件往往属于世界各地的个人。内容涵盖环境搭建、在公共节点上操作的安全规范，以及完整的训练流程。
-
-代码示例以 Llama-3.1-8B 作为具体参照，但这套流程同样适用于任何兼容 Hugging Face 的模型。换一个模型标识符，就可以微调 Mistral-7B、Qwen2-7B，或任何适合你场景的开源权重模型。
-
-整个过程不需要签长期合约，花费也只是传统云厂商的零头。
-
-![终端窗口显示与远程 GPU 服务器的 SSH 连接](../_images/terminal-ssh-connection.png)
-
-## 私有化微调的成本账
-
-在看技术实现之前，先把钱的事算清楚。
-
-在 AWS 上训练模型意味着要用大实例，还要申请配额。p4d.24xlarge 实例（8 块 A100 GPU）每小时 32.77 美元，而且新 AWS 账户的 GPU 配额默认是零。
-
-在 GPU 市场上，你直接向硬件所有者租用算力。这带来几个显著变化：
-
-**成本更低：** 在各类市场上，RTX 4090 的租金大约每小时 0.30 到 0.46 美元（2026 年 9 月）。用 QLoRA 微调 8B 参数模型时，一张 24GB 显存的 4090 根据数据集大小需要 2 到 6 小时完成一次微调，算力总成本在 3 到 8 美元之间。
-
-**数据只在一台机器上：** 你通过 SSH 把数据集直接复制到租来的机器上，训练，下载结果，然后全部删除。没有存储桶，也没有第三份副本。
-
-**没有门槛：** 你不需要云厂商企业销售团队的审批，也不需要申请提高配额。充值预付额度，直接租硬件。
-
-作为对比：AWS 上的一张 A10G（g5.xlarge，24GB 显存里最便宜的选项）在 us-east-1 区域每小时约 1.01 美元。再算上配额申请、搭建时间以及配置环境期间闲置的算力，第一次训练的真实成本远高于在市场上花的那几美元。
-
-这些成本细节在我们的 [GPU 租用价格对比](/zh_cn/gpu-rental-pricing-comparison-2026/)和[租用 GPU 的真实成本](/zh_cn/hidden-fees-in-gpu-rental/)中有详细记录。
-
-## 准备工作
-
-本教程假定你熟悉 Linux 命令行。你不需要机器学习的研究生学位，但应该能熟练地浏览文件系统、编辑文本文件、看懂错误信息。
-
-**硬件要求：**
-
-- **GPU：** 至少 24GB 显存。RTX 3090、RTX 4090 和 A10G 都符合要求。70B 参数模型需要 48GB 或以上（A6000、双 A100 或 H100）。
-- **系统内存：** 32GB 或以上。加载模型时，权重会先暂存在系统内存中，再传到 GPU。
-- **存储：** 100GB 或以上的 NVMe SSD 空间。Llama-3 8B 的基础权重约占 16GB，数据集、检查点和输出的适配器还要额外占用空间。
-
-**关于模型选择：** 本教程以 Meta 的 Llama-3.1-8B 为示例，因为它代表了借助 QLoRA 量化能装进单张 24GB GPU 的最大一档模型。Llama 家族现在已有 Llama 4 Scout 和 Maverick，但它们采用混合专家（MoE）架构，总参数量分别为 109B 和 400B，需要多 GPU 配置，超出了单节点租用的范围。这里介绍的流程同样适用于 Mistral-7B、Qwen2-7B、Gemma-2-9B，以及任何显存需求在你所租硬件范围内、兼容 Hugging Face 的模型。
-
-**软件要求：**
-
-- Python 3.10 或更高版本
-- 会用 PyTorch 的基本操作
-- 一个 Hugging Face 账户（下载 Llama 这类需要接受许可协议的受限模型时必需）
-- 一个已充值预付额度的 GPU 市场账户，平台需出租可 SSH 登录的整台机器，例如 Vast.ai、RunPod 或 TensorDock
-
-不知道选哪家？请看[租用 GPU 需要准备什么](/zh_cn/what-you-need-to-rent-a-gpu/)和 [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/zh_cn/gpuflow-vs-vast-ai-vs-runpod/)。注意，GPUFlow 本身不适合本教程：它通过 API 出租 AI 模型的使用权，而不是一台可以登录的机器。
-
-## 第 1 步：获取安全的算力节点
-
-第一步是拿到硬件。在大型云平台上，这意味着注册账户、申请 GPU 配额、等待审批。在市场平台上，流程要直接得多。
-
-打开你选定的市场平台，充值一些额度。界面会列出可用的机器，以及它们的配置、小时价格和可靠性评分。
-
-按以下条件筛选机器：
-
-- **GPU：** RTX 4090（24GB 显存）或 RTX 6000 Ada（48GB 显存）
-- **内存：** 至少 32GB
-- **存储：** 可用空间 100GB 以上
-- **可靠性：** 在线率评分 95% 或以上
-
-选一台机器并开始租用。选择预装了 CUDA 和 PyTorch 的镜像，可以节省搭建时间，而搭建时间也是计费的。
-
-**公共节点的安全注意事项：**
-
-在任何远程网络上租用机器，你访问的都是陌生人拥有并实际掌控的硬件。虚拟化层能提供一定程度的隔离，但你仍需保持应有的谨慎：
-
-1. **不要在远程机器上存放私钥。** 用于其他系统的 SSH 密钥、云服务凭据和生产环境的 API 令牌，都不应出现在租用节点上。
-
-2. **把文件系统当作不可信环境。** 假设你写入磁盘的任何内容，在你断开连接后理论上都可能被主机方恢复。我们会在第 6 步介绍安全删除的步骤。
-
-3. **传输敏感数据时要加密。** 我们在第 3 步讲这一点。
-
-4. **不要重复使用密码。** 如果租用界面提供了默认凭据，请立即修改，或者生成一对新的 SSH 密钥。
-
-租用确认后，控制台会给出连接信息。你会拿到一条类似下面的 SSH 命令：
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-打开本地终端，执行这条命令。出现提示时接受主机密钥指纹。现在你已经连上了租来的 GPU 节点。
-
-确认硬件和你下单的一致：
-
-```bash
-nvidia-smi
-```
-
-输出中应能看到你租用的 GPU、显存容量和已安装的驱动版本。如果没有显示 GPU，或者配置与订单不符，请立即断开连接，并通过市场平台的客服报告问题。
-
-## 第 2 步：配置环境
-
-SSH 连接确认无误后，下一件事是搭建一个干净的 Python 环境。大多数租用节点都预装了 NVIDIA 驱动和 CUDA 工具包，但如果依赖主机系统级的 Python 包，很容易引发依赖冲突，排查起来要耗上好几个小时。
-
-我们会创建一个隔离的虚拟环境，保证可复现和稳定。
-
-执行以下命令创建工作目录：
-
-```bash
-mkdir ~/llama3-finetune
-cd ~/llama3-finetune
-python3 -m venv venv
-source venv/bin/activate
-```
-
-终端提示符现在应显示 `(venv)`，说明虚拟环境已激活。之后安装的所有包都会装在这个目录里，不影响主机系统。
-
-安装 Python 包之前，先确认 CUDA 工具包可用：
-
-```bash
-nvcc --version
-```
-
-记下 CUDA 版本号，后面要用它确保与 PyTorch 兼容。大多数租用节点运行的是 CUDA 11.8 或 12.1。如果找不到 `nvcc`，可能是 CUDA 工具包不在 PATH 中。通常加载对应的环境文件就能解决：
-
-```bash
-source /etc/profile.d/cuda.sh
-```
-
-如果这个文件不存在，请查阅市场平台针对你所用节点配置的文档。
-
-接下来安装 PyTorch 生态。下面的命令安装支持 CUDA 12.1 的 PyTorch。如果节点的 CUDA 版本不同，请调整版本后缀：
-
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-然后安装高效微调所需的库。我们使用 Hugging Face 生态，配合 bitsandbytes 做量化、PEFT 做参数高效训练：
-
-```bash
-pip install transformers==4.40.0 datasets==2.19.0 peft==0.10.0 bitsandbytes==0.43.1 trl==0.8.6 accelerate==0.29.0
-```
-
-**锁定版本很重要。** 截至本文写作时，上面这些版本经过测试且相互兼容。Hugging Face 生态更新很快，不锁定版本的安装经常引入破坏性变更。如果遇到导入错误或异常行为，版本不匹配是最可能的原因。
-
-最后，登录 Hugging Face。Llama-3 的权重受许可协议限制，需要 Hugging Face 账户才能下载。访问 [Meta Llama-3 仓库](https://huggingface.co)并接受许可条款，然后在 Hugging Face 设置页面生成一个访问令牌。
-
-运行登录命令：
-
-```bash
-huggingface-cli login
-```
-
-出现提示时粘贴你的访问令牌。令牌保存在 `~/.cache/huggingface/token`。现在你已获得授权，可以把受限模型的权重直接下载到租用节点。
-
-![终端中显示 Llama-3 模型配置参数的 Python 代码](../_images/python-llama3-config.png)
-
-## 第 3 步：安全传输数据
-
-这一节要解决的，正是你租机器而不是调用 API 的首要原因：数据主权。
-
-标准的云端流程是先把数据集上传到存储桶（S3、Google Cloud Storage、Azure Blob），再下载到计算实例。这样一来，你的敏感数据会在多个不受你控制的系统中留下副本。存储服务商能访问，计算服务商也能访问，双方都会记录你的操作日志。
-
-我们用直接加密传输，完全绕开这一环。
-
-SSH 协议自带 `scp`（Secure Copy Protocol），它通过你登录终端所用的同一条加密通道传输文件。数据直接从你的本地机器传到租用节点，不经过任何中间存储。
-
-在你的**本地电脑**上打开一个**新的终端窗口**，不要关闭已有的租用节点 SSH 会话。执行下面的命令，把文件路径和连接信息换成你自己的：
-
-```bash
-scp -P 22345 /path/to/your/dataset.jsonl user@203.0.113.42:~/llama3-finetune/
-```
-
-`-P` 参数指定端口号（注意是大写 P，和 ssh 的小写 `-p` 不同）。数据集较大时，传输可能需要几分钟，你会看到显示已传输字节数的进度输出。
-
-**数据集超过 1GB 时**，可以考虑先压缩再传输：
-
-```bash
-# On your local machine
-gzip -k dataset.jsonl
-scp -P 22345 dataset.jsonl.gz user@203.0.113.42:~/llama3-finetune/
-
-# Then on the remote node
-cd ~/llama3-finetune
-gunzip dataset.jsonl.gz
-```
-
-**更多安全措施：**
-
-如果你的威胁模型中包括高水平的攻击者，可以在传输前用 GPG 或 age 加密数据集。这样多了一层防护：即使传输过程被截获，内容也无法读取。
-
-```bash
-# On your local machine (using age encryption)
-age -p dataset.jsonl > dataset.jsonl.age
-scp -P 22345 dataset.jsonl.age user@203.0.113.42:~/llama3-finetune/
-
-# On the remote node
-age -d dataset.jsonl.age > dataset.jsonl
-rm dataset.jsonl.age
-```
-
-对大多数用户来说，标准的 SCP 传输已经足够安全。SSH 协议使用 AES-256 加密，主机密钥校验可以防止中间人攻击，你的数据也不会经过任何第三方存储系统。
-
-## 第 4 步：微调脚本
-
-我们使用 TRL（Transformer Reinforcement Learning）库的 `SFTTrainer` 类进行监督微调。这个库封装了大量复杂细节，同时仍可按生产负载的需要灵活配置。
-
-编写训练脚本之前，你需要先了解数据集应采用的格式。
-
-**数据集格式要求：**
-
-脚本需要一个 JSONL（JSON Lines）文件，每行是一个包含 `text` 字段的合法 JSON 对象。`text` 字段应包含一条完整的训练样本，格式化为单个字符串。
-
-下面是三行格式正确的示例：
+用 QLoRA 在你自己的数据上微调一个 8B 开放权重模型，一块租来的 24 GB GPU 就够，一次典型的训练花费不到一美元。更难的问题要先回答：微调到底是不是对的办法（要补充事实，通常检索更好），以及数据放在别人的机器上时，怎样保证它不外泄。
+
+本文先讲这两点，再讲各尺寸模型需要的显存、当前的工具、一个能跑的训练脚本、一个成本算例，以及怎样部署训练结果。所有内容均于 2026 年 9 月核实，出处附在文末。
+
+## 微调、RAG 还是改进提示词
+
+微调改变的是模型的行为，拿它来教模型事实效果很差。Ovadia 等人比较了两者在知识注入方面的表现，发现 RAG“一直优于”无监督微调，“无论是训练中见过的已有知识，还是全新的知识”。他们的结论是：LLM 很难通过微调学到新事实。
+
+所以租任何东西之前，先把下面这棵决策树走一遍：
+
+<figure>
+<svg viewBox="0 0 720 420" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">决策树：在检索、改进提示词、微调和更大的模型之间做选择</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+<rect width="720" height="420" fill="#ffffff"/>
+<rect x="60" y="15" width="280" height="40" rx="8" fill="#1e1b4b"/>
+<text x="200" y="40" text-anchor="middle" fill="#ffffff">回答不够好</text>
+<line x1="200" y1="55" x2="200" y2="83" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<rect x="20" y="85" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="115" text-anchor="middle" fill="#1e1b4b">缺少事实，或者数据经常变化？</text>
+<rect x="440" y="80" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="105" text-anchor="middle" fill="#1e1b4b" font-weight="600">用 RAG</text>
+<text x="570" y="126" text-anchor="middle" fill="#64748b" font-size="13">每次请求时检索你的文档</text>
+<line x1="380" y1="110" x2="438" y2="110" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="102" text-anchor="middle" fill="#16a34a" font-size="13">是</text>
+<line x1="200" y1="135" x2="200" y2="173" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="160" fill="#64748b" font-size="13">否</text>
+<rect x="20" y="175" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="205" text-anchor="middle" fill="#1e1b4b">指令和示例能解决吗？</text>
+<rect x="440" y="170" width="260" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="195" text-anchor="middle" fill="#1e1b4b" font-weight="600">改进提示词</text>
+<text x="570" y="216" text-anchor="middle" fill="#64748b" font-size="13">系统提示词、少样本示例</text>
+<line x1="380" y1="200" x2="438" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="192" text-anchor="middle" fill="#16a34a" font-size="13">是</text>
+<line x1="200" y1="225" x2="200" y2="263" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="250" fill="#64748b" font-size="13">否</text>
+<rect x="20" y="265" width="360" height="50" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="200" y="295" text-anchor="middle" fill="#1e1b4b">需要固定的格式、语气或技能？</text>
+<rect x="440" y="260" width="260" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="570" y="285" text-anchor="middle" fill="#1e1b4b" font-weight="600">用 QLoRA 微调</text>
+<text x="570" y="306" text-anchor="middle" fill="#64748b" font-size="13">几百条高质量样本</text>
+<line x1="380" y1="290" x2="438" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="409" y="282" text-anchor="middle" fill="#16a34a" font-size="13">是</text>
+<line x1="200" y1="315" x2="200" y2="353" stroke="#64748b" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<text x="215" y="340" fill="#64748b" font-size="13">否</text>
+<rect x="60" y="355" width="280" height="50" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+<text x="200" y="385" text-anchor="middle" fill="#1e1b4b">换一个更大的基础模型</text>
+<text x="570" y="370" text-anchor="middle" fill="#64748b" font-size="13">RAG 和微调可以结合使用：</text>
+<text x="570" y="390" text-anchor="middle" fill="#64748b" font-size="13">行为靠微调，事实靠检索</text>
+</svg>
+<figcaption>大多数“模型不了解我们的东西”的问题，其实是检索问题。当你需要每次都一样的行为时，微调才物有所值：固定的 JSON schema、公司的文风、一套分类方案。</figcaption>
+</figure>
+
+值得微调的理由：
+
+- **严格的输出格式。** 每次调用都把字段按你的 schema 提取出来，而不用在每条提示词里塞一页说明。
+- **风格和语气。** 让客服回复听起来像你的团队写的，或者让报告保持固定结构。
+- **用小模型做窄任务。** 一个调过的 8B 模型可以在某一项工作上替代大型通用模型，在廉价硬件上部署时这一点很重要。
+- **更短的提示词。** 学进权重里的行为，不用在每次请求中重复。
+
+## LoRA 和 QLoRA
+
+全量微调会更新所有权重，所以 GPU 除了模型本身，还要为每个权重存梯度和优化器状态。LoRA 冻结基础模型，在各层旁边训练小的低秩矩阵；原始论文报告，与用 Adam 全量微调 GPT-3 175B 相比，可训练参数减少了 10,000 倍，显存占用减少到三分之一。
+
+QLoRA 更进一步：冻结的基础模型以 4 位 NF4 精度加载，只有适配器以 16 位训练。Dettmers 等人用它在一块 48 GB GPU 上微调了 65B 模型，“同时保持了 16 位全量微调的任务表现”。论文引入了三样工具至今仍在用的东西：NF4 数据类型、对量化常数的二次量化，以及用来吸收显存峰值的分页优化器。
+
+两者的产物都是一个适配器，一个装着几个张量的文件夹，叠加在未改动的基础模型上使用。你可以让它单独存在，也可以合并进权重。
+
+## 需要多少显存
+
+Unsloth 发布了一张按模型尺寸列出微调最低显存的表格。下面是它的数字，已包含它的显存优化；普通的 Hugging Face 训练需要更多，序列更长或批次更大时，每一行都会上升。
+
+| 模型尺寸 | QLoRA（4 位） | LoRA（16 位） | 跑 QLoRA 绰绰有余的租用显卡 |
+| --- | --- | --- | --- |
+| 3B | 3.5 GB | 8 GB | 任何 12 GB 以上的显卡 |
+| 8B | 6 GB | 22 GB | RTX 3090 / 4090（24 GB） |
+| 14B | 8.5 GB | 33 GB | RTX 3090 / 4090（24 GB） |
+| 32B | 26 GB | 76 GB | 48 GB 显卡（RTX A6000、A40、L40S） |
+| 70B | 41 GB | 164 GB | 80 GB 显卡（A100、H100） |
+
+<figure>
+<svg viewBox="0 0 720 320" role="img" aria-labelledby="d2-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d2-title">条形图：8B、14B、32B 和 70B 模型用 QLoRA 和 16 位 LoRA 微调的最低显存，对照 24、48 和 80 GB 显卡</title>
+<rect width="720" height="320" fill="#ffffff"/>
+<rect x="200" y="12" width="14" height="14" fill="#6366f1"/>
+<text x="220" y="24" fill="#1e1b4b" font-size="13">QLoRA 4 位</text>
+<rect x="320" y="12" width="14" height="14" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="340" y="24" fill="#1e1b4b" font-size="13">LoRA 16 位</text>
+<line x1="262.1" y1="58" x2="262.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="262.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">24 GB</text>
+<line x1="324.2" y1="58" x2="324.2" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="324.2" y="52" text-anchor="middle" fill="#f97316" font-size="12">48 GB</text>
+<line x1="407.1" y1="58" x2="407.1" y2="265" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="407.1" y="52" text-anchor="middle" fill="#f97316" font-size="12">80 GB</text>
+<text x="190" y="88" text-anchor="end" fill="#1e1b4b">8B</text>
+<rect x="200" y="66" width="15.5" height="16" fill="#6366f1"/>
+<text x="221" y="79" fill="#1e1b4b" font-size="12">6</text>
+<rect x="200" y="84" width="56.9" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="268" y="97" fill="#1e1b4b" font-size="12">22</text>
+<text x="190" y="138" text-anchor="end" fill="#1e1b4b">14B</text>
+<rect x="200" y="116" width="22" height="16" fill="#6366f1"/>
+<text x="228" y="129" fill="#1e1b4b" font-size="12">8.5</text>
+<rect x="200" y="134" width="85.4" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="291" y="147" fill="#1e1b4b" font-size="12">33</text>
+<text x="190" y="188" text-anchor="end" fill="#1e1b4b">32B</text>
+<rect x="200" y="166" width="67.3" height="16" fill="#6366f1"/>
+<text x="273" y="179" fill="#1e1b4b" font-size="12">26</text>
+<rect x="200" y="184" width="196.7" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="425" y="197" fill="#1e1b4b" font-size="12">76</text>
+<text x="190" y="238" text-anchor="end" fill="#1e1b4b">70B</text>
+<rect x="200" y="216" width="106.1" height="16" fill="#6366f1"/>
+<text x="302" y="229" text-anchor="end" fill="#ffffff" font-size="12">41</text>
+<rect x="200" y="234" width="424.5" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="631" y="247" fill="#1e1b4b" font-size="12">164</text>
+<line x1="200" y1="265" x2="640" y2="265" stroke="#64748b" stroke-width="1"/>
+<text x="200" y="283" text-anchor="middle" fill="#64748b" font-size="12">0</text>
+<text x="303.5" y="283" text-anchor="middle" fill="#64748b" font-size="12">40</text>
+<text x="407.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">80</text>
+<text x="510.6" y="283" text-anchor="middle" fill="#64748b" font-size="12">120</text>
+<text x="614.1" y="283" text-anchor="middle" fill="#64748b" font-size="12">160</text>
+<text x="420" y="306" text-anchor="middle" fill="#64748b" font-size="13">最低显存，单位 GB（Unsloth 需求表）</text>
+</svg>
+<figcaption>正是 QLoRA 让租来的消费级显卡在这里派上用场：14B 以内的模型放进 24 GB 显卡还有富余，32B 需要 48 GB 显卡，70B 需要 80 GB。不用 4 位加载的话，连 8B 在 24 GB 里都很勉强。</figcaption>
+</figure>
+
+我的默认选择是在 RTX 4090 上跑 8B 或 14B 模型。这是能为 2,048 token 序列和合理批次留出空间的最便宜的租用显卡，而且这个范围的模型事后也容易部署。按部署用的显存选基础模型，见[哪些 AI 模型适合你的 GPU 显存](/zh_cn/which-ai-models-fit-your-gpu-vram/)。
+
+## 选工具：TRL、Unsloth 还是 Axolotl
+
+三个都是开源的，都支持 LoRA 和 QLoRA。
+
+| 工具 | 用法 | 优势 | 注意 |
+| --- | --- | --- | --- |
+| Hugging Face TRL + PEFT | Python（`SFTTrainer`） | 参考实现；同一套 API 还支持 DPO、GRPO 等 | 同样的训练，显存占用比 Unsloth 多 |
+| Unsloth | Python，或 Unsloth Studio 网页界面 | 号称快 2 倍、显存少 70%；可直接导出 GGUF | Studio 界面采用 AGPL-3.0（核心为 Apache 2.0） |
+| Axolotl | 一个 YAML 文件，`axolotl train config.yml` | 多 GPU（FSDP、DeepSpeed），配方丰富 | 需要 Python 3.11+ 和 PyTorch 2.11+ |
+
+截至 2026 年 9 月，TRL 版本为 1.14，PEFT 为 0.21。Unsloth 需要 Python 3.11 到 3.13，以及 CUDA 计算能力 7.0 或更高的 NVIDIA GPU（V100、T4、RTX 20 系列及以上）。Axolotl 推荐 Python 3.12 和 PyTorch 2.12.1。
+
+想弄懂每一行代码，用 TRL；显存紧张或想一次调用就导出 GGUF，用 Unsloth；要用不同设置反复训练或者要上多 GPU，用 Axolotl。下面的脚本用的是 TRL，因为它是把每个环节都摆在明面上的最短路径。
+
+## 准备数据
+
+TRL 的 `SFTTrainer` 读取的对话格式和聊天 API 请求一样。`train.jsonl` 里每行一个 JSON 对象：
 
 ```json
-{"text": "### Instruction: Summarize the following legal clause in plain English.\n\n### Input: Party A shall indemnify, defend, and hold harmless Party B from any claims, damages, or expenses arising from Party A's negligence or willful misconduct.\n\n### Response: Party A agrees to protect Party B from any legal claims or costs that result from Party A's mistakes or intentional wrongdoing."}
-{"text": "### Instruction: Extract the key financial metrics from this earnings report.\n\n### Input: Q3 revenue reached $4.2B, up 12% YoY. Operating margin improved to 23.5% from 21.2%. Free cash flow was $890M.\n\n### Response: Revenue: $4.2 billion (12% year-over-year growth). Operating margin: 23.5% (up from 21.2%). Free cash flow: $890 million."}
-{"text": "### Instruction: Identify potential HIPAA violations in this process description.\n\n### Input: Patient records are emailed to the billing department as PDF attachments. The billing staff prints these for manual review and shreds them after processing.\n\n### Response: Potential violations include: unencrypted email transmission of PHI, physical documents that may be visible to unauthorized personnel during processing, and lack of documented chain of custody. Recommend encrypted file transfer and on-screen review only."}
+{"messages": [{"role": "system", "content": "Extract the invoice fields as JSON."}, {"role": "user", "content": "Invoice 4471 from Norden AB, due 12 March, total 1,250 EUR"}, {"role": "assistant", "content": "{\"invoice_id\": \"4471\", \"supplier\": \"Norden AB\", \"due\": \"2026-03-12\", \"total\": 1250, \"currency\": \"EUR\"}"}]}
 ```
 
-**格式要点：**
+几条实用原则：
 
-1. 每个 JSON 对象必须恰好占一行，不能有多行 JSON。
-2. `text` 字段中的换行必须转义为 `\n`。
-3. 文本中的双引号必须转义为 `\"`。
-4. 文件必须使用 UTF-8 编码。
+- **质量重于数量。** 几百到几千条一致、正确的样本，胜过几万条噪声数据。数据里的每个错误，都是你花钱教给模型的行为。
+- **与生产环境一致。** 使用你的应用实际会发送的系统提示词和输入格式。
+- **留出 5% 到 10%。** 保留一部分模型从未训练过的样本，用来并排比较基础模型和调过的模型。
+- **删掉用不上的东西。** 姓名、邮箱、账号和各种 ID 很少能帮模型学会格式。数据离开你的电脑之前，把它们换成逼真的占位符。
 
-如果你的原始数据是其他格式（CSV、Parquet，或指令和回答分列存放），需要在传输前预处理成这种结构。Python 的 `json` 库会自动处理转义：
+最后一条不仅仅关乎租来的机器。Carlini 等人从 GPT-2 中逐字提取出了数百条训练序列，包括姓名、电话号码和邮箱地址，其中有些只在一份训练文档中出现过。微调后的模型可能会把训练内容复述给之后使用它的任何人。
 
-```python
-import json
+## 在租来的机器上保护数据隐私
 
-with open('dataset.jsonl', 'w') as f:
-    for example in your_data:
-        text = f"### Instruction: {example['instruction']}\n\n### Input: {example['input']}\n\n### Response: {example['output']}"
-        f.write(json.dumps({"text": text}) + '\n')
-```
+在 GPU 市场上，电脑归别人所有。Vast.ai 说得很直白：“客户被隔离在非特权 Docker 容器中，只能访问自己的数据”，以及“各提供商的安全水平差别很大”。这种隔离保护你不受其他租用者影响，但防不了能接触到物理机器、在主机上拥有 root 权限的人。
 
-数据集就位后，在远程节点上创建训练脚本：
+处理私密数据时：
+
+1. **选择经过审核的数据中心主机。** Vast.ai 的 Secure Cloud 提供商是“通过 ISO 27001 认证、符合 Tier 3/4 数据中心标准的经审核数据中心”，Vast 建议敏感任务使用它们。RunPod 的 Secure Cloud 运行在 T3/T4 数据中心；其 Community Cloud 则把你连接到个人提供商。数据中心层级每小时更贵，但在这里值得。
+2. **只上传清理过的数据集，** 走 SSH（`rsync -avP` 或 `scp`）。中途不要放到公开存储桶或共享链接里。
+3. **日志只留在本地。** 在 TRL 1.14 中，`report_to` 默认为 `"none"`，所以除非你主动开启，否则不会有数据发往实验追踪服务。不要对用私密数据训练出的适配器调用 `push_to_hub`。
+4. **把结果拿出来，然后删除实例。** 下载适配器和评估输出；如果用过令牌，退出 Hugging Face 登录（`hf auth logout`）；删除实例和所有卷。在 Vast.ai 上，存储会一直保留并计费，直到实例被删除，仅停止是不够的。
+
+在容器里删除文件，并不能保证主机的磁盘被擦除，所以真正的保护在第 1 步和第 2 步：选好由谁掌管硬件，并且尽量少给对方数据。更多细节见[如何在公共 GPU 节点上保护数据集](/zh_cn/how-to-secure-dataset-on-public-gpu-node/)。如果你的政策禁止使用任何第三方硬件，同样的脚本也能在你自己的 24 GB 显卡上运行。
+
+## 训练：一个用 TRL 的 QLoRA 脚本
+
+在一台装有 RTX 3090 或 4090 的租用 Linux 机器上：
 
 ```bash
-cd ~/llama3-finetune
-nano train.py
+python -m venv venv && source venv/bin/activate
+pip install torch trl peft bitsandbytes datasets
 ```
 
-粘贴以下配置。这个脚本使用 QLoRA，在 24GB GPU 的显存限制内微调 8B 参数模型。示例使用 Llama-3.1-8B，修改 MODEL_NAME 变量即可换成任何兼容的模型：
+然后是 `train.py`，照着 TRL 的 PEFT 文档中的 QLoRA 写法。Qwen3-8B 采用 Apache 2.0 许可证，无需申请访问，所以不需要 Hugging Face 令牌：
 
 ```python
 import torch
 from datasets import load_dataset
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    TrainingArguments,
-)
 from peft import LoraConfig
-from trl import SFTTrainer
+from transformers import BitsAndBytesConfig
+from trl import SFTConfig, SFTTrainer
 
-# ============================================
-# CONFIGURATION - Modify these values as needed
-# ============================================
-
-# Base model identifier on Hugging Face
-# Change this to fine-tune a different model (e.g., "mistralai/Mistral-7B-v0.1")
-MODEL_NAME = "meta-llama/Llama-3.1-8B"
-
-# Name for your fine-tuned adapter
-OUTPUT_NAME = "llama-3-8b-custom"
-
-# Path to your dataset
-DATASET_PATH = "dataset.jsonl"
-
-# Training hyperparameters
-NUM_EPOCHS = 1
-BATCH_SIZE = 4
-LEARNING_RATE = 2e-4
-MAX_SEQ_LENGTH = 512
-
-# LoRA hyperparameters
-LORA_RANK = 16
-LORA_ALPHA = 16
-LORA_DROPOUT = 0.05
-
-# ============================================
-# QUANTIZATION CONFIGURATION
-# ============================================
+dataset = load_dataset("json", data_files="train.jsonl", split="train")
 
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_compute_dtype=torch.bfloat16,
     bnb_4bit_use_double_quant=True,
 )
 
-# ============================================
-# MODEL LOADING
-# ============================================
-
-print("Loading base model...")
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True,
-)
-model.config.use_cache = False
-
-print("Loading tokenizer...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
-
-# ============================================
-# DATASET LOADING
-# ============================================
-
-print(f"Loading dataset from {DATASET_PATH}...")
-dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
-print(f"Dataset contains {len(dataset)} examples")
-
-# ============================================
-# LORA CONFIGURATION
-# ============================================
-
 peft_config = LoraConfig(
-    r=LORA_RANK,
-    lora_alpha=LORA_ALPHA,
-    lora_dropout=LORA_DROPOUT,
-    bias="none",
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    target_modules="all-linear",
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
 )
 
-# ============================================
-# TRAINING ARGUMENTS
-# ============================================
-
-training_args = TrainingArguments(
-    output_dir="./results",
-    num_train_epochs=NUM_EPOCHS,
-    per_device_train_batch_size=BATCH_SIZE,
-    gradient_accumulation_steps=1,
-    learning_rate=LEARNING_RATE,
-    weight_decay=0.001,
-    fp16=True,
-    logging_steps=10,
-    save_steps=100,
-    save_total_limit=3,
-    optim="paged_adamw_32bit",
+args = SFTConfig(
+    output_dir="out",
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=2e-4,
     lr_scheduler_type="cosine",
-    warmup_ratio=0.03,
-    report_to="none",
+    warmup_steps=20,
+    max_length=2048,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="epoch",
+    model_init_kwargs={"dtype": torch.bfloat16},
 )
 
-# ============================================
-# TRAINER INITIALIZATION AND EXECUTION
-# ============================================
-
-print("Initializing trainer...")
 trainer = SFTTrainer(
-    model=model,
+    model="Qwen/Qwen3-8B",
+    args=args,
     train_dataset=dataset,
+    quantization_config=bnb_config,
     peft_config=peft_config,
-    dataset_text_field="text",
-    max_seq_length=MAX_SEQ_LENGTH,
-    tokenizer=tokenizer,
-    args=training_args,
 )
-
-print("Starting training...")
 trainer.train()
-
-print(f"Saving adapter to {OUTPUT_NAME}...")
-trainer.model.save_pretrained(OUTPUT_NAME)
-tokenizer.save_pretrained(OUTPUT_NAME)
-
-print("Training complete.")
+trainer.save_model("out/adapter")
 ```
 
-按 `Ctrl+O` 保存文件，再按 `Ctrl+X` 退出。
+要紧的几个选择：
 
-**关键参数说明：**
+- **`learning_rate=2e-4`。** TRL 文档建议 QLoRA 使用约为常规微调 10 倍的学习率。如果训练损失下降而评估损失上升，就是过拟合了：减少轮数。
+- **`r=16`，`target_modules="all-linear"`。** 在每个线性层上加适配器，这也是 Unsloth 基准测试使用的设置。对格式和风格来说，秩 16 就够了；任务更难时再调高。
+- **`max_length=2048`。** 更长的样本会被截断。检查一下数据的 token 长度；上限越长，需要的显存越多。
+- **有效批大小 16**（4 × 4 个累积步）。如果显存不够，调低 `per_device_train_batch_size`、调高累积步数，保持乘积不变。
 
-- **LORA_RANK（r=16）：** 控制微调适配器的表达能力。值越高，学到的越多，但占用的显存也越多。常用值在 8 到 64 之间。
+关机之前，把留出的样本分别交给基础模型和调过的模型，比较一下结果。只有这个测试能告诉你这笔钱有没有花出效果。
 
-- **LORA_ALPHA（16）：** LoRA 权重的缩放系数。常见的经验做法是把它设成与秩相同。
+## 要花多少钱
 
-- **MAX_SEQ_LENGTH（512）：** 训练样本的最大 token 长度。序列越长，占用显存越多。遇到 OOM（显存不足）错误时，优先降低这个值。
+训练时间等于总 token 数除以吞吐量。托管公司 GigaGPU 公布了实测数据：在 RTX 4090 上用 QLoRA 训练 Llama 3.1 8B，约每秒 3,500 个训练 token。假设 Qwen3-8B 的速度相近：
 
-- **BATCH_SIZE（4）：** 同时处理的样本数。显存不够时降到 2 或 1。
+**小规模训练：** 2,000 条样本 × 600 token × 3 轮 = 360 万 token。3,600,000 ÷ 3,500 = 1,029 秒，约 17 分钟。
 
-- **target_modules：** 注入 LoRA 适配器的具体层。对 Llama-3 来说，注意力投影层（q、k、v、o）效果最好。
+| 步骤 | 时间 |
+| --- | --- |
+| 搭建环境 | 10 分钟 |
+| 下载 Qwen3-8B（16.4 GB 权重）并上传数据 | 10 分钟 |
+| 训练 | 17 分钟 |
+| 在留出数据上比较基础模型和调过的模型 | 15 分钟 |
+| 合并、导出、下载，删除实例 | 15 分钟 |
+| **合计** | **67 分钟（1.12 小时）** |
 
-开始训练，执行：
+- Vast.ai RTX 4090，每小时 $0.31：1.12 × $0.31 = **$0.35**
+- RunPod RTX 4090，每小时 $0.74（价格页面标价）：1.12 × $0.74 = **$0.83**
+
+**大规模训练：** 20,000 条样本 × 1,000 token × 2 轮 = 4,000 万 token ÷ 3,500 = 11,429 秒，约 3.2 小时。加上同样的 50 分钟额外时间，共 4.0 小时：Vast.ai 上 **$1.24**，RunPod 上 **$2.97**。
+
+对于 32B 模型，截至 2026 年 9 月，RunPod 上 48 GB 显卡的标价为每小时 $0.49（A40）、$0.53（RTX A6000）和 $1.09（L40S）。我没有找到这些显卡上 32B QLoRA 的公开吞吐数据，所以先跑 50 步，从日志里读出每步耗时，做同样的乘法，再决定要不要跑长时间的训练。
+
+价格为 2026 年 9 月的数字，来自 RunPod 价格页面和 getdeploying.com 对 Vast.ai 的价格追踪。Secure/数据中心层级比最便宜的社区报价贵。更全面的情况见 [GPU 租用价格对比](/zh_cn/gpu-rental-pricing-comparison-2026/)。
+
+## 部署训练结果
+
+有两种选择：让适配器单独存在，或者把它合并进模型。
+
+**用 vLLM 单独加载。** vLLM 可以在基础模型旁边加载 LoRA 适配器，并在其 OpenAI 兼容服务器上把每个适配器暴露为一个模型名：
 
 ```bash
-python train.py
+vllm serve Qwen/Qwen3-8B --enable-lora --lora-modules invoices=./out/adapter
 ```
 
-脚本会先下载基础模型权重（8B 模型约 16GB）。这只需要一次，之后的运行会使用缓存的权重。加载完成后，你会看到训练进度，每 10 步输出一次 loss 值。
+客户端发送 `"model": "invoices"` 即可。多个适配器可以在一块 GPU 上共用一个基础模型。
 
-## 第 5 步：监控训练过程
-
-训练脚本运行期间，你需要监控 GPU 的状态。一旦显存占满或温度超过安全阈值，进程就会崩溃，可能损坏检查点，白白浪费租用时间。
-
-在本地机器上再打开一个终端窗口，与租用节点建立另一个 SSH 连接：
-
-```bash
-ssh -p 22345 user@203.0.113.42
-```
-
-执行以下命令，实时查看 GPU 状态：
-
-```bash
-watch -n 1 nvidia-smi
-```
-
-![终端中显示 GPU 显存占用和温度数据的 nvidia-smi 输出](../_images/nvidia-smi-monitoring.png)
-
-这个工具每秒刷新一次，显示显存占用、GPU 利用率和温度。在 RTX 4090 上运行本指南的配置时，你应该看到：
-
-- **显存占用：** 可用 24GB 中占用 18GB 到 22GB
-- **GPU 利用率：** 训练进行中为 90% 到 100%
-- **温度：** 60°C 到 80°C，取决于主机的散热方案
-
-**常见问题排查：**
-
-**显存接近 24GB：** 如果显存占用持续顶到上限，把训练脚本中的 `BATCH_SIZE` 参数降到 2 或 1，或者把 `MAX_SEQ_LENGTH` 降到 256。无论改哪项，都需要重新开始训练。
-
-**GPU 利用率接近 0%：** 这通常说明数据加载成了瓶颈，CPU 喂数据的速度跟不上 GPU。在配备 NVMe 的节点上这种情况较少，但数据集非常大时仍可能出现。可以考虑在传输前把数据集预处理成更高效的格式（Arrow/Parquet）。
-
-**温度超过 85°C：** 有些主机把 GPU 放在通风很差的机箱里。长时间高温可能触发降频，拖慢训练。如果温度持续超过 85°C，可以考虑终止租用，换一个节点。硬件损坏是主机方的问题，但浪费的时间和损坏的检查点是你的损失。
-
-**如何解读 loss 曲线：**
-
-训练脚本每 10 步输出一次 loss 值。这个数字表示模型的预测"错"得有多厉害，越低越好。你应该观察到：
-
-- **初始 loss：** 通常在 1.5 到 3.0 之间，视数据集而定
-- **趋势：** 在最初几百步内稳步下降
-- **最终 loss：** 配置得当的训练通常在 0.5 到 1.5 之间
-
-如果 loss 一开始就停滞不动（100 步后仍未下降），可能是学习率太低。如果 loss 剧烈震荡或不断上升，说明学习率太高。默认值 `2e-4` 对大多数数据集都适用，但有时需要调整。
-
-如果 loss 平稳下降后突然飙升到很高的值（10 以上），数据集里很可能有格式错误的样本。停止训练，检查 JSONL 文件中是否有编码错误或没有正确转义的字符，然后重新开始。
-
-在 RTX 4090 上，1,000 条样本的典型微调需要 30 到 60 分钟。数据集更大时，时间大致线性增长：10,000 条样本需要 5 到 10 小时。
-
-## 第 6 步：取回模型并清理环境
-
-训练完成后，微调得到的权重以 LoRA 适配器的形式保存在 `OUTPUT_NAME` 指定的目录中。与完整的 16GB 基础模型相比，这个适配器很小，通常只有 100MB 到 500MB。
-
-先确认适配器文件已经生成：
-
-```bash
-ls -la ~/llama3-finetune/llama-3-8b-custom/
-```
-
-你应该能看到 `adapter_config.json`、`adapter_model.safetensors` 以及分词器相关文件。
-
-**不要在租用节点上合并适配器。** 合并是把 LoRA 权重与基础模型结合，生成一个独立的微调模型。这个操作需要把完整的 16 位基础模型加载进内存，可能超出 24GB 显卡的可用显存。请在你自己的基础设施上合并，或者在推理时直接把适配器和基础模型一起加载。PEFT 库可以无缝处理这一点：
-
-```python
-from peft import PeftModel
-from transformers import AutoModelForCausalLM
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    device_map="auto",
-)
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-```
-
-要下载适配器，回到你的**本地终端**（不是 SSH 会话），执行：
-
-```bash
-scp -r -P 22345 user@203.0.113.42:~/llama3-finetune/llama-3-8b-custom ./
-```
-
-`-r` 参数用于递归复制整个目录。核对本地文件大小与远程一致，确认传输成功。
-
-**清理远程环境：**
-
-这一步是专业人士和业余玩家的分水岭。你的租用节点上现在有你的私有数据集、训练代码和缓存的模型权重。把这些东西留在一台不受你控制的机器上，违背了最基本的操作安全原则。
-
-回到租用节点的 SSH 会话，执行以下命令：
-
-```bash
-# Remove your working directory and all contents
-rm -rf ~/llama3-finetune
-
-# Clear the Hugging Face cache (contains downloaded model weights)
-rm -rf ~/.cache/huggingface
-
-# Clear Python package cache
-rm -rf ~/.cache/pip
-
-# Clear bash history
-history -c
-cat /dev/null > ~/.bash_history
-
-# Clear any potential swap residue (may require sudo depending on node config)
-sync
-```
-
-如果节点上有 `shred`，并且你想进一步确保删除的文件无法恢复：
-
-```bash
-# Secure deletion (slower but more thorough)
-find ~/llama3-finetune -type f -exec shred -u {} \;
-rm -rf ~/llama3-finetune
-```
-
-断开 SSH 会话：
-
-```bash
-exit
-```
-
-回到市场平台的控制台，终止租用，连同所有存储卷一起删除，以免继续计费。
-
-## 用微调后的模型做推理
-
-适配器下载到本地机器后，你就可以在不依赖任何云服务的情况下进行推理。下面是一个最简示例：
+**合并后在 Ollama 中运行。** 把适配器合并进全精度权重，用 llama.cpp 转换为 GGUF，量化，然后导入：
 
 ```python
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer
 
-# Quantization config (same as training)
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
-)
-
-# Load base model
-base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Llama-3.1-8B",
-    quantization_config=bnb_config,
-    device_map="auto",
-)
-
-# Load your fine-tuned adapter
-model = PeftModel.from_pretrained(base_model, "./llama-3-8b-custom")
-
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
-
-# Generate a response
-prompt = "### Instruction: Summarize the contract clause.\n\n### Input: The Licensee shall not reverse engineer, decompile, or disassemble the Software.\n\n### Response:"
-
-inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.7)
-response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-print(response)
+model = AutoPeftModelForCausalLM.from_pretrained("out/adapter", dtype=torch.bfloat16)
+model.merge_and_unload().save_pretrained("merged")
+AutoTokenizer.from_pretrained("Qwen/Qwen3-8B").save_pretrained("merged")
 ```
 
-生产部署时，可以考虑用 FastAPI 或 Flask 把它封装成 API，或者通过 vLLM、Text Generation Inference（TGI）等推理服务器部署。我们在 [RTX 4090 上的 Ollama vs vLLM vs TGI 对比](/zh_cn/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/)中比较过它们。
+```bash
+python llama.cpp/convert_hf_to_gguf.py merged --outfile invoices-bf16.gguf --outtype bf16
+./llama.cpp/build/bin/llama-quantize invoices-bf16.gguf invoices-Q4_K_M.gguf Q4_K_M
+echo "FROM ./invoices-Q4_K_M.gguf" > Modelfile
+ollama create invoices -f Modelfile
+```
 
-## 结语
+Unsloth 一次调用就能完成合并和 GGUF 导出（`model.save_pretrained_gguf("dir", tokenizer, quantization_method="q4_k_m")`）。它的文档提醒，导出后回答质量变差，最常见的原因是聊天模板不对：部署时要用训练时的模板。Ollama、vLLM 和 TGI 之间的取舍见[我们的 RTX 4090 推理基准测试](/zh_cn/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/)。
 
-你已经用私有数据微调了一个大语言模型，同时让这些数据只在一台机器上停留尽可能短的时间。整个过程没有签企业合同，也没有把知识产权交给任何科技公司。
+### GPUFlow 在其中的位置
 
-假设在 RTX 4090 上以每小时 0.45 美元训练两小时，这次操作的总成本是 90 美分。AWS 上一张 A10G 每小时约 1.01 美元，所以训练本身在那边也不算贵。差别在于配额申请和环境搭建。
+GPUFlow 做不了训练：它出租的是运行在提供商 GPU 上的 OpenAI 兼容 API，没有 shell、SSH，也不能访问文件。它也不能部署你微调好的模型。租用者不能上传模型；可用的模型是各提供商自己安装的（通常用 Ollama），例如 `qwen2.5:7b` 或 `llama3.1:8b`。
 
-更重要的是，你的数据集从未经过任何存储服务，而且在你完成训练后已从租用的机器上删除。
+它能帮上忙的是这一切之前的那一步：花几美分检查一下，一个现成的开源模型配上好的提示词是否已经能胜任，这是决策树里最便宜的结果。这一步请用测试数据，不要用本文讨论的私密数据：租用期间，提示词和回答以明文经过提供商的机器。具体用法见 [API 快速入门](https://docs.gpuflow.app/zh-cn/renters/api-quickstart/)，[在应用中使用 API 密钥](/zh_cn/use-openai-compatible-api-key-in-apps/)介绍了怎样把它接入现有工具。
 
-依赖闭源 API 的时代正在结束。需要隐私的组织、重视数据主权的研究者、想要掌控权的开发者，现在都有了另一种选择。租用 GPU 把基础设施、成本和数据重新交回到他们手中。
+## 资料来源
 
-你微调好的模型现在就在你掌控的硬件上。如何部署、谁能访问、用于什么目的，全由你一个人决定。
+均于 2026 年 9 月核实。
 
----
-
-## 延伸阅读
-
-本指南介绍了私有化微调大模型的核心流程。以下资源对相关话题有更深入的讨论：
-
-**了解成本：**
-
-- [2026 年 GPU 租用价格对比](/zh_cn/gpu-rental-pricing-comparison-2026/)：各大市场平台与大型云厂商的成本分析
-- [租用 GPU 的真实成本](/zh_cn/hidden-fees-in-gpu-rental/)：价格页面不会告诉你的成本因素
-
-**入门：**
-
-- [2026 年租用 GPU 需要准备什么](/zh_cn/what-you-need-to-rent-a-gpu/)：各平台的注册、验证和付款方式
-- [如何在公共 GPU 节点上保护你的数据集](/zh_cn/how-to-secure-dataset-on-public-gpu-node/)：训练前、训练中和训练后的安全做法
-
-**方案对比：**
-
-- [RunPod 与 Vast.ai 对比](/zh_cn/runpod-vs-vastapi-comparison/)：两大市场平台有何不同
-- [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/zh_cn/gpuflow-vs-vast-ai-vs-runpod/)：整机、容器与 API 密钥三种方式的对比
+- 论文：[Hu 等，LoRA](https://arxiv.org/abs/2106.09685)；[Dettmers 等，QLoRA](https://arxiv.org/abs/2305.14314)；[Ovadia 等，Fine-Tuning or Retrieval?](https://arxiv.org/abs/2312.05934)；[Carlini 等，Extracting Training Data from Large Language Models](https://arxiv.org/abs/2012.07805)
+- Hugging Face TRL：[SFT Trainer](https://huggingface.co/docs/trl/sft_trainer)、[PEFT 集成与 QLoRA](https://huggingface.co/docs/trl/peft_integration)
+- Unsloth：[需求与显存表](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements.md)、[基准测试](https://unsloth.ai/docs/basics/unsloth-benchmarks.md)、[保存为 GGUF](https://unsloth.ai/docs/basics/inference-and-deployment/saving-to-gguf.md)、[GitHub](https://github.com/unslothai/unsloth)
+- [GitHub 上的 Axolotl](https://github.com/axolotl-ai-cloud/axolotl)
+- 模型：[Qwen3-8B 模型卡](https://huggingface.co/Qwen/Qwen3-8B)
+- 训练吞吐量：[GigaGPU，在 RTX 4090 上微调](https://gigagpu.com/rtx-4090-fine-tuning-guide/)
+- 主机与安全：[Vast.ai 安全 FAQ](https://docs.vast.ai/documentation/reference/faq/security)、[Vast.ai 价格](https://docs.vast.ai/guides/instances/pricing.md)、[RunPod Pods 概览](https://docs.runpod.io/pods/overview)
+- 价格：[RunPod 价格](https://www.runpod.io/pricing)，getdeploying.com 上的 [Vast.ai](https://getdeploying.com/vast-ai) 和 [RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090)
+- 部署：[vLLM LoRA 适配器](https://docs.vllm.ai/en/latest/features/lora.html)、[llama.cpp quantize](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)、[Ollama 导入](https://docs.ollama.com/import)
+- GPUFlow：[API 快速入门](https://docs.gpuflow.app/zh-cn/renters/api-quickstart/)

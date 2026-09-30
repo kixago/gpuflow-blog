@@ -1,507 +1,227 @@
 ---
-title: "GPU mieten: Preisvergleich 2026"
-description: "Umfassender Vergleich der GPU-Mietpreise bei AWS, GCP, Azure, Lambda Labs und anderen großen Cloud-Anbietern für ML-Workloads."
-excerpt: "Vergleichen Sie die Kosten für GPU-Miete bei den großen Cloud-Anbietern und finden Sie das beste Preis-Leistungs-Verhältnis für Ihre ML-Workloads."
+title: "GPU mieten: Preisvergleich 2026 für AWS, Google Cloud, Azure, RunPod und Vast"
+description: "GPU-Mietpreise pro Stunde im September 2026 bei AWS, Google Cloud, Azure, Lambda, RunPod, Vast.ai und GPUFlow: von der RTX 3090 bis zur H100, On-Demand und Spot, mit Rechenbeispielen."
+excerpt: "Eine H100 kostet bei Google Cloud 11,06 $ pro Stunde und bei Vast.ai unter 2 $. Hier sind die Preise der gängigen GPUs im September 2026, was in jeder Zahl steckt und was drei echte Jobs kosten."
 pubDate: 2026-02-07
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "de"
 category: "pricing"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/gpu-rental-pricing-comparison-2026.jpg"
-heroImageAlt: "Diagramm zum Vergleich der GPU-Mietpreise bei AWS, Azure, GCP, RunPod und Vast.ai"
+heroImage: "../_images/gpu-rental-pricing-comparison-2026-hero.png"
+heroImageAlt: "Unterschiedlich lange horizontale Balken, die die Stundenpreise für GPU-Mieten bei Cloud-Anbietern und Marktplätzen vergleichen"
 faq:
-  - question: "Wie miete ich eine GPU für KI-Training am günstigsten?"
-    answer: "Peer-to-Peer-Marktplätze wie Vast.ai bieten die niedrigsten GPU-Mietpreise, in der Regel 60–80 % günstiger als die großen Cloud-Anbieter. Im Februar 2026 kostete eine RTX 4090 auf Vast.ai 0,29–0,78 $ pro Stunde, während vergleichbare Rechenleistung bei AWS oder Azure 3–5 $ pro Stunde kostete."
-  - question: "Was kostet die Miete einer NVIDIA A100?"
-    answer: "Die Mietpreise für die A100 unterscheiden sich je nach Anbieter deutlich. AWS verlangt rund 32,77 $ pro Stunde für eine Instanz mit 8x A100. RunPod bietet einzelne A100-GPUs für 1,39–1,49 $ pro Stunde an. Auf dem Marktplatz von Vast.ai liegen die Preise je nach Zuverlässigkeit und Standort des Anbieters bei 0,84–1,49 $ pro Stunde."
-  - question: "Ist es günstiger, eine GPU zu mieten als zu kaufen?"
-    answer: "Für die meisten Nutzer ist Mieten wirtschaftlicher. Eine RTX 4090 kostet in der Anschaffung 1.600–2.000 $. Bei einem Mietpreis von 0,60 $ pro Stunde liegt die Gewinnschwelle bei etwa 2.700 Nutzungsstunden. Solange Sie die GPU nicht jeden Tag mehr als 8 Stunden brauchen, fahren Sie mit Mieten besser."
-  - question: "Was unterscheidet Cloud-GPU-Anbieter von GPU-Marktplätzen?"
-    answer: "Cloud-Anbieter wie AWS, Azure und GCP betreiben eigene Rechenzentren mit garantierten Verfügbarkeits-SLAs und Compliance-Zertifizierungen. GPU-Marktplätze wie Vast.ai bringen private GPU-Besitzer und Mieter nach dem Peer-to-Peer-Prinzip zusammen. Sie sind günstiger, dafür schwanken Verfügbarkeit und Zuverlässigkeit, die auf Community-Bewertungen beruht."
-  - question: "Welche GPU sollte ich für das Training von Stable-Diffusion-Modellen mieten?"
-    answer: "Für Stable-Diffusion-Training und LoRA-Feinabstimmung bieten eine RTX 4090 oder RTX 3090 mit 24 GB VRAM das beste Preis-Leistungs-Verhältnis. Auf Marktplätzen kosten diese GPUs 0,40–0,80 $ pro Stunde und erledigen die meisten LoRA-Trainingsjobs in 1–3 Stunden, also für insgesamt unter 5 $."
+  - question: "Was kostet es 2026, eine H100 pro Stunde zu mieten?"
+    answer: "Im September 2026 kostete eine H100 pro Stunde 6,88 $ bei AWS (p5.4xlarge), 6,98 $ bei Azure (die H100 NVL mit 94 GB), etwa 11,06 $ pro GPU auf der A3-Maschine mit 8 GPUs bei Google Cloud, 3,99 $ bei Lambda, 2,69 $ bis 3,49 $ bei RunPod und ab etwa 1,47 $ bei Vast.ai."
+  - question: "Wie mietet man eine RTX 4090 am günstigsten?"
+    answer: "Über einen Marktplatz. Im September 2026 lagen die günstigsten On-Demand-Angebote für eine RTX 4090 bei etwa 0,31 $ bis 0,33 $ pro Stunde auf Vast.ai und 0,34 $ in der RunPod Community Cloud. RunPod Secure Cloud verlangte 0,74 $. AWS, Google Cloud und Azure vermieten keine RTX-Karten für Endkunden."
+  - question: "Was kostet eine A100 80GB pro Stunde?"
+    answer: "Stand September 2026: 1,39 $ in der RunPod Community Cloud, 1,59 $ in der RunPod Secure Cloud, 2,79 $ pro GPU bei Lambda, 3,67 $ bei Azure (NC24ads A100 v4), 5,07 $ bei Google Cloud (a2-ultragpu-1g) und 3,43 $ pro GPU bei AWS, wo Sie alle acht GPUs einer p4de.24xlarge für 27,45 $ pro Stunde mieten müssen."
+  - question: "Warum sind GPUs bei AWS, Google Cloud und Azure so viel teurer?"
+    answer: "Ihre GPU-Instanzen bringen viel CPU, RAM und lokalen NVMe-Speicher mit, und manche GPUs gibt es nur in Maschinen mit 8 GPUs. Außerdem zahlen Sie für ein SLA und dafür, dass die GPU direkt neben dem Rest Ihres Cloud-Kontos steht. Spot-Preise und Laufzeitverträge über 1 bis 3 Jahre schließen einen großen Teil der Lücke."
+  - question: "Wie funktionieren die Preise bei GPUFlow?"
+    answer: "Jeder Anbieter legt für seine GPU einen Stundenpreis in US-Dollar fest. Sie buchen ganze Stunden, beim Start der Miete wird der volle Betrag von Ihren Credits reserviert, und Sie zahlen sekundengenau mit 1 Minute Mindestdauer. Ungenutzte Zeit geht am Ende der Miete zurück an Ihre Credits. Anbieter behalten 88 %, GPUFlow behält 12 %."
+  - question: "Lohnen sich Spot-Instanzen für GPUs?"
+    answer: "Für Arbeit, die von einem Checkpoint aus neu starten kann, ja: Im September 2026 kostete eine AWS p5.4xlarge mit H100 als Spot-Instanz 2,62 $ pro Stunde, On-Demand 6,88 $. Bei allem, was nicht unterbrochen werden darf, ist die Ersparnis weg, sobald ein Job zum ersten Mal zweimal laufen muss."
 ---
 
-> **Preise erhoben im Februar 2026.** Marktplatzpreise vom September 2026 finden Sie in [GPUFlow vs. Vast.ai vs. RunPod vs. SaladCloud](/de/gpuflow-vs-vast-ai-vs-runpod/) und [Was eine GPU-Miete wirklich kostet](/de/hidden-fees-in-gpu-rental/).
+Im September 2026 kostet eine H100 etwa 6,90 $ pro Stunde bei AWS oder Azure, 11,06 $ pro GPU bei Google Cloud, 3,99 $ bei Lambda, 2,69 $ bis 3,49 $ bei RunPod und ab etwa 1,50 $ bei Vast.ai. Consumer-Karten gibt es nur auf den Marktplätzen: Eine RTX 4090 kostet am günstigen Ende 0,31 $ bis 0,34 $ pro Stunde und 0,74 $ in der Rechenzentrumsstufe von RunPod. Für dieselbe H100 kostet die teuerste On-Demand-Stunde etwa siebeneinhalbmal so viel wie die günstigste.
+
+Der Rest dieses Beitrags zeigt, woher jede Zahl kommt, was im Stundenpreis steckt und was drei typische Jobs insgesamt kosten. Alle Preise sind On-Demand, sofern nicht anders angegeben, in US-Regionen (us-east-1 bei AWS, East US bei Azure, us-central1 bei Google Cloud), mit Linux, geprüft im September 2026. Preise ändern sich jeden Monat. Betrachten Sie sie als Momentaufnahme und prüfen Sie die Quelle, bevor Sie Geld ausgeben.
+
+## Preise im Überblick
+
+Rechenzentrums-GPUs, Dollar pro GPU und Stunde:
+
+| Anbieter | L4 24 GB | A10G / A10 24 GB | A100 80 GB | H100 |
+| --- | --- | --- | --- | --- |
+| AWS | 0,81 $ (g6.xlarge) | 1,01 $ (g5.xlarge, A10G) | 3,43 $ (nur p4de mit 8 GPUs) | 6,88 $ (p5.4xlarge) |
+| Google Cloud | 0,71 $ (g2-standard-4) | – | 5,07 $ (a2-ultragpu-1g) | 11,06 $ (A3 mit 8 GPUs, ÷ 8) |
+| Azure | – | 3,20 $ (NV36ads A10 v5) | 3,67 $ (NC24ads A100 v4) | 6,98 $ (NC40ads H100 v5, NVL 94 GB) |
+| Lambda | – | – | 2,79 $ | 3,99 $ |
+| RunPod Community / Secure | – / 0,49 $ | – | 1,39 $ / 1,59 $ | 2,69 $ / 3,49 $ |
+| Vast.ai | ab etwa 0,27 $ | – | ab etwa 0,43 $ | ab etwa 1,47 $ |
+
+Ein Strich bedeutet, dass wir in der Preisliste des Anbieters keine passende Option mit einer einzelnen GPU gefunden haben. Consumer-Karten, Dollar pro Stunde:
+
+| GPU | Vast.ai (günstigstes Angebot) | RunPod Community / Secure | Übliche Spanne auf Vermietungsseiten |
+| --- | --- | --- | --- |
+| RTX 3090 24 GB | 0,11 $ – 0,13 $ | 0,22 $ / 0,50 $ | 0,11 $ – 0,31 $ |
+| RTX 4090 24 GB | 0,31 $ – 0,33 $ | 0,34 $ / 0,74 $ | 0,30 $ – 0,46 $ |
+| RTX 5090 32 GB | 0,41 $ – 0,47 $ | 0,69 $ / 0,99 $ | 0,41 $ – 0,69 $ |
+
+AWS, Google Cloud, Azure und Lambda führen keine RTX-Karten für Endkunden. Die Werte für Vast.ai sind Spannen, weil zwei Abrufe von getdeploying.com am selben Tag leicht unterschiedliche Tiefstpreise ergaben. Das sagt schon einiges über Marktplatzpreise. Die letzte Spalte ist die Spanne, die der [GPUFlow-Leitfaden zur Preisgestaltung für Anbieter](https://docs.gpuflow.app/de/providers/pricing/) im September 2026 bei Vast.ai, RunPod, Salad, SimplePod, TensorDock, Hyperstack und Lambda erhoben hat.
+
+## Was im Stundenpreis steckt
+
+Diese Zahlen beschreiben nicht ganz dasselbe Produkt, und das ist wichtiger als die zweite Nachkommastelle.
+
+Eine Instanz bei einem Hyperscaler enthält neben der GPU noch einiges andere. Die p5.4xlarge von AWS kommt mit 16 vCPUs, 256 GiB RAM und 3,84 TB lokalem NVMe. Die NC24ads A100 v4 von Azure hat 24 vCPUs und 220 GiB RAM. Die Azure-Größe mit voller A10, NV36ads A10 v5, hat 36 vCPUs, 440 GiB RAM und eine GRID-Lizenz für virtuelle Workstations. Das erklärt zum Teil, warum sie das Dreifache dessen kostet, was AWS für eine ähnliche Karte verlangt. Wenn Sie nur die GPU brauchen, zahlen Sie das alles trotzdem mit.
+
+Manche GPUs gibt es nur in großen Maschinen. Bei AWS wird die A100 80 GB als p4de.24xlarge verkauft: acht GPUs, 27,45 $ pro Stunde, keine kleinere Größe. Die A3-High-Maschine mit H100 von Google Cloud in unserer Tabelle ist die a3-highgpu-8g mit 8 GPUs für 88,49 $ pro Stunde. Die Preisliste von Lambda zeigt einen Preis pro GPU, aber die daneben aufgeführten Maschinendaten zur H100 (208 vCPUs, 1.800 GiB RAM) beschreiben ein System mit mehreren GPUs. Prüfen Sie also, welche Größen tatsächlich verfügbar sind, bevor Sie mit 3,99 $ planen.
+
+Marktplatzpreise legt fest, wem die Maschine gehört. Auf Vast.ai setzt jeder Host seinen eigenen Preis, und Speicher und Bandbreite werden pro Angebot separat berechnet. Die Community Cloud von RunPod verbindet unabhängige Anbieter, die Secure Cloud läuft in Rechenzentren der Tier-Stufen 3 und 4. Dieselbe RTX 4090 kostet in der ersten 0,34 $ und in der zweiten 0,74 $.
+
+Was der Stundenpreis nicht enthält (Festplatte, Datenübertragung, Einrichtungszeit, Leerlauf), behandelt [GPU mieten: Was der Stundenpreis verschweigt und was Sie wirklich zahlen](/de/hidden-fees-in-gpu-rental/). Bei einem kleinen Job können diese Posten größer sein als die GPU-Zeit.
+
+## H100-Preise im Vergleich
+
+<figure>
+<svg viewBox="0 0 720 380" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">Balkendiagramm der On-Demand-Preise für eine H100 pro GPU und Stunde im September 2026, von 11,06 Dollar bei Google Cloud bis 1,47 Dollar bei Vast.ai</title>
+<rect x="0" y="0" width="720" height="380" fill="#ffffff"/>
+<text x="20" y="28" fill="#1e1b4b" font-weight="600">Eine H100, On-Demand, Dollar pro GPU-Stunde</text>
+<line x1="190" y1="44" x2="190" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="190" y="336" text-anchor="middle" fill="#64748b" font-size="13">0 $</text>
+<line x1="270" y1="44" x2="270" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="270" y="336" text-anchor="middle" fill="#64748b" font-size="13">2 $</text>
+<line x1="350" y1="44" x2="350" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="350" y="336" text-anchor="middle" fill="#64748b" font-size="13">4 $</text>
+<line x1="430" y1="44" x2="430" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="430" y="336" text-anchor="middle" fill="#64748b" font-size="13">6 $</text>
+<line x1="510" y1="44" x2="510" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="510" y="336" text-anchor="middle" fill="#64748b" font-size="13">8 $</text>
+<line x1="590" y1="44" x2="590" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="590" y="336" text-anchor="middle" fill="#64748b" font-size="13">10 $</text>
+<line x1="670" y1="44" x2="670" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="670" y="336" text-anchor="middle" fill="#64748b" font-size="13">12 $</text>
+<text x="180" y="69" text-anchor="end" fill="#1e1b4b">Google Cloud</text>
+<rect x="190" y="50" width="442.4" height="26" rx="3" fill="#6366f1"/>
+<text x="640.4" y="69" fill="#1e1b4b">11,06 $</text>
+<text x="180" y="107" text-anchor="end" fill="#1e1b4b">Azure (H100 NVL)</text>
+<rect x="190" y="88" width="279.2" height="26" rx="3" fill="#6366f1"/>
+<text x="477.2" y="107" fill="#1e1b4b">6,98 $</text>
+<text x="180" y="145" text-anchor="end" fill="#1e1b4b">AWS</text>
+<rect x="190" y="126" width="275.2" height="26" rx="3" fill="#6366f1"/>
+<text x="473.2" y="145" fill="#1e1b4b">6,88 $</text>
+<text x="180" y="183" text-anchor="end" fill="#1e1b4b">Lambda</text>
+<rect x="190" y="164" width="159.6" height="26" rx="3" fill="#16a34a"/>
+<text x="357.6" y="183" fill="#1e1b4b">3,99 $</text>
+<text x="180" y="221" text-anchor="end" fill="#1e1b4b">RunPod Secure</text>
+<rect x="190" y="202" width="139.6" height="26" rx="3" fill="#16a34a"/>
+<text x="337.6" y="221" fill="#1e1b4b">3,49 $</text>
+<text x="180" y="259" text-anchor="end" fill="#1e1b4b">RunPod Community</text>
+<rect x="190" y="240" width="107.6" height="26" rx="3" fill="#16a34a"/>
+<text x="305.6" y="259" fill="#1e1b4b">2,69 $</text>
+<text x="180" y="297" text-anchor="end" fill="#1e1b4b">Vast.ai (günstigstes)</text>
+<rect x="190" y="278" width="58.8" height="26" rx="3" fill="#16a34a"/>
+<text x="256.8" y="297" fill="#1e1b4b">1,47 $</text>
+<line x1="190" y1="44" x2="190" y2="316" stroke="#64748b" stroke-width="1.5"/>
+<rect x="190" y="352" width="14" height="14" fill="#6366f1"/>
+<text x="212" y="364" fill="#64748b" font-size="13">Hyperscaler</text>
+<rect x="360" y="352" width="14" height="14" fill="#16a34a"/>
+<text x="382" y="364" fill="#64748b" font-size="13">GPU-Clouds und Marktplätze</text>
+</svg>
+<figcaption>On-Demand-Preise für eine einzelne H100, September 2026. Der Preis von Google Cloud ist die A3-Maschine mit 8 GPUs geteilt durch 8. Die Azure-Größe mit einer GPU nutzt die H100 NVL mit 94 GB. Für Vast.ai steht das günstigste Angebot, das getdeploying.com an diesem Tag gemeldet hat.</figcaption>
+</figure>
 
-Die Kosten für GPU-Miete sind für alle, die mit maschinellem Lernen, KI-Forschung oder rechenintensiven Workloads arbeiten, zu einem entscheidenden Faktor geworden. Diese Analyse vergleicht die Preise von fünf großen Anbietern – Enterprise-Cloud-Plattformen und Peer-to-Peer-Marktplätze –, damit Sie auf Basis Ihrer Anforderungen und Ihres Budgets eine fundierte Entscheidung treffen können.
+Das Diagramm ist maßstabsgetreu. Zwei Dinge fallen auf. Die drei großen Clouds liegen bei rund 7 $ pro GPU, Google Cloud mit der A3-Maschine mit 8 GPUs deutlich darüber. Und zwischen AWS und dem günstigsten Angebot auf Vast.ai liegt mehr als Faktor vier, für eine Karte, die dieselben Rechenoperationen ausführt.
 
----
+Was Sie für das zusätzliche Geld bekommen, ist real: ein SLA, Compliance-Unterlagen, den Rest Ihrer Infrastruktur nebenan und einen Supportvertrag. Was Sie auf einem Marktplatz aufgeben, ist ebenso real: Der Host kann ein kleiner Betreiber sein, die Zuverlässigkeit schwankt von Angebot zu Angebot, und es gibt kein SLA. Für ein Experiment am Wochenende gewinnt der Marktplatz klar. Für ein reguliertes Produktivsystem kommt er oft gar nicht in Frage.
 
-## Auf einen Blick
+## Spot- und unterbrechbare Preise
 
-| Bedarf                    | Beste Wahl  | Kosten                 |
-| ------------------------- | ----------- | ---------------------- |
-| **Am günstigsten**        | Vast.ai     | 0,29 $/Std. (RTX 4090) |
-| **Bester Kompromiss**     | RunPod      | 0,59 $/Std. (RTX 4090) |
-| **Enterprise/Compliance** | AWS/Azure   | 3–30+ $/Std.           |
+Jeder Anbieter in diesem Vergleich verkauft freie Kapazität günstiger, mit dem Risiko, dass er sie zurücknimmt.
+
+| Instanz | On-Demand | Spot | Ersparnis |
+| --- | --- | --- | --- |
+| AWS g6.xlarge (1× L4) | 0,805 $ | 0,605 $ | 25 % |
+| AWS g5.xlarge (1× A10G) | 1,006 $ | 0,469 $ | 53 % |
+| AWS p5.4xlarge (1× H100) | 6,88 $ | 2,623 $ | 62 % |
+| Google Cloud g2-standard-4 (1× L4) | 0,707 $ | 0,403 $ | 43 % |
+| Google Cloud a3-highgpu-8g (8× H100) | 88,49 $ | 41,60 $ | 53 % |
+| Azure NC24ads A100 v4 (1× A100 80 GB) | 3,673 $ | 0,679 $ | 82 % |
+| Azure NC40ads H100 v5 (1× H100 NVL) | 6,98 $ | 1,29 $ | 82 % |
 
----
+Die Spot-Preise von Azure stammen aus der Retail-Preis-API, in der die Spot-Tarife für A100 und H100 im Juli und August 2026 in Kraft traten. Der Spot-Tarif der H100 lag unter dem günstigsten On-Demand-Angebot für eine H100, das wir auf den Marktplätzen gefunden haben. Spot-Preise ändern sich oft, und die Verfügbarkeit ist nicht garantiert. Nehmen Sie das also als Momentaufnahme.
 
-## Inhalt
+Auf Vast.ai sind unterbrechbare Instanzen laut Doku „oft 50 %+ günstiger als On-Demand“; getdeploying.com zeigte unterbrechbare Angebote für die RTX 3090 ab 0,08 $. Spot spart nur Geld, wenn Ihr Job Checkpoints schreibt und dort weitermachen kann, wo er aufgehört hat. Sonst bedeutet eine Unterbrechung, dass Sie dieselben Stunden zweimal bezahlen.
 
-- [Zusammenfassung](#zusammenfassung)
-- [Der GPU-Mietmarkt im Überblick](#der-gpu-mietmarkt-im-überblick)
-- [Die Anbieter im Einzelnen](#die-anbieter-im-einzelnen)
-  - [Amazon Web Services (AWS)](#amazon-web-services-aws)
-  - [Microsoft Azure](#microsoft-azure)
-  - [Google Cloud Platform (GCP)](#google-cloud-platform-gcp)
-  - [RunPod](#runpod)
-  - [Vast.ai](#vastai)
-  - [Wo GPUFlow einzuordnen ist](#wo-gpuflow-einzuordnen-ist)
-- [Preistabellen im Vergleich](#preistabellen-im-vergleich)
-- [Funktionsvergleich](#funktionsvergleich)
-- [Kostenbeispiele aus der Praxis](#kostenbeispiele-aus-der-praxis)
-- [Entscheidungshilfe](#entscheidungshilfe)
-- [Häufig gestellte Fragen](#häufig-gestellte-fragen)
-- [Methodik und Quellen](#methodik-und-quellen)
+## Wo GPUFlow einzuordnen ist
 
----
+GPUFlow ist ebenfalls ein Marktplatz, vermietet aber etwas Engeres. Anbieter betreiben KI-Modelle (meist mit Ollama) auf ihren eigenen Linux-Rechnern, und Sie mieten eine dieser GPUs stundenweise und bekommen dafür einen OpenAI-kompatiblen API-Schlüssel (Basis-URL `https://gpuflow.app/v1`, mit `/v1/chat/completions` und `/v1/models`). Es gibt kein SSH, keine Shell und keinen Dateizugriff. Trainieren, Fine-Tuning oder eigener Code sind also nicht möglich. Wenn Sie ein offenes Modell aus einem Skript oder einer App aufrufen wollen, entfällt die Einrichtung komplett: Das Modell ist auf dem Rechner des Anbieters schon installiert.
 
-## Zusammenfassung
+GPUFlow legt keine Preise fest, deshalb gibt es keinen GPUFlow-Preis für die Tabellen. So funktioniert die Preisbildung stattdessen:
 
-Die GPU-Mietpreise im Jahr 2026 liegen je nach Anbietertyp und Hardware weit auseinander. Die Enterprise-Cloud-Anbieter AWS, Azure und GCP verlangen Premiumpreise ab 0,80 $ pro Stunde für Einstiegs-GPUs und über 30 $ pro Stunde für High-End-Konfigurationen. Peer-to-Peer-Marktplätze bieten dieselbe Hardware 60–80 % günstiger an, allerdings mit geringeren Verfügbarkeitsgarantien.
+- Jeder Anbieter legt für sein Angebot einen Stundenpreis in US-Dollar fest. Beim Festlegen zeigt das Formular, wo der Preis im Vergleich zur Spanne auf anderen Vermietungsseiten liegt und was er nach der Gebühr verdient.
+- Sie buchen ganze Stunden, standardmäßig 1 bis 168. Der volle gebuchte Betrag wird beim Start der Miete von Ihren Credits reserviert.
+- Sie zahlen sekundengenau mit 1 Minute Mindestdauer, aufgerundet auf den nächsten Cent ([GPU-Abrechnung pro Sekunde oder pro Stunde](/de/per-second-vs-hourly-gpu-billing/) rechnet das durch). Wenn Sie früher beenden oder die Zeit abläuft, geht der ungenutzte Teil der Reservierung direkt zurück an Ihre Credits.
+- Reagiert der Rechner des Anbieters 10 Minuten lang nicht, endet die Miete, und Sie zahlen nur bis zum letzten Heartbeat des Rechners.
+- Tokens werden gezählt, aber nicht berechnet. Auf der Rechnung gibt es keinen Posten für Festplatte oder Datenübertragung, weil Sie nie eine Maschine bekommen, auf der Sie Dateien ablegen könnten.
+- Credits kaufen Sie per Karte über Stripe, 10 $ bis 500 $ pro Aufladung, ohne Gebühr. 1 Credit entspricht 0,01 $, und Credits verfallen nicht. Anbieter behalten 88 % jeder Abbuchung, GPUFlow behält 12 %.
 
-**Die wichtigsten Ergebnisse dieser Analyse:**
+![GPUFlow-Angebotsformular mit einem Stundenpreis von 0,35 $ und einer Leiste, die ihn mit der Spanne von 0,30 $ bis 0,46 $ für eine RTX 4090 auf anderen Vermietungsseiten vergleicht, dazu die 0,31 $, die der Anbieter nach der Gebühr von 12 % verdient](../_images/screens/de/provider-price-bar.png)
 
-| Anbietertyp                         | Typische A100-Kosten | Am besten geeignet für                              |
-| ----------------------------------- | -------------------- | --------------------------------------------------- |
-| Enterprise-Cloud (AWS, Azure, GCP)  | 25–35 $/Std.         | Compliance, garantierte Verfügbarkeit, Enterprise-Support |
-| Verwalteter Marktplatz (RunPod)     | 1,39–1,89 $/Std.     | Ausgewogenes Verhältnis von Zuverlässigkeit und Kosten |
-| P2P-Marktplatz (Vast.ai)            | 0,84–1,49 $/Std.     | Maximale Ersparnis, flexible Workloads              |
+Einen ausführlicheren Vergleich zwischen der Miete eines API-Schlüssels und der Miete eines Containers finden Sie in [GPUFlow vs. Vast.ai vs. RunPod vs. SaladCloud](/de/gpuflow-vs-vast-ai-vs-runpod/). Wenn Sie GPU-Stundenpreise mit APIs mit Abrechnung pro Token vergleichen, [steht die Rechnung hier](/de/hourly-gpu-vs-per-token-api/).
 
-Welche Wahl am wirtschaftlichsten ist, hängt von drei Faktoren ab: Anforderungen an die Verfügbarkeit, Compliance-Vorgaben und Flexibilität der Workloads. Dieser Leitfaden liefert die konkreten Preisdaten und Entscheidungskriterien, damit Sie die passende Option finden.
+## Rechenbeispiel 1: ein Batch-Job von 3 Stunden auf einer 24-GB-Karte
 
----
+Angenommen, Sie wollen ein offenes 7B- bis 8B-Modell etwa drei Stunden lang über einen Stapel Dokumente laufen lassen. Jede Karte mit 24 GB reicht.
 
-## Der GPU-Mietmarkt im Überblick
+| Option | Rechnung | GPU-Kosten |
+| --- | --- | --- |
+| Vast.ai RTX 4090 | 3 × 0,31 $ | 0,93 $ |
+| RunPod Community RTX 4090 | 3 × 0,34 $ | 1,02 $ |
+| Google Cloud L4 (g2-standard-4) | 3 × 0,707 $ | 2,12 $ |
+| RunPod Secure RTX 4090 | 3 × 0,74 $ | 2,22 $ |
+| AWS L4 (g6.xlarge) | 3 × 0,805 $ | 2,42 $ |
+| AWS A10G (g5.xlarge) | 3 × 1,006 $ | 3,02 $ |
 
-Der GPU-Mietmarkt hat sich in zwei klar getrennte Kategorien aufgeteilt. Enterprise-Cloud-Anbieter betreiben eigene Rechenzentren mit standardisierter Hardware, garantierter Verfügbarkeit und Service-Level-Agreements für Unternehmen. Sie richten sich an Organisationen, die Compliance-Zertifizierungen, planbare Leistung und eigene Supportkanäle brauchen.
+Bei jeder dieser Optionen zahlen Sie außerdem die Einrichtung: Inferenzserver installieren und Modell herunterladen, alles auf bezahlter Zeit. Zwanzig Minuten davon kosten 0,10 $ extra auf der Vast.ai-Karte und 0,27 $ auf der AWS L4.
 
-Peer-to-Peer-Marktplätze gehen einen anderen Weg. Diese Plattformen verbinden private GPU-Besitzer – vom Gaming-Enthusiasten bis zum ehemaligen Kryptominer – mit Nutzern, die Rechenleistung brauchen. Das verteilte Modell spart die Kosten eines Rechenzentrums, gibt deutliche Einsparungen an die Mieter weiter und schafft zugleich Einnahmen für die Hardwarebesitzer.
+Auf GPUFlow nehmen wir als Beispiel ein Angebot zu 0,35 $ pro Stunde (das ist der Preis aus unserem Screenshot, keine Preiszusage). Sie buchen 3 Stunden, also werden 1,05 $ reserviert. Der Job ist nach 2 Stunden 10 Minuten (7.800 Sekunden) fertig, und Sie beenden die Miete. Die Abbuchung beträgt 7.800 × 35 ÷ 3.600 = 75,8 Cent, aufgerundet 0,76 $, und 0,29 $ gehen zurück an Ihre Credits. Das funktioniert nur, wenn ein Anbieter das Modell betreibt, das Sie brauchen.
 
-Keines der beiden Modelle ist grundsätzlich überlegen. Die richtige Wahl hängt von der Art des Workloads ab. Trainingsläufe, die Unterbrechungen verkraften, profitieren von Marktplatzpreisen. Produktive Inferenzsysteme, die eine Verfügbarkeit von 99,999 % brauchen, rechtfertigen den Enterprise-Aufschlag.
+## Rechenbeispiel 2: 8 Stunden Fine-Tuning auf einer A100 80 GB
 
-**Die aktuelle Marktlage begünstigt Mieter.** Das bessere GPU-Angebot von 2024 bis 2026 hat die Preise in allen Anbieterkategorien gedrückt. Der Wettbewerb zwischen den Marktplätzen hat die Preise für Consumer-GPUs unter 0,50 $ pro Stunde sinken lassen. Die Enterprise-Anbieter haben mit flexibleren Laufzeitoptionen und mehr Spot-Instanzen reagiert.
+Für Fine-Tuning brauchen Sie eine Maschine, die Sie selbst steuern. GPUFlow scheidet hier also aus.
 
----
+| Option | Rechnung | Kosten |
+| --- | --- | --- |
+| Vast.ai, günstigstes A100-Angebot | 8 × 0,43 $ | 3,44 $ |
+| RunPod Community A100 SXM | 8 × 1,39 $ | 11,12 $ |
+| RunPod Secure A100 SXM | 8 × 1,59 $ | 12,72 $ |
+| Lambda A100 SXM 80 GB | 8 × 2,79 $ | 22,32 $ |
+| Azure NC24ads A100 v4 | 8 × 3,673 $ | 29,38 $ |
+| Google Cloud a2-ultragpu-1g | 8 × 5,069 $ | 40,55 $ |
+| AWS p4de.24xlarge (8 GPUs) | 8 × 27,45 $ | 219,60 $ |
 
-## Die Anbieter im Einzelnen
+Die Zeile für Vast.ai ist das günstigste A100-Angebot, das getdeploying.com gemeldet hat (eine SXM-Karte in einer Maschine mit 2 GPUs; die Speichergröße war nicht angegeben). Prüfen Sie das Angebot also, bevor Sie mit diesem Preis rechnen. Die AWS-Zeile ist kein Tippfehler: Wenn Sie bei AWS eine A100 80 GB brauchen, mieten Sie acht. Die Lambda-Zeile setzt eine Größe voraus, die Sie tatsächlich bekommen; siehe den Hinweis oben.
 
-### Amazon Web Services (AWS)
+Wenn Ihre Trainingsschleife alle 15 bis 30 Minuten Checkpoints speichert, bringt der Azure-Spot-Preis von 0,679 $ pro Stunde diesen Job auf 5,43 $, allerdings nur, wenn Sie die Kapazität bekommen.
 
-Amazon Web Services bietet GPU-Rechenleistung über EC2-Instanzen an, mit Zugriff auf NVIDIA-Rechenzentrums-GPUs wie V100, A100 und neuere H100. AWS steht für das Premiumsegment der GPU-Miete: Zuverlässigkeit und Integration ins Ökosystem gehen vor Kosteneffizienz.
+## Rechenbeispiel 3: eine L4, die rund um die Uhr Anfragen bedient
 
-**GPU-Instanzen von AWS eignen sich am besten für Organisationen, die bereits fest im AWS-Ökosystem verankert sind** und eine nahtlose Anbindung an S3-Speicher, SageMaker-Pipelines und Sicherheitsframeworks für Unternehmen brauchen. Die Preise spiegeln Zuverlässigkeit auf Rechenzentrumsniveau mit Verfügbarkeits-SLAs von 99,99 % wider.
+Ein kleiner Inferenz-Endpunkt, der einen Monat mit 720 Stunden läuft:
 
-**Aktuelle Preise (Region US East, On-Demand):**
+| Option | Rechnung | Pro Monat |
+| --- | --- | --- |
+| Vast.ai L4, günstigstes Angebot | 720 × 0,27 $ | 194,40 $ |
+| RunPod Secure L4 | 720 × 0,49 $ | 352,80 $ |
+| AWS g6.xlarge, 1 Jahr reserviert | 720 × 0,524 $ | 377,28 $ |
+| Google Cloud g2-standard-4 | 720 × 0,707 $ | 509,04 $ |
+| AWS g6.xlarge, On-Demand | 720 × 0,805 $ | 579,60 $ |
 
-| Instanz      | GPU-Konfiguration | Stundenpreis |
-| ------------ | ----------------- | ------------ |
-| p4d.24xlarge | 8x A100 (40GB)    | 32,77 $      |
-| p3.2xlarge   | 1x V100 (16GB)    | 3,06 $       |
-| p3.8xlarge   | 4x V100 (16GB)    | 12,24 $      |
-| g6.xlarge    | 1x L4 (24GB)      | 0,80 $       |
-| g5.xlarge    | 1x A10G (24GB)    | 1,01 $       |
+Bei dieser Laufzeit zählen die Rabatte für Laufzeitverträge: Der reservierte Tarif von AWS über 1 Jahr liegt für dieselbe Instanz 35 % unter On-Demand. Der Marktplatz ist immer noch am günstigsten, aber ein einzelner Host ist ein Single Point of Failure. Hat der Endpunkt Nutzer, wollen Sie wahrscheinlich zwei Maschinen. Das verdoppelt die Marktplatz-Zeile, und der Abstand ist kleiner, als er aussieht.
 
-**Vorteile:**
+## Wie ich wählen würde
 
-- Enterprise-SLA mit garantierter Verfügbarkeit von 99,99 %
-- Compliance-Zertifizierungen wie SOC2, HIPAA und FedRAMP
-- Weltweit in über 30 Regionen verfügbar
-- Tiefe Integration mit den Machine-Learning-Diensten von AWS
+Für Experimente, Bildgenerierung, LoRA-Training und alles, was Sie neu starten können: eine RTX 3090 oder 4090 vom Marktplatz. Das günstige Ende liegt bei 0,11 $ bis 0,34 $ pro Stunde, und bei den großen Clouds kommt nichts auch nur in die Nähe.
 
-**Einschränkungen:**
+Für ein großes Modell, das eine A100 oder H100 braucht und keinen regulatorischen Vorgaben unterliegt: zuerst RunPod oder Lambda, Vast.ai, wenn Sie bereit sind, den Zuverlässigkeitswert jedes Hosts zu prüfen. Schauen Sie sich vor der Entscheidung die Spot-Preise bei Azure und Google Cloud an; im September 2026 waren sie überraschend konkurrenzfähig.
 
-- Höchstes Preisniveau aller untersuchten Anbieter
-- Keine Consumer-GPUs (keine RTX-Serie)
-- Komplexe Preisstruktur mit zusätzlichen Kosten für Bandbreite und Speicher
-- Nennenswerte Rabatte nur mit Laufzeitbindung über 1–3 Jahre
+Für regulierte Daten, ein Unternehmen, das schon auf AWS, Azure oder Google Cloud läuft, oder alles, was ein SLA braucht: Bleiben Sie in Ihrer Cloud und senken Sie den Preis mit Laufzeitverträgen oder Spot-Kapazität. 7 $ pro Stunde für eine H100 sind oft billiger als die Sicherheitsprüfung eines neuen Anbieters.
 
-**Quelle:** [AWS EC2 – Preise](https://aws.amazon.com/ec2/pricing/on-demand/)
+Wenn Sie ein offenes Modell aus Code aufrufen wollen, ohne einen Server zu betreiben: eine API. Entweder eine API mit Abrechnung pro Token, falls es eine gibt, die das gewünschte Modell hostet, oder eine Stundenmiete auf GPUFlow, wenn Sie einen festen Stundenpreis für das Modell eines bestimmten Anbieters wollen. [Was Sie zum Mieten einer GPU brauchen](/de/what-you-need-to-rent-a-gpu/) erklärt die Seite mit Konto und Zahlung.
 
----
+## Quellen
 
-### Microsoft Azure
+- AWS: [EC2-Preise On-Demand](https://aws.amazon.com/ec2/pricing/on-demand/), [P5-Instanzen](https://aws.amazon.com/ec2/instance-types/p5/), [P4-Instanzen](https://aws.amazon.com/ec2/instance-types/p4/). Stundenpreise aus der Kopie der AWS-Preisliste bei Vantage: [g6.xlarge](https://instances.vantage.sh/aws/ec2/g6.xlarge?region=us-east-1), [g5.xlarge](https://instances.vantage.sh/aws/ec2/g5.xlarge?region=us-east-1), [p5.4xlarge](https://instances.vantage.sh/aws/ec2/p5.4xlarge?region=us-east-1), [p5.48xlarge](https://instances.vantage.sh/aws/ec2/p5.48xlarge?region=us-east-1), [p4de.24xlarge](https://instances.vantage.sh/aws/ec2/p4de.24xlarge?region=us-east-1)
+- Google Cloud: [Preise für beschleunigungsoptimierte VMs](https://cloud.google.com/products/compute/pricing/accelerator-optimized), [Preise für VM-Instanzen](https://cloud.google.com/compute/vm-instance-pricing)
+- Azure: [Preise für Linux-VMs](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/), [Azure-Retail-Preis-API](https://prices.azure.com/api/retail/prices), Größen: [NC A100 v4](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nca100v4-series), [NCads H100 v5](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ncadsh100v5-series), [NVads A10 v5](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvadsa10v5-series)
+- Lambda: [Preise](https://lambda.ai/pricing)
+- RunPod: [Preise](https://www.runpod.io/pricing), [RTX 3090](https://www.runpod.io/gpu-models/rtx-3090), [RTX 4090](https://www.runpod.io/gpu-models/rtx-4090), [RTX 5090](https://www.runpod.io/gpu-models/rtx-5090), [A100 SXM](https://www.runpod.io/gpu-models/a100-sxm), [H100 SXM](https://www.runpod.io/gpu-models/h100-sxm), [Überblick über Pods](https://docs.runpod.io/pods/overview)
+- Vast.ai: [Doku zu Preisen](https://docs.vast.ai/guides/instances/pricing.md). Marktplatzpreise von getdeploying.com: [Vast.ai](https://getdeploying.com/vast-ai), [RTX 3090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-3090), [RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090), [RTX 5090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-5090), [A100](https://getdeploying.com/reference/cloud-gpu/nvidia-a100), [H100](https://getdeploying.com/reference/cloud-gpu/nvidia-h100)
+- GPUFlow: [Den Preis für Ihre GPU festlegen](https://docs.gpuflow.app/de/providers/pricing/), [Abrechnung](https://docs.gpuflow.app/de/renters/billing/), [API-Schnellstart](https://docs.gpuflow.app/de/renters/api-quickstart/), [Marktplatz](https://gpuflow.app/de/marketplace)
 
-Microsoft Azure bietet GPU-Rechenleistung über virtuelle Maschinen der N- und ND-Serie an. Azure hat stark in KI-Infrastruktur investiert, darunter exklusiver Zugang zu bestimmten GPU-Konfigurationen und eine enge Integration mit den Diensten von OpenAI.
-
-**Azure positioniert sich als KI-Plattform für Unternehmen** und bietet besondere Möglichkeiten für Organisationen, die auf dem KI-Stack von Microsoft aufbauen. Durch die Partnerschaft mit OpenAI ist Azure die naheliegende Wahl für Teams, die GPT-basierte Anwendungen mit dedizierter Rechenleistung betreiben.
-
-**Aktuelle Preise (Region East US, On-Demand):**
-
-| Instanz         | GPU-Konfiguration | Stundenpreis |
-| --------------- | ----------------- | ------------ |
-| NC24ads A100 v4 | 1x A100 (80GB)    | 3,67 $       |
-| ND96asr A100 v4 | 8x A100 (80GB)    | 27,20 $      |
-| NC6s v3         | 1x V100 (16GB)    | 3,06 $       |
-| NC4as T4 v3     | 1x T4 (16GB)      | 0,53 $       |
-| ND H100 v5      | 8x H100 (80GB)    | 98,32 $      |
-
-**Vorteile:**
-
-- Exklusiver Zugang zu bestimmten GPU-Konfigurationen
-- Native Integration mit Azure Machine Learning und den Diensten von OpenAI
-- Hybrid-Cloud-Funktionen mit Azure Arc
-- Sicherheits- und Compliance-Rahmen für Unternehmen
-
-**Einschränkungen:**
-
-- Premiumpreise auf dem Niveau von AWS
-- GPU-Verfügbarkeit in beliebten Regionen teils knapp
-- Komplexes Kontingentsystem, größere Instanzen müssen genehmigt werden
-- Keine Consumer-GPUs
-
-**Quelle:** [Azure – Preise für virtuelle Maschinen](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/)
-
----
-
-### Google Cloud Platform (GCP)
-
-Die Google Cloud Platform bietet GPU-Rechenleistung über Compute Engine an: NVIDIA-GPUs werden als Beschleuniger an normale virtuelle Maschinen angehängt. GCP hebt sich durch seine KI/ML-Werkzeuge und den exklusiven Zugang zu TPU-Hardware (Tensor Processing Unit) ab.
-
-**GCP spricht Forschende und Teams an, die auf das Machine-Learning-Ökosystem von Google setzen.** Die Plattform fügt sich nahtlos in Vertex AI, BigQuery und TensorFlow ein und ist damit attraktiv für Organisationen, die bereits den Analytics-Stack von Google nutzen.
-
-**Aktuelle Preise (Region US East, On-Demand):**
-
-| GPU-Modell         | Speicher | Stundenpreis |
-| ------------------ | -------- | ------------ |
-| NVIDIA T4          | 16GB     | 0,35 $       |
-| NVIDIA L4          | 24GB     | 0,56 $       |
-| NVIDIA V100        | 16GB     | 2,48 $       |
-| NVIDIA P100        | 16GB     | 1,46 $       |
-| NVIDIA A100 (40GB) | 40GB     | 2,93 $\*     |
-
-\*Für A100-Preise ist eine beschleunigeroptimierte A2-Maschinenkonfiguration erforderlich
-
-**Vorteile:**
-
-- TPU-Zugang für bestimmte Workloads (sonst nirgends verfügbar)
-- Starke Kubernetes-Integration über GKE
-- Günstige Spot-Preise (60–91 % Rabatt)
-- Enge Integration mit den KI-Diensten von Google
-
-**Einschränkungen:**
-
-- GPU-Verfügbarkeit schwankt stark je nach Zone
-- Zugang zu A100/H100 erfordert eine Kontingentgenehmigung
-- Keine Consumer-GPUs
-- Komplizierte Preisberechnung bei Kombination von GPUs und Rechenressourcen
-
-**Quelle:** [Google Cloud – GPU-Preise](https://cloud.google.com/compute/gpus-pricing)
-
----
-
-### RunPod
-
-RunPod betreibt eine verwaltete GPU-Cloud mit eigener Rechenzentrums-Hardware und Ressourcen aus der Community. Die Plattform ist schnell gewachsen, weil sie einen Mittelweg zwischen Enterprise-Zuverlässigkeit und Marktplatzpreisen bietet.
-
-**RunPod ist ein zugänglicher Einstieg in die GPU-Miete** und verbindet günstige Preise mit einer benutzerfreundlichen Oberfläche. Die Plattform bietet vorkonfigurierte Vorlagen für gängige Frameworks und die Bereitstellung typischer KI-Workloads mit einem Klick.
-
-**Aktuelle Preise (Secure Cloud):**
-
-| GPU-Modell       | Speicher | Stundenpreis |
-| ---------------- | -------- | ------------ |
-| RTX 4090         | 24GB     | 0,59 $       |
-| RTX 3090         | 24GB     | 0,46 $       |
-| A100 PCIe (80GB) | 80GB     | 1,39 $       |
-| A100 SXM (80GB)  | 80GB     | 1,49 $       |
-| H100 PCIe (80GB) | 80GB     | 2,39 $       |
-| L4               | 24GB     | 0,39 $       |
-| RTX A6000        | 48GB     | 0,49 $       |
-
-**Vorteile:**
-
-- Consumer-GPUs verfügbar (RTX 3090, 4090)
-- Sekundengenaue Abrechnung vermeidet unnötige Kosten
-- Fertige Vorlagen für Stable Diffusion, LLMs und andere Workloads
-- Aktive Community und reaktionsschneller Support
-
-**Einschränkungen:**
-
-- Zuverlässigkeit der Community Cloud schwankt je nach Anbieter
-- Kein Enterprise-SLA für die Secure-Cloud-Stufe
-- Geografisch weniger breit aufgestellt als die Hyperscaler
-- Unterbrechungen bei Spot-Instanzen möglich
-
-**Quelle:** [RunPod – Preise](https://www.runpod.io/gpu-instance/pricing)
-
----
-
-### Vast.ai
-
-Vast.ai hat das Modell des Peer-to-Peer-GPU-Marktplatzes begründet: Private GPU-Besitzer und Mieter finden über ein auktionsbasiertes System zusammen. Dank des verteilten Anbieternetzes bietet die Plattform die niedrigsten Preise am Markt.
-
-**Vast.ai holt bei flexiblen Workloads das Maximum an Kosteneffizienz heraus.** Beim Marktplatzmodell schwanken die Preise mit Angebot und Nachfrage. Wer mit wechselnder Verfügbarkeit umgehen kann, spart deutlich.
-
-**Aktuelle Marktplatzpreise (repräsentative Werte):**
-
-| GPU-Modell   | Speicher | Preisspanne      |
-| ------------ | -------- | ---------------- |
-| RTX 4090     | 24GB     | 0,29–0,78 $/Std. |
-| RTX 3090     | 24GB     | 0,40–0,60 $/Std. |
-| RTX 5090     | 32GB     | 0,38–1,08 $/Std. |
-| A100 (80GB)  | 80GB     | 0,84–1,49 $/Std. |
-| H100 (80GB)  | 80GB     | 1,47–2,94 $/Std. |
-| H200 (140GB) | 140GB    | 2,07–5,07 $/Std. |
-
-**Vorteile:**
-
-- Niedrigste Preise am GPU-Mietmarkt
-- Große Hardwareauswahl, einschließlich neuester Consumer-GPUs
-- Transparente Zuverlässigkeitskennzahlen der Anbieter
-- Flexible Mietdauer von Stunden bis Monaten
-
-**Einschränkungen:**
-
-- Schwankende Verfügbarkeit und Preise
-- Zuverlässigkeit der Anbieter zwischen 97 % und 99,9 %
-- Kein garantiertes Verfügbarkeits-SLA
-- Setzt Vertrautheit mit der Dynamik von P2P-Marktplätzen voraus
-
-**Quelle:** [Vast.ai – Marktplatz](https://cloud.vast.ai/)
-
----
-
-### Wo GPUFlow einzuordnen ist
-
-GPUFlow taucht in den folgenden Preistabellen nicht auf, weil hier etwas anderes vermietet wird. Die oben genannten Anbieter vermieten Ihnen eine Maschine oder einen Container. Bei GPUFlow mieten Sie einen OpenAI-kompatiblen API-Schlüssel für KI-Modelle, die bereits auf der Consumer-GPU einer anderen Person laufen, sekundengenau abgerechnet. Eigenes Training oder eigener Code ist damit nicht möglich, dafür müssen Sie nichts einrichten. Die Anbieter legen ihre Stundenpreise selbst fest und behalten 88 %.
-
-Einen direkten Vergleich beider Ansätze finden Sie in [GPUFlow vs. Vast.ai vs. RunPod vs. SaladCloud](/de/gpuflow-vs-vast-ai-vs-runpod/).
-
-**Quelle:** [GPUFlow-Dokumentation](https://docs.gpuflow.app/de/)
-
----
-
-## Preistabellen im Vergleich
-
-### Preise für Consumer-GPUs
-
-Die folgende Tabelle vergleicht die Mietpreise für Consumer-GPUs, die häufig für KI-Training, Bildgenerierung und Inferenz eingesetzt werden.
-
-| GPU              | AWS   | Azure | GCP   | RunPod | Vast.ai     |
-| ---------------- | ----- | ----- | ----- | ------ | ----------- |
-| RTX 4090 (24GB)  | k. A. | k. A. | k. A. | 0,59 $ | 0,29–0,78 $ |
-| RTX 3090 (24GB)  | k. A. | k. A. | k. A. | 0,46 $ | 0,40–0,60 $ |
-| RTX A6000 (48GB) | k. A. | k. A. | k. A. | 0,49 $ | 0,40–0,70 $ |
-
-### Preise für Rechenzentrums-GPUs
-
-Rechenzentrums-GPUs bieten mehr Speicher und höhere Zuverlässigkeit für produktive Workloads.
-
-| GPU         | AWS       | Azure      | GCP    | RunPod      | Vast.ai     |
-| ----------- | --------- | ---------- | ------ | ----------- | ----------- |
-| A100 (40GB) | ~4,10 $\* | k. A.      | 2,93 $ | k. A.       | 0,80–1,20 $ |
-| A100 (80GB) | ~4,10 $\* | 3,67 $     | k. A.  | 1,39–1,49 $ | 0,84–1,49 $ |
-| H100 (80GB) | ~6,90 $\* | ~12,29 $\* | k. A.  | 2,39 $      | 1,47–2,94 $ |
-| V100 (16GB) | 3,06 $    | 3,06 $     | 2,48 $ | k. A.       | 0,70–1,10 $ |
-| L4 (24GB)   | 0,80 $    | k. A.      | 0,56 $ | 0,39 $      | 0,35–0,50 $ |
-
-\*Die Preise für AWS und Azure sind Kosten pro GPU, abgeleitet aus den Preisen von Multi-GPU-Instanzen
-
-### Rangfolge nach Kosteneffizienz
-
-Bei vergleichbarer Rechenleistung ergibt sich folgende Rangfolge nach Kosteneffizienz:
-
-1. **Vast.ai** – niedrigste absolute Preise, schwankende Verfügbarkeit
-2. **RunPod** – bestes Verhältnis von Preis und Zuverlässigkeit
-3. **GCP** – der günstigste unter den Hyperscalern
-4. **Azure** – Enterprise-Preise im Mittelfeld
-5. **AWS** – Premiumpreise, maximale Zuverlässigkeit
-
----
-
-## Funktionsvergleich
-
-Neben dem Preis beeinflussen weitere Faktoren die Wahl des Anbieters. Diese Tabelle fasst die wichtigsten Unterschiede zusammen.
-
-| Merkmal                  | AWS          | Azure        | GCP          | RunPod          | Vast.ai   |
-| ------------------------ | ------------ | ------------ | ------------ | --------------- | --------- |
-| Verfügbarkeits-SLA       | 99,99 %      | 99,95 %      | 99,95 %      | Best Effort     | Community |
-| Consumer-GPUs            | Nein         | Nein         | Nein         | Ja              | Ja        |
-| Einrichtungszeit         | 10–30 Min.   | 10–30 Min.   | 10–30 Min.   | 2–5 Min.        | 2–5 Min.  |
-| Mindestabrechnung        | 1 Minute     | 1 Minute     | 1 Minute     | 1 Sekunde       | 1 Sekunde |
-| Enterprise-Support       | Ja           | Ja           | Ja           | Kostenpflichtig | Nein      |
-| Compliance-Zertifikate   | Umfassend    | Umfassend    | Umfassend    | Begrenzt        | Keine     |
-
----
-
-## Kostenbeispiele aus der Praxis
-
-Abstrakte Preisvergleiche helfen ohne konkreten Workload nur begrenzt weiter. Die folgenden Szenarien zeigen die tatsächlichen Kosten typischer Anwendungsfälle für GPU-Miete.
-
-### Szenario 1: LoRA-Training für Stable Diffusion
-
-Das Training eines eigenen LoRA-Modells für Stable Diffusion dauert auf einer GPU mit 24 GB in der Regel 1–3 Stunden.
-
-**Workload:** 2 Stunden auf einer RTX 4090
-
-| Anbieter | Berechnung                  | Gesamtkosten |
-| -------- | --------------------------- | ------------ |
-| AWS      | k. A. (GPU nicht verfügbar) | —            |
-| Azure    | k. A. (GPU nicht verfügbar) | —            |
-| GCP      | k. A. (GPU nicht verfügbar) | —            |
-| RunPod   | 2 Std. × 0,59 $             | **1,18 $**   |
-| Vast.ai  | 2 Std. × 0,40 $ (Ø)         | **0,80 $**   |
-
-**Empfehlung:** Marktplatzanbieter sparen bei diesem Workload 80–90 % gegenüber Enterprise-Clouds. Consumer-GPUs gibt es bei AWS, Azure und GCP nicht.
-
-### Szenario 2: Feinabstimmung eines LLM
-
-Die Feinabstimmung eines Sprachmodells mit 7 Mrd. Parametern erfordert viel VRAM und Rechenzeit.
-
-**Workload:** 8 Stunden auf einer A100 (80GB)
-
-| Anbieter | Berechnung          | Gesamtkosten  |
-| -------- | ------------------- | ------------- |
-| AWS      | 8 Std. × ~4,10 $    | **~32,80 $**  |
-| Azure    | 8 Std. × 3,67 $     | **29,36 $**   |
-| GCP      | 8 Std. × ~2,93 $    | **~23,44 $**  |
-| RunPod   | 8 Std. × 1,39 $     | **11,12 $**   |
-| Vast.ai  | 8 Std. × 1,10 $ (Ø) | **8,80 $**    |
-
-**Empfehlung:** Marktplatzanbieter senken die Kosten um 60–75 %. RunPod bietet für längere Trainingsläufe das beste Verhältnis von Zuverlässigkeit und Preis.
-
-### Szenario 3: Produktiver Inferenzserver
-
-Ein Inferenz-Endpunkt im 24/7-Betrieb braucht über lange Zeiträume eine verlässliche Verfügbarkeit.
-
-**Workload:** 720 Stunden (1 Monat) auf einer RTX 4090
-
-| Anbieter | Berechnung                  | Gesamtkosten  |
-| -------- | --------------------------- | ------------- |
-| AWS      | k. A. (GPU nicht verfügbar) | —             |
-| Azure    | k. A. (GPU nicht verfügbar) | —             |
-| GCP      | k. A. (GPU nicht verfügbar) | —             |
-| RunPod   | 720 Std. × 0,59 $           | **424,80 $**  |
-| Vast.ai  | 720 Std. × 0,50 $ (Ø)       | **360,00 $**  |
-
-**Empfehlung:** Für produktive Workloads mit hohen Verfügbarkeitsanforderungen bietet die Secure-Cloud-Stufe von RunPod trotz des moderaten Aufpreises mehr Zuverlässigkeit als reine Marktplatzangebote.
-
----
-
-## Entscheidungshilfe
-
-Bei der Wahl eines GPU-Mietanbieters müssen Ihre Anforderungen zu den Fähigkeiten des Anbieters passen. Die folgende Übersicht hilft bei der Entscheidung.
-
-### Wählen Sie AWS, wenn:
-
-- Ihre Organisation bereits AWS-Infrastruktur und entsprechendes Know-how hat
-- Compliance-Vorgaben eine Zertifizierung nach SOC2, HIPAA oder FedRAMP verlangen
-- Ihre Workloads eine garantierte Verfügbarkeit von 99,99 % brauchen
-- Zuverlässigkeit und Support wichtiger sind als das Budget
-- Sie eine Integration mit SageMaker oder anderen KI-Diensten von AWS brauchen
-
-### Wählen Sie Azure, wenn:
-
-- Sie auf dem KI-Stack von Microsoft aufbauen (OpenAI, Azure ML)
-- Hybrid-Cloud-Anforderungen die Einbindung eigener Rechenzentren umfassen
-- Ihre Organisation standardmäßig Enterprise-Werkzeuge von Microsoft nutzt
-- Sie bestimmte GPU-Konfigurationen brauchen, die es nur bei Azure gibt
-
-### Wählen Sie GCP, wenn:
-
-- Ihr Workload TPU-Zugang erfordert
-- Sie stark in das Datenökosystem von Google investiert haben (BigQuery, Vertex AI)
-- TensorFlow Ihr wichtigstes Framework ist
-- Sie die günstigsten Spot-Preise unter den Hyperscalern wollen
-
-### Wählen Sie RunPod, wenn:
-
-- Sie Marktplatzpreise mit der Zuverlässigkeit eines verwalteten Dienstes verbinden wollen
-- Sie Consumer-GPUs brauchen (RTX 4090, 3090)
-- Vorkonfigurierte Vorlagen Ihren Arbeitsablauf beschleunigen würden
-- Sie ein ausgewogenes Verhältnis von Kosten und Support bevorzugen
-
-### Wählen Sie Vast.ai, wenn:
-
-- Der niedrigste Preis Ihr wichtigstes Kriterium ist
-- Ihre Workloads gelegentliche Unterbrechungen verkraften
-- Sie die Zuverlässigkeit einzelner Anbieter selbst bewerten können
-- Geografische Vielfalt oder bestimmte Hardwarekonfigurationen wichtig sind
-
-### Wählen Sie GPUFlow, wenn:
-
-- Sie ein offenes KI-Modell hinter einer OpenAI-kompatiblen API brauchen, keine Maschine
-- Sie keine Treiber, Container oder Inferenzserver einrichten wollen
-- Sie für die gebuchten Stunden sekundengenau zahlen wollen und nicht genutzte Zeit erstattet bekommen möchten
-- Sie keine Modelle trainieren und keinen eigenen Code ausführen müssen
-
----
-
-## Häufig gestellte Fragen
-
-### Wie miete ich eine GPU für KI-Training am günstigsten?
-
-Peer-to-Peer-Marktplätze bieten die niedrigsten GPU-Mietpreise. Im Februar 2026 gab es auf Vast.ai eine RTX 4090 ab 0,29 $ pro Stunde, während vergleichbare Rechenleistung auf verwalteten Plattformen über 1,50 $ und in Enterprise-Clouds über 3 $ kostete. Der Preis dafür: schwankende Verfügbarkeit und eine Zuverlässigkeit, die auf Community-Bewertungen statt auf garantierten SLAs beruht.
-
-### Was kostet die Miete einer NVIDIA A100?
-
-Die Mietkosten für eine A100 unterscheiden sich je nach Anbieter erheblich. Enterprise-Clouds verlangen 3–4 $ pro Stunde für eine einzelne GPU, bündeln aber meist mehrere GPUs zu größeren Instanzen. RunPod bietet die A100 für 1,39–1,49 $ pro Stunde an. Auf Marktplätzen wie Vast.ai gibt es die A100 von privaten Anbietern ab 0,84 $ pro Stunde.
-
-### Ist es günstiger, eine GPU zu mieten als zu kaufen?
-
-Bei gelegentlicher Nutzung ist Mieten wirtschaftlicher. Eine RTX 4090 kostet in der Anschaffung 1.600–2.000 $. Bei Marktplatzpreisen von 0,50–0,80 $ pro Stunde liegt die Gewinnschwelle bei 2.000–4.000 Nutzungsstunden – das entspricht 83–167 Tagen Dauerbetrieb rund um die Uhr. Die meisten Nutzer, die Modelle trainieren oder regelmäßig Inferenzjobs ausführen, erreichen diese Schwelle nicht.
-
-Ein Kauf lohnt sich, wenn Sie die GPU über Monate hinweg täglich mehr als 8 Stunden nutzen oder aus Sicherheits- oder Latenzgründen eigene Hardware brauchen.
-
-### Was unterscheidet Cloud-GPU-Anbieter von GPU-Marktplätzen?
-
-Cloud-GPU-Anbieter (AWS, Azure, GCP) betreiben Rechenzentren mit standardisierten Hardwarekonfigurationen, garantierten Verfügbarkeits-SLAs und Compliance-Zertifizierungen. Ihre Preise spiegeln die Investitionen in Infrastruktur, den Supportaufwand und die Zuverlässigkeitsgarantien wider.
-
-GPU-Marktplätze wie Vast.ai bündeln Rechenressourcen privater Hardwarebesitzer – von Gaming-PCs über ehemalige Mining-Rigs bis zu privaten Rechenzentren. Das Peer-to-Peer-Modell spart die Kosten zentraler Infrastruktur und ermöglicht 60–80 % niedrigere Preise. Die Nachteile: schwankende Verfügbarkeit, uneinheitliche Leistung je nach Anbieter und Support aus der Community statt garantierter Unterstützung.
-
-### Welche GPU sollte ich für Machine-Learning-Training mieten?
-
-Die Wahl der GPU hängt von der Modellgröße und den Trainingsanforderungen ab:
-
-- **LoRA-Feinabstimmung, Stable Diffusion, kleine Modelle:** Die RTX 4090 (24GB) bietet das beste Preis-Leistungs-Verhältnis
-- **LLMs mit 7–13 Mrd. Parametern:** Die A100 (40GB oder 80GB) bietet den nötigen Speicher
-- **Modelle mit 70 Mrd. Parametern und mehr:** H100 (80GB) oder Multi-GPU-Konfigurationen erforderlich
-- **Inferenz-Workloads:** L4- oder T4-GPUs sind eine kostengünstige Option für den Betrieb
-
-Wer in die KI-Entwicklung einsteigt, kann mit einer gemieteten RTX 4090 für 0,50–0,80 $ pro Stunde günstig experimentieren und später bei wachsenden Anforderungen auf Rechenzentrums-GPUs umsteigen.
-
-### Gibt es versteckte Kosten bei der GPU-Miete?
-
-Mehrere Faktoren können die Kosten über den angegebenen Stundenpreis hinaus erhöhen:
-
-- **Speicher:** Viele Anbieter berechnen Speicherplatz über ein kleines Grundkontingent hinaus separat
-- **Bandbreite:** In Enterprise-Clouds fallen Gebühren für Datenübertragung an, meist 0,05–0,15 $ pro GB
-- **Leerlauf:** Bereitgestellte GPUs werden durchgehend abgerechnet – beenden Sie Instanzen rechtzeitig
-- **Einrichtungsaufwand:** Bereitstellung von Vorlagen, Konfiguration der Umgebung und Datenübertragung kosten Zeit ohne Rechenleistung
-- **Plattformgebühren:** Marktplätze behalten 10–30 % der Mieteinnahmen der Anbieter ein, was sich in den Preisen niederschlägt
-
-Marktplätze haben in der Regel transparentere Preise mit weniger Zusatzkosten. Bei Enterprise-Clouds sollten Sie die gesamte Kostenstruktur genau prüfen.
-
----
-
-## Methodik und Quellen
-
-Die Preisdaten dieser Analyse wurden im Februar 2026 direkt auf den Websites und Marktplätzen der Anbieter erhoben. Die Preise der Cloud-Anbieter sind On-Demand-Preise in den US-East-Regionen ohne Rabatte für Laufzeitbindung. Die Marktplatzpreise geben die zum Zeitpunkt der Recherche beobachteten Spannen der verfügbaren Angebote wieder. Zur Einordnung: Ein typischer [Ablauf zur LLM-Feinabstimmung](/de/private-llm-fine-tuning-guide/) mit einem Modell mit 8 Mrd. Parametern kostet auf einer RTX 4090 vom Marktplatz zwischen drei und acht Dollar.
-
-**Primärquellen:**
-
-- [AWS EC2 – On-Demand-Preise](https://aws.amazon.com/ec2/pricing/on-demand/)
-- [Azure – Preise für virtuelle Maschinen](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/)
-- [Google Cloud – GPU-Preise](https://cloud.google.com/compute/gpus-pricing)
-- [RunPod – Preise für GPU-Instanzen](https://www.runpod.io/gpu-instance/pricing)
-- [Vast.ai – Marktplatz](https://cloud.vast.ai/)
-
-Die Preise der Cloud-Anbieter ändern sich häufig. Spot-Instanzen und Rabatte für Laufzeitbindung können die Kosten deutlich unter die hier genannten On-Demand-Preise senken. Marktplatzpreise schwanken mit Angebot und Nachfrage.
-
-Aktuelle Preise finden Sie direkt auf den Websites der Anbieter.
-
----
-
-**Sie brauchen ein KI-Modell über eine API statt einer ganzen Maschine?** Auf [GPUFlow](https://gpuflow.app/de/marketplace) mieten Sie eine GPU stundenweise und erhalten einen OpenAI-kompatiblen API-Schlüssel, sekundengenau abgerechnet. [So funktioniert es](https://docs.gpuflow.app/de/renters/getting-started/).
-
----
-
-_Weitere Leitfäden:_
-
-- [Stable-Diffusion-LoRA-Modelle für unter 10 $ trainieren](/de/stable-diffusion-lora-training-under-10-dollars/)
-- [RunPod vs. Vast.ai: ausführlicher Vergleich für KI-Entwickler](/de/runpod-vs-vastapi-comparison/)
-- [Was eine GPU-Miete wirklich kostet](/de/hidden-fees-in-gpu-rental/)
+Alle geprüft im September 2026.

@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "Una tarjeta gráfica para gaming con tres ventiladores sobre una estantería blanca"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "Ilustración de una tarjeta gráfica junto a pilas de monedas cada vez más altas"
 faq:
   - question: "¿Cuánto puede ganar al mes una RTX 4090 en un marketplace de alquiler de GPU?"
     answer: "Con un precio habitual en septiembre de 2026 de unos 0,38 $ por hora, la comisión del 12 % de GPUFlow y el precio medio de la electricidad en EE. UU., una RTX 4090 deja unos 0,25 $ netos por hora alquilada. Son unos 30 $ al mes si se alquila 4 horas al día y unos 91 $ con 12 horas al día, sin contar la electricidad que consume el resto del PC."

@@ -1,595 +1,343 @@
 ---
-title: "Como treinar LoRA de Stable Diffusion por menos de US$ 10"
-description: "Guia passo a passo para treinar modelos LoRA personalizados de Stable Diffusion em GPUs alugadas. Tutorial completo: escolha da GPU, preparação do dataset, configuração do treinamento e redução de custos."
-excerpt: "Um tutorial prático para treinar modelos LoRA de alta qualidade com GPU alugada. Cobre a escolha do provedor, a configuração e as técnicas para manter o custo total abaixo de US$ 10."
+title: "Treinar uma LoRA de Stable Diffusion por menos de US$ 10 numa GPU alugada"
+description: "Treine uma LoRA de SDXL ou Flux numa RTX 4090 alugada por bem menos de US$ 10: qual GPU escolher pela VRAM, legendas, configurações do sd-scripts e do ai-toolkit e um custo calculado."
+excerpt: "Um treino de LoRA de SDXL numa RTX 4090 alugada custa cerca de US$ 0,35 a US$ 0,80 em setembro de 2026. Aqui está a GPU certa, como preparar e legendar as imagens, o comando de treino exato e para onde o dinheiro vai de fato."
 pubDate: 2026-02-11
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "pt_br"
 category: "tutorials"
 featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/stable-diffusion-lora-training-guide.jpg"
-heroImageAlt: "Placa de vídeo NVIDIA instalada em um rack de servidor, com ventoinhas e iluminação LED à mostra"
+heroImageAlt: "Ilustração de pessoas em volta de um monitor grande com o diagrama de uma rede LoRA, ao lado de um rack de servidores e de um painel que compara imagens de amostra de duas épocas de treino"
 faq:
-  - question: "Posso treinar modelos LoRA na minha própria GPU em vez de alugar?"
-    answer: "Sim, desde que você tenha uma GPU NVIDIA com pelo menos 12 GB de VRAM, como uma RTX 3060 ou superior. Mas o custo de energia, o desgaste do hardware e o tempo de treinamento bem maior em hardware de consumo costumam tornar o aluguel a opção mais econômica para projetos ocasionais."
-  - question: "Quanto tempo leva uma sessão típica de treinamento de LoRA?"
-    answer: "A maioria dos treinamentos de LoRA termina em uma a três horas em uma RTX 4090 ou RTX 3090. A duração exata depende do tamanho do dataset, do número de épocas e do batch size configurado."
-  - question: "Qual é o número mínimo de imagens para treinar um LoRA?"
-    answer: "Dá para conseguir resultados razoáveis com apenas quinze a vinte imagens. Mas datasets com trinta a cem imagens bem legendadas costumam render mais qualidade. A qualidade das imagens e a precisão das legendas importam mais do que a quantidade."
-  - question: "Qual provedor de aluguel de GPU tem o melhor custo-benefício para treinar LoRA?"
-    answer: "A Vast.ai costuma ter os menores preços por hora para a RTX 4090. A RunPod tem a interface mais simples para quem está começando a alugar GPU, com templates prontos."
-  - question: "Compensa treinar vários modelos LoRA em uma única sessão?"
-    answer: "Sim. Treinar vários LoRAs em lote em uma sessão mais longa elimina a configuração repetida e reduz as cobranças por GPU ociosa. Treinar de três a cinco modelos LoRA em uma sessão de quatro horas costuma custar menos da metade do que você gastaria treinando cada um separadamente."
+  - question: "Quanto custa treinar uma LoRA numa GPU alugada?"
+    answer: "Em setembro de 2026, uma RTX 4090 custava cerca de US$ 0,31 por hora no Vast.ai e US$ 0,74 por hora na página de preços do RunPod. Uma sessão de LoRA de SDXL de uns 65 minutos, contando preparação e testes, custa portanto de US$ 0,34 a US$ 0,80."
+  - question: "Quanta VRAM é preciso para treinar uma LoRA de SDXL?"
+    answer: "A documentação do sd-scripts diz que dá para treinar uma LoRA de SDXL com 8 GB de memória de GPU, sendo 10 GB o recomendado, se você treinar só a U-Net, fizer cache dos latents e das saídas do text encoder e usar gradient checkpointing. Uma placa de 24 GB, como a RTX 3090 ou a 4090, permite treinar em 1024x1024 sem brigar com o limite de memória."
+  - question: "Dá para treinar uma LoRA de Flux numa RTX 4090?"
+    answer: "Dá. O ai-toolkit traz configurações de exemplo para o FLUX.1 com nomes de placas de 24 GB, e o sd-scripts lista configurações para o FLUX.1 até 8 GB usando block swapping. O próprio guia da Black Forest Labs diz que um treino de LoRA do FLUX.2 [klein] com 1.800 passos numa RTX 4090 leva menos de uma hora."
+  - question: "Quantas imagens são necessárias para treinar uma LoRA?"
+    answer: "Para um personagem, objeto ou estilo, de 15 a 40 boas imagens é a faixa comum; a Black Forest Labs sugere de 15 a 40 imagens com o mesmo visual para o FLUX.2 [klein]. Imagens nítidas, variadas e bem legendadas importam mais do que a quantidade."
+  - question: "O que é melhor para treinar LoRA: kohya_ss, OneTrainer ou ai-toolkit?"
+    answer: "Os três funcionam. O sd-scripts do kohya é a referência em linha de comando e o kohya_ss coloca uma interface web por cima dele; o OneTrainer tem interface desktop e legendagem embutida; o ai-toolkit tem interface web, um template oficial no RunPod e suporte rápido a modelos novos como FLUX.2 e Qwen-Image."
+  - question: "Dá para treinar uma LoRA no GPUFlow?"
+    answer: "Não. O GPUFlow aluga uma API de chat compatível com a OpenAI rodando na GPU de um provedor, sem shell, SSH nem acesso a arquivos, então não há como rodar um script de treino ali. Use uma plataforma que alugue a máquina, como o Vast.ai ou o RunPod."
 ---
 
-Treinar modelos LoRA personalizados para Stable Diffusion virou uma das formas mais acessíveis de criar imagens de IA sob medida. Seja para reproduzir um estilo artístico específico, gerar rostos de personagens consistentes ou ajustar o modelo para fotografia de produto, o treinamento de LoRA permite chegar lá sem o custo computacional de um fine-tuning completo do modelo.
+Treinar uma LoRA de SDXL ou de um modelo Flux pequeno numa GPU alugada custa bem menos de US$ 10. Em setembro de 2026, uma RTX 4090 sai por cerca de US$ 0,31 por hora no Vast.ai e US$ 0,74 por hora no RunPod, e uma sessão de LoRA de SDXL, com preparação e testes, leva pouco mais de uma hora. São US$ 0,34 a US$ 0,80 por tentativa, então um orçamento de US$ 10 dá para uma dúzia delas.
 
-A ideia comum é que isso exige um hardware local caro ou um orçamento considerável de nuvem. Nenhuma das duas coisas é verdade. Com os preços atuais de aluguel de GPU e configurações de treinamento eficientes, você consegue treinar modelos LoRA com qualidade de produção por menos de dez dólares, muitas vezes bem menos.
+O dinheiro não é a parte difícil. As imagens, as legendas e saber a hora de parar são. Este guia cobre tudo isso, com comandos para copiar e colar. Preços e versões das ferramentas foram conferidos em setembro de 2026; as fontes estão no final.
 
-Este guia percorre o processo completo: escolher o hardware adequado, preparar o dataset, configurar os parâmetros, executar o treinamento e validar os resultados. Vou ser específico sobre os custos em cada etapa, porque promessas vagas de "treinamento de IA acessível" não ajudam ninguém a montar o orçamento de um projeto real.
+## O fluxo em cinco etapas
 
-**O que você precisa antes de começar:**
+<figure>
+<svg viewBox="0 0 720 250" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">Fluxo de treino de LoRA: dataset, legendas, treino, teste e uso, com uma volta ao dataset quando o resultado sai errado</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6366f1"/></marker></defs>
+<rect width="720" height="250" fill="#ffffff"/>
+<line x1="20" y1="40" x2="280" y2="40" stroke="#16a34a" stroke-width="2"/>
+<text x="150" y="30" text-anchor="middle" fill="#16a34a" font-size="13">Grátis: no seu próprio PC</text>
+<line x1="300" y1="40" x2="560" y2="40" stroke="#f97316" stroke-width="2"/>
+<text x="430" y="30" text-anchor="middle" fill="#f97316" font-size="13">Cobrado: na GPU alugada</text>
+<rect x="20" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="80" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">Dataset</text>
+<text x="80" y="112" text-anchor="middle" fill="#64748b" font-size="13">15–40 imagens</text>
+<rect x="160" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="220" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">Legendas</text>
+<text x="220" y="112" text-anchor="middle" fill="#64748b" font-size="13">um .txt cada</text>
+<rect x="300" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="360" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">Treino</text>
+<text x="360" y="112" text-anchor="middle" fill="#64748b" font-size="13">sd-scripts</text>
+<rect x="440" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="500" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">Teste</text>
+<text x="500" y="112" text-anchor="middle" fill="#64748b" font-size="12">grade de amostras</text>
+<rect x="580" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="640" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">Uso</text>
+<text x="640" y="112" text-anchor="middle" fill="#64748b" font-size="13">ComfyUI, Forge</text>
+<line x1="140" y1="95" x2="158" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="280" y1="95" x2="298" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="420" y1="95" x2="438" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="560" y1="95" x2="578" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<path d="M500,130 L500,180 L80,180 L80,134" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#d1-arrow)"/>
+<text x="290" y="205" text-anchor="middle" fill="#1e1b4b" font-size="13">Não ficou bom? Corrija as imagens ou as legendas e treine de novo</text>
+<text x="360" y="235" text-anchor="middle" fill="#64748b" font-size="13">A maior parte da qualidade vem das duas primeiras caixas, que não custam nada</text>
+</svg>
+<figcaption>Monte o dataset e as legendas antes de alugar. A GPU só é cobrada pelo treino e pelos testes, e um resultado ruim normalmente manda você de volta às imagens, não às configurações.</figcaption>
+</figure>
 
-- De vinte a cem imagens de treinamento (os critérios de seleção estão mais abaixo)
-- Familiaridade básica com a linha de comando
-- Um cartão para adicionar crédito em uma plataforma de aluguel de GPU
-- Cerca de duas a quatro horas de tempo dedicado
-- Um orçamento de cinco a quinze dólares para o primeiro treinamento
+## O que é uma LoRA e por que ela sai barata
 
-![Interior de um data center moderno com fileiras de servidores de GPU de alto desempenho usados em cargas de machine learning](../_images/data-center-with-person.jpg)
+A LoRA (Low-Rank Adaptation) congela o modelo base e treina duas matrizes pequenas ao lado de algumas das camadas dele. O artigo original relatou uma redução de 10.000 vezes nos parâmetros treináveis e de 3 vezes na memória de GPU em comparação com o fine-tuning completo do GPT-3 175B. Modelos de imagem funcionam do mesmo jeito: o checkpoint base do SDXL é um arquivo de 6,9 GB, enquanto a LoRA que você treina é um arquivo pequeno e separado, carregado por cima dele com a intensidade que você quiser.
 
----
+É por isso que uma única GPU doméstica basta, e por isso que um treino leva dezenas de minutos, e não dias.
 
-## Sumário
+## Escolha a GPU pela VRAM
 
-- [Entendendo o LoRA e por que ele importa](#entendendo-o-lora-e-por-que-ele-importa)
-- [Como escolher a GPU certa para o treinamento](#como-escolher-a-gpu-certa-para-o-treinamento)
-- [Comparação de provedores de aluguel de GPU](#comparação-de-provedores-de-aluguel-de-gpu)
-- [Como preparar o dataset de treinamento](#como-preparar-o-dataset-de-treinamento)
-- [Como configurar o ambiente de treinamento](#como-configurar-o-ambiente-de-treinamento)
-- [Configuração dos parâmetros de treinamento](#configuração-dos-parâmetros-de-treinamento)
-- [Execução do treinamento](#execução-do-treinamento)
-- [Validação e testes do seu LoRA](#validação-e-testes-do-seu-lora)
-- [Estratégias para reduzir custos](#estratégias-para-reduzir-custos)
-- [Problemas comuns e soluções](#problemas-comuns-e-soluções)
-- [Perguntas frequentes](#perguntas-frequentes)
+A VRAM decide o que você consegue treinar. A velocidade decide quantos minutos cobrados o treino leva, então uma placa mais rápida e mais cara por hora pode acabar custando mais ou menos o mesmo por treino.
 
----
+| Família de modelos | Mínimo documentado | Com folga | Observações |
+| --- | --- | --- | --- |
+| SD 1.5 | 8 GB | 12 GB+ | Treina em 512x512, o mais barato e rápido |
+| SDXL | 8 GB (10 GB recomendados) | 24 GB | Só a U-Net, com cache dos latents e das saídas do text encoder |
+| FLUX.1 [dev] (12B) | 8 GB com muito block swapping | 24 GB | O sd-scripts lista configurações para 24, 16, 12, 10 e 8 GB |
+| FLUX.2 [klein] 4B/9B | não informado | 24 GB | BFL: cerca de 13 GB de pesos em bf16, um treino de LoRA cabe em menos de 24 GB |
 
-## Entendendo o LoRA e por que ele importa
+As configurações de pouca VRAM funcionam, mas são lentas. Trocar blocos do transformer entre a GPU e a RAM do sistema é como o sd-scripts faz o FLUX.1 caber em 8 a 16 GB, e cada troca custa tempo que você paga. Numa máquina alugada, uma placa de 24 GB é o padrão sensato: uma RTX 3090 ou 4090. A RTX 5090 (32 GB) também serve, mas o sd-scripts avisa que ela precisa do PyTorch 2.8.0 com CUDA 12.8 ou 12.9, então confira se o seu template traz um stack recente o bastante.
 
-LoRA, sigla de Low-Rank Adaptation, é uma técnica de fine-tuning de redes neurais grandes que treina um pequeno número de parâmetros adicionais em vez de modificar o modelo inteiro. O modelo original do Stable Diffusion tem quase um bilhão de parâmetros. Um fine-tuning completo exigiria modificar todos eles, com muita memória de GPU e longas horas de treinamento.
+![Uma placa de vídeo ASUS TUF com três ventoinhas, em pé numa prateleira branca](../_images/test-hero.jpg)
 
-O LoRA contorna esse problema congelando os pesos originais do modelo e treinando pequenas matrizes adaptadoras que alteram a forma como o modelo processa a informação. Um arquivo LoRA típico tem entre dez e duzentos megabytes, contra dois a seis gigabytes de um checkpoint completo do Stable Diffusion.
+Placas de data center são mais rápidas, mas o RunPod lista uma A100 80 GB a US$ 1,59 por hora, mais do que o dobro de uma 4090. Para uma LoRA com 20 ou 30 imagens, a velocidade extra raramente compensa; elas fazem mais sentido para datasets grandes ou fine-tuning completo.
 
-As consequências práticas são grandes:
+## Onde alugar e quanto custa
 
-**Eficiência de memória.** Treinar um LoRA exige muito menos VRAM do que um fine-tuning completo. Uma GPU de 24 GB treina LoRAs para modelos SDXL com folga, enquanto o fine-tuning completo exigiria 40 GB ou mais.
+Você precisa de uma plataforma que entregue uma máquina: um shell ou um notebook Jupyter, um disco e um jeito de copiar arquivos para dentro e para fora. Vast.ai e RunPod são as duas escolhas mais comuns para esse tipo de trabalho.
 
-**Velocidade de treinamento.** Como você treina menos parâmetros, cada época termina mais rápido. O que levaria doze horas em um fine-tuning completo muitas vezes sai em noventa minutos com LoRA.
+| GPU | VRAM | Vast.ai (a partir de) | Página de preços do RunPod | Mais barato rastreado no RunPod |
+| --- | --- | --- | --- | --- |
+| RTX 3090 | 24 GB | cerca de US$ 0,11–0,13/h | US$ 0,50/h | US$ 0,22/h |
+| RTX 4090 | 24 GB | cerca de US$ 0,31–0,33/h | US$ 0,74/h | US$ 0,34/h |
+| RTX 5090 | 32 GB | cerca de US$ 0,41–0,47/h | US$ 0,99/h | US$ 0,69/h |
 
-**Combinação.** Vários LoRAs podem ser combinados na hora da inferência. Você pode usar um LoRA para o estilo artístico e outro para a consistência do personagem, misturando os dois com intensidades diferentes sem precisar treinar de novo.
+Preços de setembro de 2026. "Vast.ai (a partir de)" e "Mais barato rastreado no RunPod" vêm do rastreador de preços do getdeploying.com; a coluna do meio é a página de preços do próprio RunPod. No Vast.ai, cada host define o próprio preço, então as ofertas que você vê variam conforme a localização e a nota de confiabilidade.
 
-**Armazenamento e distribuição.** Arquivos pequenos tornam os LoRAs fáceis de compartilhar e manter. Dá para guardar dezenas de LoRAs especializados sem se preocupar com espaço.
+As duas cobram por segundo. Os extras são diferentes e pesam mais num trabalho de uma hora do que o preço por hora sugere:
 
-É essa redução de custo que torna possível treinar por menos de dez dólares. Você aluga um hardware caro por uma a três horas, e não por oito a vinte e quatro.
+- **Vast.ai** cobra armazenamento "enquanto a sua instância existir, qualquer que seja o estado dela", e cobra banda por byte, a uma tarifa definida por cada host. Baixar um modelo base de 7 GB num host com banda cara soma. Apague a instância, não se limite a pará-la.
+- **RunPod** cobra US$ 0,10 por GB por mês pelo container disk enquanto o pod roda, nada por ele depois de parado, e US$ 0,20 por GB por mês por um volume disk parado. Não cobra entrada nem saída de dados.
 
----
+As duas têm templates prontos. O autor do ai-toolkit mantém um template oficial no RunPod, e o README do kohya_ss lista o RunPod como ambiente suportado. Um template poupa dez minutos ou mais instalando o PyTorch em tempo cobrado. Para uma comparação de preços mais ampla, veja [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/pt_br/gpuflow-vs-vast-ai-vs-runpod/) e [os custos escondidos do aluguel de GPU](/pt_br/hidden-fees-in-gpu-rental/).
 
-## Como escolher a GPU certa para o treinamento
+## Prepare o dataset e as legendas
 
-Escolher a GPU é equilibrar três fatores: capacidade de VRAM, velocidade de treinamento e preço do aluguel. A opção mínima viável e a escolha ideal são bem diferentes.
+Faça tudo isso no seu próprio computador, antes de alugar qualquer coisa.
 
-### Requisitos de VRAM
+### Imagens
 
-Para treinar LoRA de Stable Diffusion 1.5, 12 GB de VRAM é o mínimo na prática. Dá para fazer funcionar com 8 GB reduzindo o batch size e a resolução, mas a qualidade do treinamento costuma sofrer.
+- **Quantidade.** De 15 a 40 imagens para uma pessoa, objeto ou estilo. A Black Forest Labs recomenda "15–40 imagens com o mesmo visual" para o FLUX.2 [klein]. Mais não é melhor se as imagens extras forem piores.
+- **Consistência e variedade.** Toda imagem precisa mostrar o conceito. O resto deve variar: ângulo, luz, fundo, enquadramento. Se todas as fotos do seu produto estão na mesma mesa branca, a LoRA aprende a mesa.
+- **Qualidade.** Nítidas, bem expostas, sem marca d'água nem texto por cima. A LoRA aprende ruído e blocos de JPEG com a mesma fidelidade que o resto.
+- **Resolução.** Pelo menos 1024 pixels no lado menor para SDXL e Flux, 512 para SD 1.5. Não precisa recortar em quadrados: com o bucketing ativado, o sd-scripts agrupa as imagens por proporção.
 
-Para LoRA de SDXL, o mínimo é 16 GB, e 24 GB é o fortemente recomendado. Os modelos SDXL são maiores e mais exigentes. Tentar treinar SDXL com VRAM insuficiente gera troca constante de memória, deixa o processo muito mais lento e muitas vezes faz o treinamento falhar.
+### Legendas
 
-### Velocidade versus custo
+Cada imagem recebe um arquivo de texto com o mesmo nome (`photo01.jpg`, `photo01.txt`). A legenda diz ao modelo o que já está explicado em palavras, para que a LoRA aprenda o que não está. Coloque primeiro uma palavra-gatilho rara e depois descreva tudo o que você quer que continue mudável:
 
-GPUs mais caras treinam mais rápido, mas o aumento do preço por hora nem sempre reduz o custo total do projeto na mesma proporção. Veja esta comparação para o treinamento de um LoRA típico de SD 1.5:
-
-| GPU         | VRAM  | Tempo aproximado de treinamento | Preço típico por hora | Custo total estimado |
-| ----------- | ----- | ------------------------------- | --------------------- | -------------------- |
-| RTX 3090    | 24 GB | 2,5 horas                       | US$ 0,50              | US$ 1,25             |
-| RTX 4090    | 24 GB | 1,5 hora                        | US$ 0,70              | US$ 1,05             |
-| RTX A6000   | 48 GB | 1,5 hora                        | US$ 0,80              | US$ 1,20             |
-| A100 (40GB) | 40 GB | 1,0 hora                        | US$ 1,50              | US$ 1,50             |
-
-A RTX 4090 costuma ter o melhor custo-benefício. Ela treina quase tão rápido quanto GPUs de data center, com preço por hora bem menor. A RTX 3090 continua sendo uma opção viável quando a 4090 está em falta, com custo total só um pouco maior.
-
-Para LoRA de SDXL, a conta muda um pouco, porque o modelo maior se beneficia mais de VRAM extra e de largura de banda de memória. A A100 fica mais competitiva em projetos SDXL complexos, que em hardware de consumo poderiam levar quatro horas ou mais.
-
-Para uma análise completa dos preços de aluguel de GPU em todos os grandes provedores, incluindo nuvens corporativas e marketplaces, veja nossa [comparação completa de preços de aluguel de GPU em 2026](/pt_br/gpu-rental-pricing-comparison-2026/).
-
-![Placa de vídeo NVIDIA RTX 4090 com três ventoinhas, muito usada para treinar modelos de IA](../_images/test-hero.jpg)
-
----
-
-## Comparação de provedores de aluguel de GPU
-
-Dois provedores merecem atenção para treinar LoRA. Cada um tem características próprias, que pesam de acordo com a sua familiaridade técnica e a sua sensibilidade a preço.
-
-### Vast.ai
-
-A Vast.ai opera um marketplace peer-to-peer em que donos de GPU anunciam o próprio hardware para aluguel. Esse modelo gera os menores preços do mercado, com RTX 4090 frequentemente disponíveis entre US$ 0,35 e US$ 0,60 por hora.
-
-A contrapartida é a variabilidade. A confiabilidade vai de 97% a 99,9%, dependendo do host. A disponibilidade oscila conforme a demanda. Talvez você precise testar vários hosts até achar um com velocidade de rede aceitável para enviar o dataset.
-
-Para usuários experientes, que sabem avaliar as métricas dos hosts, a Vast.ai oferece o menor custo de treinamento possível. Reserve uns trinta minutos a mais para a configuração inicial e a avaliação do host.
-
-### RunPod
-
-A RunPod se posiciona entre os marketplaces puros e os provedores de nuvem corporativa. A plataforma oferece tanto GPUs da comunidade quanto instâncias dedicadas "Secure Cloud", com desempenho mais consistente.
-
-O preço é um pouco mais alto que o da Vast.ai, normalmente US$ 0,59 por hora para uma RTX 4090 no nível Secure Cloud. Em troca, a configuração é mais fácil, há templates prontos para as cargas de IA mais comuns e a disponibilidade é mais previsível.
-
-Para quem está começando a alugar GPU ou prefere uma interface simples a espremer cada centavo, a RunPod é um meio-termo razoável.
-
-### Uma observação sobre a GPUFlow
-
-A GPUFlow não serve para treinar LoRA. Ela aluga acesso a modelos de chat de IA por meio de uma API compatível com a OpenAI, não uma máquina em que você possa rodar scripts de treinamento. Para treinar, use uma plataforma que entregue a máquina, como as duas acima. Veja [GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/pt_br/gpuflow-vs-vast-ai-vs-runpod/) para entender como as abordagens se diferenciam.
-
-### Resumo dos provedores
-
-| Provedor | Faixa de preço da RTX 4090 | Tempo de configuração | Formas de pagamento | Indicado para            |
-| -------- | -------------------------- | --------------------- | ------------------- | ------------------------ |
-| Vast.ai  | US$ 0,35-0,60/h            | 5-15 minutos          | Cartão, cripto      | Máxima economia          |
-| RunPod   | US$ 0,59/h (Secure Cloud)  | 2-5 minutos           | Cartão, cripto      | Facilidade de uso        |
-
-Preços de fevereiro de 2026. Em setembro de 2026, vimos RTX 4090 a partir de cerca de US$ 0,37 por hora na Vast.ai e US$ 0,74 na RunPod Secure Cloud; veja [nossa comparação atualizada](/pt_br/gpuflow-vs-vast-ai-vs-runpod/).
-
----
-
-## Como preparar o dataset de treinamento
-
-A qualidade do dataset define o resultado do treinamento mais do que qualquer outro fator. Um conjunto de trinta imagens escolhidas com cuidado rende mais do que uma coleção de duzentas montada às pressas.
-
-### Critérios para escolher as imagens
-
-**Consistência.** Todas as imagens devem representar o conceito que você quer que o modelo aprenda. Se o treinamento for do rosto de uma pessoa específica, todas as imagens devem mostrar esse rosto com clareza. Se for de um estilo artístico, todas devem ser exemplos desse estilo.
-
-**Variedade dentro da consistência.** Mantendo a consistência do conceito, varie os aspectos técnicos. Inclua ângulos, iluminações, fundos e contextos diferentes. Essa variedade ensina o modelo a generalizar em vez de ficar preso (overfitting) a composições específicas.
-
-**Qualidade técnica.** Use imagens nítidas e bem expostas. Borrão de movimento, ruído, artefatos de compressão e iluminação ruim viram parte do que o modelo aprende. Se as imagens de treinamento tiverem granulação, as imagens geradas vão tender a ter granulação também.
-
-**Resolução.** As imagens de treinamento devem ter pelo menos 512x512 pixels para SD 1.5 e pelo menos 1024x1024 para SDXL. Imagens de origem com resolução maior permitem que o pipeline de treinamento recorte e redimensione sem perder qualidade.
-
-### Tamanho do dataset
-
-O tamanho ideal do dataset depende da complexidade do conceito:
-
-**Conceitos simples (um único rosto, estilo básico):** 20-40 imagens
-**Conceitos intermediários (personagem com várias roupas, estilo com nuances):** 40-80 imagens
-**Conceitos complexos (ambiente detalhado, estilo muito variável):** 80-150 imagens
-
-Mais imagens exigem mais passos de treinamento, o que aumenta tempo e custo. Nas primeiras tentativas, comece pelo limite inferior dessas faixas.
-
-### Legendas das imagens
-
-Cada imagem de treinamento precisa de uma legenda em texto que descreva o seu conteúdo. As legendas ensinam ao modelo quais conceitos textuais associar aos padrões visuais.
-
-Legendas eficientes são específicas e consistentes:
-
-**Legenda ruim:** "a woman"
-**Legenda melhor:** "a photograph of Sarah Miller, a woman with short brown hair and green eyes, wearing a blue sweater"
-
-**Legenda ruim:** "fantasy art"
-**Legenda melhor:** "a digital painting in the style of luminescent fantasy, featuring glowing mushrooms in a dark forest, detailed linework, vibrant purple and blue color palette"
-
-A palavra ou expressão de ativação (trigger word) que você pretende usar na inferência deve aparecer em todas as legendas. Se você quer acionar o LoRA com "in the style of luminescent fantasy", essa expressão exata precisa estar em cada legenda de treinamento.
-
-Em datasets pequenos, dá para legendar à mão. Em coleções maiores, ferramentas como BLIP ou WD14 Tagger geram legendas iniciais que você depois revisa e refina.
-
-![Estrutura de pastas organizada mostrando as imagens de treinamento ao lado dos arquivos de texto com as legendas correspondentes para o treinamento de LoRA](../_images/file-folder-organization.png)
-
-### Estrutura de diretórios
-
-Organize os dados de treinamento na estrutura específica que os scripts esperam:
-
-```
-training_data/
-├── 10_concept_name/
-│   ├── image001.jpg
-│   ├── image001.txt
-│   ├── image002.jpg
-│   ├── image002.txt
-│   └── ...
+```text
+zxq_mug, a ceramic coffee mug on a wooden desk, morning light from the left, shallow depth of field
 ```
 
-O prefixo do nome da pasta (o "10" neste exemplo) indica quantas vezes cada imagem daquela pasta será repetida durante o treinamento. Números maiores aumentam o peso dessas imagens no processo.
+Duas ferramentas escrevem um primeiro rascunho para você:
 
-O nome separado por sublinhado que vem depois do número vira a trigger word padrão, caso você não use legendas personalizadas.
+- **WD14 tagger**, incluído no sd-scripts, gera tags separadas por vírgula. Bom para modelos de estilo anime e fine-tunes de SDXL treinados com tags:
 
----
+  ```bash
+  python finetune/tag_images_by_wd14_tagger.py --onnx \
+    --repo_id SmilingWolf/wd-swinv2-tagger-v3 --batch_size 4 /workspace/dataset/img
+  ```
 
-## Como configurar o ambiente de treinamento
+- **JoyCaption**, um modelo aberto (Apache 2.0) de legendagem feito para treinar modelos de difusão, escreve frases em linguagem natural, que combinam melhor com o Flux do que tags. O README diz que ele precisa de cerca de 17 GB de VRAM em bf16, com versões de 8 e 4 bits para placas menores.
 
-Com o dataset pronto e a GPU alugada, o próximo passo é configurar o ambiente de treinamento. O conjunto de ferramentas padrão para treinar LoRA é o kohya_ss/sd-scripts, uma coleção open source de scripts de treinamento mantida pela comunidade.
+O OneTrainer também tem legendagem embutida com BLIP, BLIP2 e WD-1.4. Seja qual for a ferramenta do rascunho, leia cada legenda e corrija. É a meia hora mais valiosa do projeto inteiro.
 
-### Configuração inicial do ambiente
+## Escolha um trainer
 
-Depois de se conectar à instância de GPU alugada, você precisa clonar o repositório de treinamento e instalar as dependências. Os comandos a seguir montam o ambiente básico:
+Quatro ferramentas atendem quase todo mundo. Todas são gratuitas e de código aberto.
+
+| Ferramenta | Interface | Modelos (setembro de 2026) | Indicado para |
+| --- | --- | --- | --- |
+| kohya-ss/sd-scripts | Linha de comando | SD 1.x/2.x, SDXL, SD3/3.5, FLUX.1, Lumina, HunyuanImage-2.1, Anima | Treinos reproduzíveis, controle total |
+| bmaltais/kohya_ss | Interface web sobre o sd-scripts | Os mesmos do sd-scripts | sd-scripts sem decorar flags |
+| Nerogar/OneTrainer | Interface desktop e CLI | SD 1.5 a 3.5, SDXL, FLUX.1, FLUX.2, Chroma, Qwen Image e outros | Legendagem e máscaras embutidas |
+| ostris/ai-toolkit | Interface web e configs YAML | SD 1.5, SDXL, FLUX.1, FLUX.2, Qwen-Image, vídeo Wan e outros | Flux e modelos mais novos, template no RunPod |
+
+O sd-scripts está na versão 0.11.1 (junho de 2026), é testado com Python 3.10 e precisa do PyTorch 2.6.0 ou mais recente. O ai-toolkit recomenda Python 3.12 e hoje instala o PyTorch 2.13.0 compilado para CUDA 13.0. O OneTrainer precisa de Python 3.10 a 3.13.
+
+Eu uso o sd-scripts para SDXL, porque a linha de comando é a configuração inteira, o que facilita repetir e comparar treinos, e o ai-toolkit para Flux.
+
+## Treine uma LoRA de SDXL com o sd-scripts
+
+Numa instância Linux nova com driver da NVIDIA, a preparação são poucos comandos:
 
 ```bash
-# Clone the training scripts repository
 git clone https://github.com/kohya-ss/sd-scripts.git
 cd sd-scripts
+python -m venv venv && source venv/bin/activate
+pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+pip install --upgrade -r requirements.txt
+accelerate config default --mixed_precision bf16
 
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-pip install -r requirements.txt
-pip install xformers
+# SDXL base model (not gated, CreativeML Open RAIL++-M license)
+hf download stabilityai/stable-diffusion-xl-base-1.0 sd_xl_base_1.0.safetensors \
+  --local-dir /workspace/models
 ```
 
-A instalação costuma levar de cinco a dez minutos, dependendo da velocidade da rede. O pacote xformers é opcional, mas recomendado, porque reduz bastante o uso de memória durante o treinamento.
-
-### Download do modelo base
-
-O treinamento de LoRA precisa de um modelo base do Stable Diffusion como referência. Você vai precisar baixá-lo na instância:
-
-```bash
-# Create a models directory
-mkdir -p models/sd
-
-# Download Stable Diffusion 1.5 (approximately 4GB)
-wget -O models/sd/v1-5-pruned.safetensors \
-  "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned.safetensors"
-```
-
-Para treinar SDXL, use o modelo base do SDXL, que tem cerca de 6,5 GB.
-
-### Envio dos dados de treinamento
-
-Transfira o dataset preparado para a instância de GPU. A maioria dos provedores aceita SCP ou SFTP:
-
-```bash
-# From your local machine
-scp -r ./training_data user@gpu-instance-ip:~/sd-scripts/
-```
-
-Outra opção, se o dataset estiver em um armazenamento na nuvem, é baixá-lo direto na instância com wget ou rclone.
-
-### Economize tempo de configuração com um template
-
-RunPod e Vast.ai oferecem imagens prontas com as ferramentas de treinamento de Stable Diffusion já instaladas. Começar por uma delas costuma economizar de quinze a vinte minutos em relação a configurar uma instância limpa do zero, e tempo de configuração é tempo cobrado. Em treinamentos ocasionais, isso pode representar uma parte relevante do custo total do aluguel.
-
----
-
-## Configuração dos parâmetros de treinamento
-
-A configuração do treinamento afeta muito tanto a qualidade do resultado quanto a duração. Os parâmetros abaixo são pontos de partida conservadores, que dão resultados confiáveis sem computação excessiva.
-
-### Parâmetros essenciais
-
-Crie um arquivo de configuração chamado `training_config.toml`:
+Copie a sua pasta de imagens e legendas `.txt` para `/workspace/dataset/img` com `scp`, `rsync` ou o gerenciador de arquivos da plataforma. Depois descreva o dataset em `/workspace/dataset.toml`:
 
 ```toml
-[model]
-pretrained_model_name_or_path = "./models/sd/v1-5-pruned.safetensors"
-v2 = false
-v_parameterization = false
-
-[dataset]
-train_data_dir = "./training_data"
-resolution = 512
-batch_size = 2
+[general]
+caption_extension = ".txt"
 enable_bucket = true
-min_bucket_reso = 256
-max_bucket_reso = 1024
 
-[training]
-output_dir = "./output"
-output_name = "my_lora"
-max_train_epochs = 10
-learning_rate = 1e-4
-unet_lr = 1e-4
-text_encoder_lr = 5e-5
-lr_scheduler = "cosine_with_restarts"
-lr_warmup_steps = 100
-network_dim = 32
-network_alpha = 16
-optimizer_type = "AdamW8bit"
-mixed_precision = "fp16"
-save_every_n_epochs = 2
-save_model_as = "safetensors"
+[[datasets]]
+resolution = 1024
+batch_size = 1
+
+  [[datasets.subsets]]
+  image_dir = "/workspace/dataset/img"
+  num_repeats = 10
 ```
 
-### O que cada parâmetro faz
-
-**resolution:** use a mesma resolução que você pretende usar na inferência. 512 para SD 1.5, 1024 para SDXL.
-
-**batch_size:** valores maiores treinam mais rápido, mas exigem mais VRAM. Comece com 2 e aumente para 4 se a memória permitir.
-
-**max_train_epochs:** uma época significa que o modelo viu cada imagem de treinamento uma vez. Dez épocas é um ponto de partida razoável para a maioria dos datasets.
-
-**learning_rate:** controla o quão agressivamente o modelo se atualiza. Os valores acima são conservadores. Se os resultados ficarem fracos, experimente aumentar para 2e-4 ou 3e-4.
-
-**network_dim e network_alpha:** controlam a capacidade do LoRA. Dim 32 com alpha 16 equilibra qualidade e tamanho do arquivo. Dimensões maiores (64, 128) captam mais detalhes, mas geram arquivos maiores e aumentam o risco de overfitting.
-
-**optimizer_type:** o AdamW8bit reduz bastante o uso de memória com impacto mínimo na qualidade. É essencial para treinar SDXL em placas de 24 GB.
-
-**mixed_precision:** treinar em FP16 reduz pela metade a memória necessária em comparação com FP32. O impacto na qualidade é desprezível na maioria dos casos.
-
-### Ajustes para o seu hardware
-
-Para RTX 4090 com 24 GB de VRAM:
-
-- batch_size = 4 costuma ser seguro para SD 1.5
-- batch_size = 2 para SDXL
-
-Para RTX 3090 com 24 GB de VRAM:
-
-- batch_size = 2 para SD 1.5
-- batch_size = 1 para SDXL (ative o gradient checkpointing)
-
-Para A100 com 40 GB de VRAM:
-
-- batch_size = 6-8 para SD 1.5
-- batch_size = 4 para SDXL
-
-Batch sizes maiores reduzem o tempo total de treinamento na mesma proporção. Dobrar o batch size corta mais ou menos pela metade o número de passos de otimização necessários.
-
-![Editor de código exibindo o arquivo de configuração de treinamento do LoRA com parâmetros de taxa de aprendizado, batch size e dimensões da rede](../_images/terminal-screenshot-code-editor.png)
-
----
-
-## Execução do treinamento
-
-Com o ambiente configurado e os parâmetros definidos, inicie o treinamento:
+E comece o treino:
 
 ```bash
-accelerate launch --num_cpu_threads_per_process=4 train_network.py \
-  --config_file="./training_config.toml" \
-  --logging_dir="./logs"
+accelerate launch --num_cpu_threads_per_process 1 sdxl_train_network.py \
+  --pretrained_model_name_or_path=/workspace/models/sd_xl_base_1.0.safetensors \
+  --dataset_config=/workspace/dataset.toml \
+  --output_dir=/workspace/output --output_name=zxq_mug \
+  --save_model_as=safetensors \
+  --network_module=networks.lora --network_dim=16 --network_alpha=8 \
+  --network_train_unet_only \
+  --optimizer_type=AdamW8bit --learning_rate=1e-4 \
+  --lr_scheduler=constant_with_warmup --lr_warmup_steps=100 \
+  --max_train_epochs=8 --save_every_n_epochs=2 \
+  --mixed_precision=bf16 --save_precision=bf16 \
+  --cache_latents --cache_latents_to_disk --cache_text_encoder_outputs \
+  --gradient_checkpointing --sdpa --seed=42 \
+  --sample_prompts=/workspace/prompts.txt --sample_every_n_epochs=2
 ```
 
-### Acompanhando o progresso
+O `prompts.txt` tem um prompt de teste por linha, com as opções inline do sd-scripts para tamanho, seed e passos:
 
-A saída do treinamento mostra os valores de loss e o progresso:
-
-```
-epoch 1/10, step 50/500, loss=0.0823
-epoch 1/10, step 100/500, loss=0.0756
-epoch 1/10, step 150/500, loss=0.0691
-...
+```text
+zxq_mug, a ceramic coffee mug on a kitchen counter --w 1024 --h 1024 --d 42 --s 28
+zxq_mug, a ceramic coffee mug held by a hiker on a mountain top --w 1024 --h 1024 --d 42 --s 28
 ```
 
-**No que prestar atenção:**
+### O que cada configuração faz
 
-A loss normalmente cai nas primeiras épocas e depois se estabiliza. Um treinamento típico pode mostrar:
+- **Passos.** Imagens × repetições × épocas ÷ tamanho do batch. Com 25 imagens: 25 × 10 × 8 = 2.000 passos.
+- **`network_dim` 16, `network_alpha` 8.** A capacidade da LoRA. 16 é mais do que suficiente para um objeto ou um rosto; estilos às vezes pedem 32. Ranks maiores entram em overfitting mais rápido e geram arquivos maiores.
+- **`--network_train_unet_only`.** Obrigatório aqui: o sd-scripts se recusa a fazer cache das saídas do text encoder enquanto treina os text encoders, e a documentação dele chama o treino só da U-Net de "altamente recomendado" para LoRAs de SDXL de qualquer forma.
+- **Cache e gradient checkpointing.** São eles que fazem o SDXL caber em 8 a 10 GB. O cache também desativa o embaralhamento e o dropout das legendas, por isso eles não aparecem no arquivo do dataset.
+- **`learning_rate` 1e-4 com AdamW8bit.** O valor do próprio exemplo de LoRA de SDXL do sd-scripts. Se as amostras quase não mudarem depois de quatro épocas, tente 2e-4. Se virarem cópias das suas imagens de treino, abaixe o valor ou pare antes.
+- **Checkpoints a cada 2 épocas.** Você recebe arquivos das épocas 2, 4, 6 e 8 e escolhe o melhor. A melhor LoRA muitas vezes não é a última.
 
-- Época 1: loss em torno de 0,08-0,10
-- Época 5: loss em torno de 0,05-0,07
-- Época 10: loss em torno de 0,04-0,06
+### Quanto tempo leva
 
-Se a loss voltar a subir depois da queda inicial, o modelo pode estar em overfitting. Se ela ficar estável desde o começo, a taxa de aprendizado pode estar baixa demais.
+Usuários numa issue do kohya_ss relataram cerca de 1,1 a 1,4 iterações por segundo no treino de LoRA de SDXL em 1024x1024, batch 1, numa RTX 4090 com gradient checkpointing. Nessa velocidade, 2.000 passos levam de 24 a 30 minutos, mais alguns minutos para o cache dos latents. A mesma issue mostra o quanto a coisa degringola quando a placa fica sem VRAM e transborda para a memória compartilhada: 50 segundos ou mais por passo. Se a sua velocidade estiver muito abaixo do esperado, olhe o `nvidia-smi` antes de culpar as configurações.
 
-### Checkpoints
+## Flux e modelos mais novos com o ai-toolkit
 
-A configuração salva um checkpoint a cada duas épocas. Esses salvamentos intermediários servem para duas coisas:
-
-1. **Recuperação.** Se o treinamento travar ou você precisar encerrar antes, dá para retomar a partir do último checkpoint.
-
-2. **Escolha.** Épocas diferentes às vezes produzem características diferentes. A época 6 pode captar bem o seu conceito enquanto a época 10 já está em overfitting. Com os checkpoints, você pode testar e escolher.
-
-### Tempos de treinamento esperados
-
-Para um LoRA de SD 1.5 com 50 imagens e a configuração acima:
-
-| GPU      | Tempo aproximado |
-| -------- | ---------------- |
-| RTX 3090 | 90-120 minutos   |
-| RTX 4090 | 60-90 minutos    |
-| A100     | 45-60 minutos    |
-
-O treinamento de SDXL leva cerca de 1,5x a 2x esses tempos.
-
----
-
-## Validação e testes do seu LoRA
-
-Ao final do treinamento, você tem um arquivo .safetensors no diretório de saída. Esse arquivo precisa ser testado antes de você dar o projeto por concluído.
-
-### Validação básica
-
-Copie o arquivo LoRA para a sua máquina local ou para um sistema com o Stable Diffusion WebUI:
+Para Flux, o ai-toolkit é o caminho mais fácil. Numa máquina alugada:
 
 ```bash
-# Download from GPU instance
-scp user@gpu-instance-ip:~/sd-scripts/output/my_lora.safetensors ./
+git clone https://github.com/ostris/ai-toolkit.git
+cd ai-toolkit
+python3 -m venv venv && source venv/bin/activate
+pip3 install --no-cache-dir torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0 \
+  --index-url https://download.pytorch.org/whl/cu130
+pip3 install -r requirements.txt
+cp config/examples/train_lora_flux_24gb.yaml config/zxq_mug.yml
+# edit the dataset path, trigger word and steps, then:
+python run.py config/zxq_mug.yml
 ```
 
-No Automatic1111 WebUI, coloque o arquivo no diretório `models/Lora`. No ComfyUI, use o diretório `models/loras`.
-
-### Metodologia de testes
-
-Gere uma série de imagens de teste variando estes fatores:
-
-**Peso do LoRA:** teste com intensidade 0,5, 0,7, 0,8 e 1,0. Alguns LoRAs funcionam melhor abaixo da intensidade máxima.
-
-**Posição no prompt:** coloque a trigger word em posições diferentes do prompt. Início, meio e fim podem gerar resultados sutilmente diferentes.
-
-**Prompts negativos:** teste com e sem o seu conceito no prompt negativo. Às vezes, colocar a trigger word no negativo com peso baixo cria inversões interessantes.
-
-**Seeds diferentes:** use pelo menos cinco seeds por configuração para distinguir padrões consistentes de variação aleatória.
-
-### Avaliação de qualidade
-
-Avalie os resultados com base nestes critérios:
-
-**Fidelidade ao conceito:** a imagem gerada reflete o conceito treinado? Se você treinou um rosto, dá para reconhecê-lo?
-
-**Integração:** o conceito do LoRA se integra naturalmente aos outros elementos do prompt? Dá para colocar o personagem treinado em cenas variadas?
-
-**Artefatos:** procure padrões repetidos, elementos artificiais ou distorções que aparecem sempre. Eles indicam problemas no treinamento ou overfitting.
-
-**Flexibilidade:** teste casos extremos. Se você treinou um personagem, ele pode aparecer em idades diferentes? Com outras roupas? Fazendo ações variadas?
-
-Se os resultados não forem satisfatórios, as correções mais comuns são:
-
-- Treinar por mais épocas (underfitting)
-- Treinar por menos épocas (overfitting)
-- Ajustar a taxa de aprendizado
-- Melhorar a qualidade das legendas
-- Incluir imagens de treinamento mais variadas
-
-![Grade comparativa com resultados do Stable Diffusion em diferentes intensidades de LoRA, mostrando as diferenças de qualidade nas imagens geradas por IA](../_images/side-by-side-comparison.png)
-
----
-
-## Estratégias para reduzir custos
-
-A diferença entre um treinamento de cinco dólares e um de vinte costuma estar na eficiência do fluxo de trabalho, não na escolha do provedor.
-
-### Prepare o dataset antes de enviar
-
-Faça toda a curadoria, os recortes e as legendas do dataset na sua máquina local antes de iniciar o aluguel da GPU. Pagar US$ 0,70 por hora para revisar e renomear arquivos à mão é um uso caro desse hardware.
-
-Checklist antes de iniciar o aluguel:
-
-- Todas as imagens recortadas nas proporções adequadas
-- Todas as legendas escritas e revisadas
-- Dataset organizado na estrutura de pastas correta
-- Arquivo de configuração do treinamento pronto
-- Comandos de teste escritos e prontos para colar
-
-### Treinamento em lote
-
-Se você precisa de vários LoRAs, treine todos na mesma sessão. Os custos fixos de configuração do ambiente e de download do modelo se diluem entre todos os treinamentos.
-
-Por exemplo, para treinar três LoRAs diferentes:
-
-- Três sessões separadas: 3 × (20 min de configuração + 90 min de treinamento) = 330 minutos
-- Uma sessão em lote: 20 min de configuração + (3 × 90 min de treinamento) = 290 minutos
-
-Os quarenta minutos economizados representam uma redução de cerca de 15% no custo.
-
-### Estratégia de teste por checkpoint
-
-Em vez de treinar até a época 15 e torcer por um bom resultado, considere:
-
-1. Treinar até a época 6 (cerca de 60% do tempo total de treinamento)
-2. Testar o checkpoint
-3. Se estiver satisfatório, parar e economizar o tempo de GPU restante
-4. Se houver underfitting, continuar o treinamento a partir do checkpoint
-
-Essa abordagem muitas vezes encontra um bom resultado antes do esperado e reduz o custo total.
-
-### Encerre logo
-
-A cobrança da GPU normalmente continua até você parar a instância explicitamente. Feche a sessão assim que terminar de copiar os arquivos de saída. Uma instância esquecida ligada durante a noite a US$ 0,70 por hora acrescenta doze dólares ao custo do projeto.
-
-### Escolha bem o horário
-
-A disponibilidade e o preço das GPUs oscilam conforme a demanda. Treinar fora do horário de pico (por exemplo, nas manhãs de dias úteis nos fusos horários dos EUA) costuma render preços e disponibilidade melhores do que nas noites de fim de semana.
-
----
-
-## Problemas comuns e soluções
-
-### CUDA Out of Memory
-
-**Sintoma:** o treinamento trava com o erro "CUDA out of memory".
-
-**Soluções:**
-
-- Reduza o batch_size na configuração
-- Ative o gradient checkpointing adicionando `gradient_checkpointing = true`
-- Diminua a resolução (o que afeta a qualidade do resultado)
-- Use uma GPU com mais VRAM
-
-### A loss do treinamento não cai
-
-**Sintoma:** os valores de loss ficam estáveis ou oscilam aleatoriamente durante todo o treinamento.
-
-**Soluções:**
-
-- Aumente a taxa de aprendizado (experimente 2e-4 ou 3e-4)
-- Verifique se as legendas descrevem corretamente as imagens
-- Confira se as imagens estão no formato certo e podem ser lidas
-- Garanta que o caminho do modelo base está correto
-
-### O LoRA não tem efeito na geração
-
-**Sintoma:** as imagens geradas ficam idênticas com o LoRA ativado ou desativado.
-
-**Soluções:**
-
-- Confira se o arquivo LoRA está no diretório certo para a sua interface
-- Verifique se as trigger words são as mesmas usadas nas legendas de treinamento
-- Aumente o peso/intensidade do LoRA
-- Experimente outro checkpoint do treinamento
-
-### LoRA em overfitting e pouco flexível
-
-**Sintoma:** o LoRA reproduz as imagens de treinamento quase exatamente, mas falha com prompts variados.
-
-**Soluções:**
-
-- Treine por menos épocas
-- Reduza o valor de network_dim
-- Inclua mais variedade no dataset de treinamento
-- Reduza a taxa de aprendizado
-
-### Treinamento lento
-
-**Sintoma:** o treinamento avança bem mais devagar que os tempos esperados.
-
-**Soluções:**
-
-- Confirme que a GPU está sendo usada de fato (o nvidia-smi deve mostrar alta utilização da GPU)
-- Garanta que o xformers está instalado
-- Verifique se o mixed_precision está ativado
-- Reduza o network_dim se estiver usando valores muito altos
-
----
-
-## Perguntas frequentes
-
-### Posso treinar modelos LoRA na minha própria GPU em vez de alugar?
-
-Sim, desde que você tenha uma GPU NVIDIA com pelo menos 12 GB de VRAM, como uma RTX 3060 ou superior. Mas o custo de energia, o desgaste do hardware e o tempo de treinamento bem maior em hardware de consumo costumam tornar o aluguel a opção mais econômica para projetos ocasionais. Duas horas de treinamento a US$ 0,70 por hora custam menos do que a energia que a maioria dos computadores domésticos consome rodando em carga máxima pelas quatro a seis horas necessárias em um hardware mais lento.
-
-### Quanto tempo leva uma sessão típica de treinamento de LoRA?
-
-A maioria dos treinamentos de LoRA termina em uma a três horas em uma RTX 4090 ou RTX 3090. A duração exata depende do tamanho do dataset, do número de épocas e do batch size configurado. Modelos SDXL exigem cerca de 50-100% mais tempo que o SD 1.5 para treinamentos equivalentes.
-
-### Qual é o número mínimo de imagens para treinar um LoRA?
-
-Dá para conseguir resultados razoáveis com apenas quinze a vinte imagens. Mas datasets com trinta a cem imagens bem legendadas costumam render mais qualidade. A qualidade das imagens e a precisão das legendas importam mais do que a quantidade. Um conjunto bem escolhido de trinta imagens normalmente supera uma coleção de cem montada às pressas.
-
-### Qual provedor de aluguel de GPU tem o melhor custo-benefício para treinar LoRA?
-
-A Vast.ai costuma ter os menores preços por hora para a RTX 4090, muitas vezes de US$ 0,35 a US$ 0,50 por hora em fevereiro de 2026. A RunPod tem a interface mais simples para quem está começando a alugar GPU. Para uma comparação detalhada de todos os provedores e dos preços atuais, veja nossa [comparação completa de preços de aluguel de GPU](/pt_br/gpu-rental-pricing-comparison-2026/).
-
-### Compensa treinar vários modelos LoRA em uma única sessão?
-
-Sim. Treinar vários LoRAs em lote em uma sessão mais longa elimina a configuração repetida e reduz as cobranças por GPU ociosa. Treinar de três a cinco modelos LoRA em uma sessão de quatro horas costuma custar menos da metade do que você gastaria treinando cada um em aluguéis separados.
-
-### Posso usar os LoRAs treinados comercialmente?
-
-Depende da licença do modelo base. O Stable Diffusion 1.5 usa a licença CreativeML Open RAIL-M, que permite uso comercial com algumas restrições. O SDXL tem uma licença igualmente permissiva. O seu LoRA herda as restrições do modelo base. As imagens de treinamento também podem ter exigências de licença: garanta que você tem os direitos necessários sobre todas as imagens usadas no treinamento.
-
----
-
-## Conclusão
-
-Treinar modelos LoRA personalizados ficou muito acessível. As barreiras computacionais que antes exigiam um investimento alto em hardware hoje se resumem a alguns dólares de aluguel de GPU. As técnicas deste guia, aplicadas a um dataset bem preparado, costumam gerar resultados utilizáveis já na primeira tentativa.
-
-Os fatores críticos de sucesso são os mesmos das abordagens de treinamento mais caras: dados de treinamento de qualidade, escolha adequada dos parâmetros e validação cuidadosa dos resultados. Nenhum poder computacional compensa imagens de origem ruins ou um treinamento mal configurado.
-
-Comece com um dataset modesto, de vinte a trinta imagens. Treine com configurações conservadoras. Teste bem os resultados antes de partir para projetos maiores. O custo por tentativa é baixo o bastante para que iterar seja viável: encare os primeiros treinamentos como aprendizado, não como produção. O mesmo fluxo vale para outros tipos de modelo. Se você trabalha com texto em vez de imagens, veja nosso guia de [fine-tuning de modelos de linguagem grandes](/pt_br/private-llm-fine-tuning-guide/) no mesmo tipo de GPU alugada.
-
-Para quem está comparando opções de aluguel de GPU entre todos os tipos de provedor e faixas de preço, nossa [comparação de preços de aluguel de GPU](/pt_br/gpu-rental-pricing-comparison-2026/) traz os preços atuais de GPUs de consumo, hardware de data center e nuvens corporativas.
-
----
-
-_Este guia foi atualizado pela última vez em 12 de fevereiro de 2026. Os preços de aluguel de GPU e as configurações das ferramentas de treinamento mudam com frequência. Confira os preços atuais diretamente com os provedores antes de fechar um projeto de treinamento._
+Ou suba a interface web com `cd ui && npm run build_and_start` e abra a porta 8675. Num servidor que outras pessoas conseguem acessar, defina antes uma senha em `AI_TOOLKIT_AUTH`, como o README recomenda.
+
+Duas coisas sobre licenças antes de escolher um modelo Flux:
+
+- **FLUX.1 [dev]** tem acesso restrito no Hugging Face. Você aceita a FLUX.1 [dev] Non-Commercial License e usa um token de leitura do Hugging Face para baixá-lo. O model card diz que as imagens geradas podem ser usadas comercialmente; os pesos e a sua LoRA ficam sob a licença não comercial.
+- **FLUX.2 [klein] 4B** é Apache 2.0 e não tem acesso restrito. A versão 9B usa a FLUX Non-Commercial License.
+
+A Black Forest Labs publicou em junho de 2026 um guia para treinar LoRAs do FLUX.2 [klein] com o ai-toolkit: um treino de 1.800 passos numa RTX 4090 "leva menos de uma hora", e eles sugerem olhar os checkpoints entre os passos 750 e 1.500. Não encontrei um tempo publicado tão confiável para o FLUX.1 [dev], que tem três vezes o tamanho do klein 4B; reserve mais tempo e meça o seu primeiro treino.
+
+## Teste a LoRA antes de parar de pagar
+
+Olhe as imagens de amostra de cada época salva enquanto a máquina ainda está rodando. Elas mostram, sem custo extra, se a LoRA aprendeu o conceito e quando começou o overfitting. Depois baixe os checkpoints que você gostou:
+
+```bash
+rsync -avP user@your-instance:/workspace/output/*.safetensors ./loras/
+```
+
+Em casa, coloque o arquivo na pasta `models/loras` do ComfyUI ou `models/Lora` do Forge e teste com seeds fixas:
+
+- **Intensidade.** Teste 0,6, 0,8 e 1,0. Algumas LoRAs ficam melhores abaixo de 1,0.
+- **Flexibilidade.** Coloque o gatilho em cenas que não estavam nos seus dados. Uma caneca no alto de uma montanha, um rosto numa pintura. Se só funciona em cenas parecidas com as imagens de treino, houve overfitting: use uma época anterior ou menos repetições.
+- **Vazamento.** Gere sem a palavra-gatilho. Se o conceito aparecer mesmo assim, as suas legendas não descreveram o suficiente da imagem.
+
+Quando o resultado sai errado, a correção normalmente está no dataset: tirar algumas imagens fracas, ou legendas que nomeiem o que você quer que varie. Mexer na learning rate é a segunda coisa a tentar, não a primeira.
+
+## O custo calculado
+
+Uma LoRA de SDXL, 25 imagens, 2.000 passos, numa RTX 4090:
+
+| Etapa | Tempo |
+| --- | --- |
+| Partir de um template, instalar o sd-scripts | 10 min |
+| Baixar o SDXL base, subir o dataset, fazer o cache | 10 min |
+| Treino (2.000 passos a 1,1–1,4 it/s) | 30 min |
+| Olhar as amostras, baixar os checkpoints, apagar a instância | 15 min |
+| **Total** | **65 min (1,08 h)** |
+
+- Vast.ai a US$ 0,31/h: 1,08 × US$ 0,31 = **US$ 0,34**, mais armazenamento e a tarifa de banda do host.
+- RunPod a US$ 0,74/h: 1,08 × US$ 0,74 = **US$ 0,80**. Um container disk de 50 GB durante essa hora soma 50 × US$ 0,10 ÷ 730 horas = menos de 1 centavo.
+
+Uma LoRA de FLUX.2 [klein] com uma hora de treino e 30 minutos de preparação e testes dá 1,5 × US$ 0,74 = **US$ 1,11** no RunPod, ou 1,5 × US$ 0,31 = **US$ 0,47** no Vast.ai.
+
+<figure>
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="d2-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d2-title">Gráfico de barras com o custo de treinar LoRAs numa RTX 4090 alugada, comparado com um orçamento de 10 dólares</title>
+<rect width="720" height="300" fill="#ffffff"/>
+<line x1="230" y1="40" x2="230" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="322" y1="40" x2="322" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="414" y1="40" x2="414" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="506" y1="40" x2="506" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="598" y1="40" x2="598" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="690" y1="30" x2="690" y2="250" stroke="#f97316" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="698" y="22" text-anchor="end" fill="#f97316" font-size="13">orçamento de $10</text>
+<text x="220" y="75" text-anchor="end" fill="#1e1b4b">SDXL, Vast.ai</text>
+<rect x="230" y="58" width="15.6" height="26" fill="#16a34a"/>
+<text x="253" y="76" fill="#1e1b4b" font-size="13">$0.34</text>
+<text x="220" y="125" text-anchor="end" fill="#1e1b4b">SDXL, RunPod</text>
+<rect x="230" y="108" width="36.8" height="26" fill="#6366f1"/>
+<text x="275" y="126" fill="#1e1b4b" font-size="13">$0.80</text>
+<text x="220" y="175" text-anchor="end" fill="#1e1b4b">FLUX.2 klein, RunPod</text>
+<rect x="230" y="158" width="51.1" height="26" fill="#6366f1"/>
+<text x="289" y="176" fill="#1e1b4b" font-size="13">$1.11</text>
+<text x="220" y="225" text-anchor="end" fill="#1e1b4b" font-size="14">5 treinos SDXL, RunPod</text>
+<rect x="230" y="208" width="184.5" height="26" fill="#6366f1"/>
+<text x="422" y="226" fill="#1e1b4b" font-size="13">$4.01</text>
+<line x1="230" y1="250" x2="690" y2="250" stroke="#64748b" stroke-width="1"/>
+<text x="230" y="270" text-anchor="middle" fill="#64748b" font-size="13">$0</text>
+<text x="322" y="270" text-anchor="middle" fill="#64748b" font-size="13">$2</text>
+<text x="414" y="270" text-anchor="middle" fill="#64748b" font-size="13">$4</text>
+<text x="506" y="270" text-anchor="middle" fill="#64748b" font-size="13">$6</text>
+<text x="598" y="270" text-anchor="middle" fill="#64748b" font-size="13">$8</text>
+<text x="690" y="270" text-anchor="middle" fill="#64748b" font-size="13">$10</text>
+<text x="460" y="292" text-anchor="middle" fill="#64748b" font-size="13">Custo por sessão numa RTX 4090, preços de setembro de 2026</text>
+</svg>
+<figcaption>Mesmo cinco tentativas separadas de SDXL pelo preço de tabela do RunPod ficam bem abaixo de US$ 10. A US$ 0,74 por hora, US$ 10 compram 13,5 horas de RTX 4090; a US$ 0,31, cerca de 32 horas.</figcaption>
+</figure>
+
+O que estoura um orçamento de US$ 10 raramente é o treino. É uma instância esquecida ligada durante a noite (12 horas a US$ 0,74 são US$ 8,88), uma instância parada no Vast.ai ainda pagando armazenamento, ou uma hora legendando imagens em tempo cobrado. Cobrança por segundo só ajuda se você apagar a máquina quando terminar.
+
+## Onde o GPUFlow entra
+
+Neste trabalho, não entra. O GPUFlow aluga acesso a um modelo de linguagem que um provedor serve (normalmente com o Ollama) na própria GPU, por meio de uma chave de API compatível com a OpenAI. Não há shell, nem SSH, nem acesso a arquivos, então você não consegue instalar um trainer, subir imagens ou baixar uma LoRA. Além disso, ele serve modelos de chat, não modelos de imagem. Treine no Vast.ai, no RunPod ou numa plataforma parecida que alugue a máquina.
+
+Se você trabalha com texto em vez de imagens, a mesma lógica de alugar, treinar e apagar vale para modelos de linguagem: veja [fine-tuning de um LLM com privacidade numa GPU alugada](/pt_br/private-llm-fine-tuning-guide/).
+
+## Fontes
+
+Tudo verificado em setembro de 2026.
+
+- Artigo da LoRA: [Hu et al., LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
+- sd-scripts: [README e releases](https://github.com/kohya-ss/sd-scripts), [treino de LoRA de SDXL](https://github.com/kohya-ss/sd-scripts/blob/main/docs/sdxl_train_network.md), [notas sobre SDXL e VRAM](https://github.com/kohya-ss/sd-scripts/blob/main/docs/train_SDXL-en.md), [configuração do dataset](https://github.com/kohya-ss/sd-scripts/blob/main/docs/config_README-en.md), [treino de LoRA do FLUX.1](https://github.com/kohya-ss/sd-scripts/blob/main/docs/flux_train_network.md), [WD14 tagger](https://github.com/kohya-ss/sd-scripts/blob/main/docs/wd14_tagger_README-en.md)
+- [bmaltais/kohya_ss](https://github.com/bmaltais/kohya_ss), [Nerogar/OneTrainer](https://github.com/Nerogar/OneTrainer), [ostris/ai-toolkit](https://github.com/ostris/ai-toolkit), [JoyCaption](https://github.com/fpgaminer/joycaption)
+- Velocidades de SDXL na 4090: [issue #1288 do kohya_ss](https://github.com/bmaltais/kohya_ss/issues/1288)
+- Black Forest Labs: [fine-tuning do FLUX.2 [klein] com uma LoRA em menos de 60 minutos](https://huggingface.co/blog/black-forest-labs/flux-2-klein-lora), model cards do [FLUX.1 [dev]](https://huggingface.co/black-forest-labs/FLUX.1-dev), do [FLUX.2 [klein] 4B](https://huggingface.co/black-forest-labs/FLUX.2-klein-base-4B) e do [FLUX.2 [klein] 9B](https://huggingface.co/black-forest-labs/FLUX.2-klein-base-9B)
+- [Model card do Stable Diffusion XL base 1.0](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
+- Preços: [preços do RunPod](https://www.runpod.io/pricing), [preços de pods e armazenamento do RunPod](https://docs.runpod.io/pods/pricing), [preços do Vast.ai](https://docs.vast.ai/guides/instances/pricing.md), getdeploying.com para [RTX 3090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-3090), [RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090), [RTX 5090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-5090) e [Vast.ai](https://getdeploying.com/vast-ai)
+- GPUFlow: [guia rápido da API](https://docs.gpuflow.app/pt-br/renters/api-quickstart/)

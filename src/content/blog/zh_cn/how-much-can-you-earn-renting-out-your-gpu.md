@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "白色架子上的一块三风扇游戏显卡"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "显卡旁边越堆越高的硬币插图"
 faq:
   - question: "RTX 4090 在 GPU 租用平台上每月能赚多少？"
     answer: "按 2026 年 9 月约每小时 $0.38 的常见价格、GPUFlow 12% 的手续费和美国平均电价计算，RTX 4090 每出租一小时净赚约 $0.25。每天出租 4 小时，每月约 $30；每天 12 小时，每月约 $91，这还没扣除电脑其他部件的耗电。"

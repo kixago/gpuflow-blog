@@ -8,8 +8,8 @@ category: "guides"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/test-hero.jpg"
-heroImageAlt: "A triple-fan gaming graphics card on a white shelf"
+heroImage: "../_images/how-much-can-you-earn-renting-out-your-gpu-hero.png"
+heroImageAlt: "Illustration of a graphics card next to growing stacks of coins"
 faq:
   - question: "How much can an RTX 4090 earn per month on a GPU rental marketplace?"
     answer: "At a typical September 2026 price of about $0.38 per hour, GPUFlow's 12% fee and US average electricity, an RTX 4090 clears about $0.25 per rented hour. That's about $30 a month if it's rented 4 hours a day and about $91 at 12 hours a day, before the power the rest of the PC uses."

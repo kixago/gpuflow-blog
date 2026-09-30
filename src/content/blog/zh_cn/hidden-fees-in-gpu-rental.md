@@ -1,9 +1,9 @@
 ---
 title: "GPU 租用的真实成本：小时价之外还要付哪些钱"
-description: "停机存储、带宽、最低充值、计费粒度、空闲时间和银行卡手续费。在 Vast.ai、RunPod、Lambda、AWS 和 GPUFlow 上租用 GPU，除了每小时的 GPU 价格，你实际还要付多少。"
-excerpt: "小时价只是账单的一部分。我们把各大 GPU 租用平台上能找到的额外费用逐项列出，每一项都附上金额和出处。"
+description: "停机期间的存储、带宽、预存与预授权、准备和空闲时间、最低计费和银行卡手续费：Vast.ai、RunPod、Lambda、AWS 和 GPUFlow 上的 GPU 租用额外费用。"
+excerpt: "小时价往往不到 GPU 租用总费用的一半。本文列出 2026 年 9 月我们在主要平台上能确认的每一项额外费用，逐项注明出处，并附一个完整算例。"
 pubDate: 2026-02-15
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "zh_cn"
 category: "pricing"
 featured: false
@@ -13,164 +13,206 @@ heroImage: "../_images/gpu-server-rack.jpg"
 heroImageAlt: "机架中 GPU 服务器风扇的特写"
 faq:
   - question: "机器停机时，GPU 租用平台还收存储费吗？"
-    answer: "很多平台会收。在 RunPod 上，已停止 Pod 的卷磁盘每 GB 每月 $0.20，是运行时费率的两倍。在 Vast.ai 上，只要实例存在，存储就按秒计费，停机期间也不例外。GPUFlow 没有存储费，因为你租到的是一个 API 密钥，而不是一台机器。"
+    answer: "通常会收。RunPod 上已停止 pod 的卷磁盘按每 GB 每月 $0.20 收费，是运行时的两倍。Vast.ai 只要实例存在就按秒收存储费，停机期间也不例外。AWS 的 EBS 卷在实例停止后继续计费。GPUFlow 没有存储费，因为租用得到的是一个 API 密钥，而不是一台机器。"
   - question: "哪些 GPU 租用平台收带宽费？"
-    answer: "Vast.ai 由主机方自行设定上传和下载价格，每个字节都计费。RunPod 和 Lambda 表示不收入站和出站流量费。AWS 对发往互联网的出站数据收费，每月前 100 GB 免费。"
-  - question: "开始租用前有最低充值要求吗？"
-    answer: "Vast.ai 最低充值 $5。Lambda 会在你的银行卡上预授权 $10。RunPod 要求使用预付卡的用户每笔至少充值 $100。GPUFlow 最低充值 $10，不收手续费。"
-  - question: "用美元支付 GPU 租用费，银行会收手续费吗？"
-    answer: "有可能。银行卡的境外交易手续费通常为 1% 到 3%，有些银行即使标价是美元，只要商户在境外也会收取。在巴西，国际刷卡消费需缴纳 3.5% 的 IOF 税。"
+    answer: "Vast.ai 上每个主机自行设定带宽价格，实例不管处于什么状态，收发的每个字节都计费。RunPod 和 Lambda 表示入站和出站流量都不收费。AWS 每月免费提供 100 GB 出站到互联网的流量，超出部分按 GB 计费。"
+  - question: "租 GPU 有最低预存金额吗？"
+    answer: "Vast.ai 最低预存 $5。RunPod 要求账户里至少有所选 pod 一小时的额度，预付卡每笔至少应充值 $100。Lambda 会在你的银行卡上做一笔 $10 的预授权。GPUFlow 充值 $10 起，无手续费，租用开始时预留全部预订金额。"
+  - question: "已停止的云 GPU 实例还花钱吗？"
+    answer: "GPU 停止计费，但存储不会。已停止的 AWS 实例仍要为它的 EBS 卷和绑定的弹性 IP 付费。在 Azure 上，仅处于“已停止”状态的虚拟机仍按核心计费；必须是“已停止(已解除分配)”状态，计算费用才会停止。"
+  - question: "GPU 租用期间余额用完了会怎样？"
+    answer: "在 RunPod 上，余额为 $0 时 pod 会停止，没有网络卷的 pod 会连同数据一起被终止。在 Vast.ai 上，实例会停止；如果没有保存银行卡，短暂宽限期后实例会被销毁。在 GPUFlow 上，租用途中不会出现这种情况，因为整笔预订在开始时就已预留。"
+  - question: "用美元支付 GPU 租用费时，银行会收手续费吗？"
+    answer: "可能会。境外交易手续费通常为 1% 到 3%，有些银行即使价格以美元标示，只要商户在境外也会收取。很多加拿大银行卡收约 2.5%，巴西对境外刷卡消费征收的 IOF 税为 3.5%。"
 ---
 
-GPU 租用页面上标的，是 GPU 每小时的使用价格。但月底实际要付的钱往往还包括别的：磁盘空间、数据传输、准备环境花掉的时间，以及你自己银行收的手续费。这些费用都不是刻意隐藏的，但如果只看标价来比较平台，很容易漏掉。
+GPU 上架信息里的小时价只包含 GPU 时间，别的都不包含。在大多数平台上，你还要为磁盘空间付钱（停机时往往比运行时还贵），在一些市场平台上要为数据传输付钱，准备时间和空闲时间也和真正干活一样计费，此外还有银行的货币转换手续费。在下文的算例中，一个月原本计划花 $13.60 的 RTX 4090 时间，最后账单是 $42.23。
 
-本文列出了我们在各大平台上能够确认的所有额外费用，每一项都附有出处链接。所有信息均于 2026 年 9 月核实。价格会变，依据某个数字做决定之前，请先点开链接确认。
+这些费用都不是故意藏起来的，只是按标价比较平台时很容易漏看。下面的每一项都在 2026 年 9 月对照各平台自己的文档和价格页面核实过，链接附在文末。标价本身请看 [GPU 租用价格对比](/zh_cn/gpu-rental-pricing-comparison-2026/)。
 
-## 简要对比
+## 各平台的额外费用
 
 | 费用 | Vast.ai | RunPod | Lambda | AWS EC2 | GPUFlow |
 | --- | --- | --- | --- | --- | --- |
 | 计费单位 | 按秒 | 按秒 | 按分钟 | 按秒，最低 60 秒 | 按秒，最低 1 分钟 |
-| 运行时存储 | 由主机方定价 | $0.10/GB/月 | 文件系统，按 GB/月 | $0.08/GB/月（gp3） | 无 |
-| 停机时存储 | 收费 | $0.20/GB/月（卷磁盘） | 文件系统，按 GB/月 | $0.08/GB/月（gp3） | 无 |
-| 数据传输 | 由主机方定价，每个字节都计费 | 免费 | 免费 | 发往互联网：每月前 100 GB 免费，超出收费 | 无 |
-| 起步门槛 | 充值 $5 | 1 小时的额度；预付卡 $100 | 银行卡预授权 $10 | 支付方式和 GPU 配额 | 充值 $10 |
+| 停机期间的存储 | 按主机定价收费 | 卷磁盘 $0.20/GB/月 | 文件系统按 GiB/月计费 | EBS 继续计费 | 无 |
+| 数据传输 | 按主机定价，每个字节都收 | 不收费 | 不收费 | 出站：每月 100 GB 免费，之后按 GB 计费 | 无 |
+| 开始使用的门槛 | 最低预存 $5 | 一小时的额度；预付卡 $100 | 银行卡 $10 预授权 | 一种付款方式 | 充值 $10；预订金额全额预留 |
+| 余额归零时 | 停止，之后销毁 | 停止；没有网络卷则数据丢失 | 用后按周结算 | 不适用 | 租用途中不会发生 |
 
-GPUFlow 之所以没有存储费和流量费，是因为它租的东西不一样：你拿到的是一个 API 密钥，用来调用别人 GPU 上运行的 AI 模型，而不是一台可以登录的机器。这也意味着你不能在上面跑自己的代码或训练任务。下文会详细说明。
+GPUFlow 之所以能跳过存储和传输两行，是因为它出租的是另一种东西：一个 OpenAI 兼容 API 密钥，对应已经在提供商 GPU 上运行的 AI 模型，而不是一台你能登录的机器。反过来说，你不能在上面运行自己的代码，也不能训练或微调。如果你需要的是一台机器，适用的是另外四列。
 
-## 1. 存储费，尤其是停机时的存储费
+## 存储，尤其是停机期间
 
-在出租机器或容器的平台上，你的文件存放在磁盘里，而磁盘只要存在就要花钱。
+在任何租给你机器或容器的平台上，你的文件都放在磁盘上，磁盘只要存在就要花钱。
 
-- **RunPod** 在 Pod 运行期间，容器磁盘和卷磁盘每 GB 每月收费 $0.10。Pod 停止后，容器磁盘会被清除、不再收费，但卷磁盘的费用变成**每 GB 每月 $0.20**。网络卷在 1 TB 以内每 GB 每月 $0.07，不论是否运行。
-- **Vast.ai** 由每个主机方自行设定存储价格。只要实例存在就按秒计费，停机期间也照收。
-- **AWS** 的 EBS 卷不论实例是否运行都要收费。us-east-1 区域的 gp3 卷每 GB 每月 $0.08。
+- **RunPod** 在 pod 运行时，容器磁盘和卷磁盘按每 GB 每月 $0.10 收费。停止 pod 后，容器磁盘被清空、不再收费，但卷磁盘涨到每 GB 每月 $0.20。网络卷不管是否在运行，1 TB 以下每 GB 每月 $0.07，1 TB 以上 $0.05。节省计划只覆盖 GPU 计算，存储按标准价收费。
+- **Vast.ai** 对存储的计费是“实例存在的每一秒”，除离线外的任何状态都收。它的文档说得很直白：“停止实例并不能免除存储费用。”价格由主机设定。
+- **AWS** 不对已停止实例的计算和数据传输收费，但“存储 Amazon EBS 卷会产生费用”，而且绑定在已停止实例上的弹性 IP 也继续计费。us-east-1 的 gp3 卷每 GB 每月约 $0.08。
+- **Lambda** 对文件系统按每月实际使用的 GiB 计费，以一小时为单位。
 
-举个例子：RunPod 上一个已停止的 Pod 挂着 200 GB 的卷，每月费用是 200 × $0.20 = **$40**，哪怕你再也不启动这个 Pod。按下文列出的市场常见价格，这笔钱足够租 100 多个小时的 RTX 3090。
+已停止的 RunPod pod 上的一块 200 GB 卷磁盘，每月要 200 × $0.20 = $40，即使你再也不启动这个 pod。这笔钱够在 RunPod Community Cloud 上用 100 多个小时的 RTX 4090。
 
-**怎么办**：删掉不用的卷。如果只是想在两次使用之间保留文件，一个小的网络卷比保留一个大的已停止 Pod 便宜。
+额度用完会让情况更糟。RunPod 余额到 $0 时，pod 会停止，而“没有网络卷的 Pod 会被终止，其数据无法恢复”。Vast.ai 也会停止实例；如果你没有保存银行卡，短暂宽限期后，“你的实例和存储的数据将被销毁”。所以一个被遗忘的卷，要么一直向你收钱，要么连同你的工作成果一起消失。
 
-## 2. 数据传输
+我的做法：项目结束当天就删掉卷，只把还需要的东西留在一个小的网络卷上，重要的东西在 GPU 平台以外的地方另存一份。
 
-下载一个模型、上传一个数据集，动辄就是几十 GB 的流量。
+## 数据传输
 
-- **Vast.ai**：每个主机方分别设定上传和下载的价格，文档说明无论实例处于什么状态，每个字节都计费。租用前先看清挂牌信息里的带宽价格，特别是需要下载大模型时。
-- **RunPod** 和 **Lambda** 表示不收入站和出站流量费。
-- **AWS**：入站数据免费。发往互联网的出站数据每月前 100 GB 免费，超出部分按 GB 计费。AWS 还对每个公网 IPv4 地址收取每小时 $0.005，不论是否在用。
+下载一个 15 GB 的模型、上传一个数据集，一次会话就可能传输几十 GB。
 
-## 3. 最低充值和银行卡预授权
+- **Vast.ai** 对“实例收发的每个字节收取带宽费用，无论实例处于什么状态”。每个主机自行设定上传和下载价格，文档提醒这“可能显著影响数据密集型工作负载的总成本”。租之前在上架信息里看清楚。
+- **RunPod** 表示 pod“入站/出站流量不收费”。
+- **Lambda**：“入站和出站流量不向你收费。”
+- **AWS**：入站免费。出站到互联网的流量，所有服务和区域合计每月前 100 GB 免费，之后按 GB 阶梯计费。每个公网 IPv4 地址不论是否在用都按每小时 $0.005 收费，一个 720 小时的月份就是 $3.60。
 
-大多数 GPU 平台采用预付费模式：先买额度，再消费。
+## 预存、预授权和预付额度
 
-- **Vast.ai**：最低充值 $5。
-- **RunPod**：账户里至少要有所选机器 1 小时的额度，预付卡每笔至少充值 $100。
-- **Lambda**：在你的银行卡上预授权 $10，几天后退回。
-- **SaladCloud**：额度在购买 12 个月后过期。
-- **GPUFlow**：每次充值 $10 到 $500，不收手续费，额度永不过期。
+大多数 GPU 平台都是预付制：先买额度，再消费。存在平台上的钱也是一种成本，尤其是拿不回来的时候。
 
-会过期或一直闲置的额度也是一种成本。按预计用量充值即可。
+- **Vast.ai**：最低预存 $5，可用银行卡、BitPay 或 Crypto.com 支付。用银行卡购买、尚未消费的额度可以通过网站聊天申请退款；已消费的不能退。
+- **RunPod**：账户里至少要有所选 pod 一小时的额度，预付卡每笔至少应充值 $100。额度不可退款，也不能提现。
+- **Lambda** 则反过来：每周按上一周的用量结算，添加银行卡时做一笔 $10 的预授权，几天后退回。只接受主流信用卡，预付卡和借记卡会被拒。
+- **SaladCloud**：充值金额 $5 到 $10,000，额度在购买 12 个月后过期。
+- **GPUFlow**：通过 Stripe 用银行卡充值，每次 $10 到 $500，无手续费，额度不会过期。开始租用时，从你的额度中预留的是全部预订金额，而不是一小笔押金。以每小时 $0.40 预订 10 小时，就会预留 $4.00，直到租用结束；那时没用完的部分会退回。已购买的额度不能提现；银行卡退款仅限重复扣款或误扣、额度未到账或法律要求的情况，且须在 60 天内申请。
 
-## 4. 准备环境的时间也在计费
+![GPUFlow 租用表单，上架价格为每小时 $0.35，预订 2 小时，从 $25.00 可用额度中预留 $0.70](../_images/screens/zh_cn/renter-rent.png)
 
-租用机器时，计费从机器启动开始，而不是从你的任务开始。安装驱动和库、拉取容器镜像、下载 15 GB 的模型，全都发生在计费时间里。按每小时 $0.35 计算，半小时的准备时间大约是 $0.18。单次看不多，但如果你每天都开新机器，就会积少成多。
+会过期的额度，或者留在一个你已经不用的平台上的额度，就等于花掉了。按本月预计的工作量充值，别按一年充。
 
-有两个办法：使用已经装好所需环境的模板或容器镜像；把模型放在卷上，只下载一次（再和第 1 点的存储费权衡一下）。
+## 准备时间和空闲时间
 
-在 GPUFlow 上，模型在你租用之前就已经装在提供商的机器上了。无需任何准备：从租用开始那一刻计费，密钥立即可用。
+租来的机器按时间收费，不按工作量收费。有两种时间和真正干活一样花钱，却什么也不产出。
 
-## 5. 计费粒度和最低计费时长
+### 准备时间
 
-按秒计费现在很普遍，但最低计费时长各不相同：
+机器一启动就开始计费。在 Lambda 上，“从你启动实例、实例通过健康检查的那一刻起开始计费”。安装库、拉取容器镜像、下载模型，都在计费时间内进行。按每小时 $0.34 计算，15 分钟准备时间约 $0.09。一次不多，但一个月每天都来一遍，就是好几个小时的 GPU 时间。
+
+有两个办法：从一个已经装好你的软件栈的模板或镜像启动；把模型放在卷上，只下载一次（再和上面的存储费用权衡一下）。
+
+在 GPUFlow 上，你这边没有准备步骤：提供商已经在机器上装好了模型，租用开始后你马上就能拿到 API 密钥。
+
+### 空闲时间
+
+Lambda 说得很直接：“实例只要在运行就计费，无论是否在实际使用。”Google Cloud 对处于 RUNNING 状态的空闲虚拟机也是同样的说法。为了早上能直接用而让 pod 开一整夜，就要付一整夜的 GPU 钱。
+
+Azure 还有一个额外的坑。仅处于“已停止”状态的虚拟机（例如在操作系统内部关机）仍按核心计费。必须通过门户或 CLI 让它进入“已停止(已解除分配)”状态，计算费用才会停止。
+
+GPUFlow 也不例外：在你点击 **立即结束** 或预订时间用完之前，一直在计费。提前结束不收费，预留金额中未用的部分会退回，所以办法很简单：用完就结束租用。详见 [GPUFlow 的计费方式](https://docs.gpuflow.app/zh-cn/renters/billing/)。
+
+## 计费单位和最低收费
+
+按秒计费现在很普遍，但细节各不相同：
 
 | 平台 | 计费方式 |
 | --- | --- |
-| Vast.ai | 按秒，无最低时长 |
-| RunPod Pod | 按秒 |
-| RunPod Serverless | 按秒，向上取整；还要为 worker 启动时间和空闲超时（默认 5 秒）付费 |
-| Lambda | 按分钟 |
+| Vast.ai | 按秒 |
+| RunPod pod | 按秒（pod 概览页面仍写着按分钟） |
+| RunPod serverless | 按秒，向上取整，包括 worker 启动时间和空闲超时（默认 5 秒） |
+| Lambda | 以一分钟为单位 |
 | AWS EC2（Linux） | 按秒，最低 60 秒 |
-| Google Cloud | 按秒，最低 1 分钟 |
-| GPUFlow | 按秒，最低 1 分钟 |
+| Google Cloud | 最低 1 分钟，之后按秒 |
+| Azure | 按完整分钟 |
+| GPUFlow | 按秒，最低 1 分钟，向上取整到分 |
 
-计费粒度影响最大的是 Serverless。如果你发送的是间隔较长的短请求，启动时间和空闲超时的费用可能比请求本身还高。
+对长任务来说，这些差别可以忽略。对大量短会话和 serverless 来说就要紧了，因为 serverless 在请求之外还要为启动时间和空闲超时计费。如果你发送的是有间隔的短请求，这两部分可能比请求本身还贵。[GPU 按秒计费与按小时计费](/zh_cn/per-second-vs-hourly-gpu-billing/)一文有详细算例。
 
-## 6. 运行中机器的空闲时间
+## 可中断实例
 
-按小时租的机器，GPU 不管是在干活还是在等你，费用都一样。为了“早上能直接用”而让 Pod 通宵运行，很容易造成超支。Lambda 说得很直白：实例只要在运行就计费，不管有没有在用。
+可中断（竞价）算力更便宜，有时便宜很多，但随时可能被收回。
 
-**怎么办**：设个提醒，或者使用平台自动停止空闲机器的功能。在 GPUFlow 上，你预订一定的小时数；如果提前完成，点击**立即结束**，未用完的时间会退回你的额度。[GPUFlow 计费说明](https://docs.gpuflow.app/zh-cn/renters/billing/)。
+- Vast.ai 称可中断实例“通常比按需便宜 50% 以上”。
+- 2026 年 9 月，AWS 上的 p5.4xlarge（一块 H100）竞价价格为每小时 $2.62，按需为 $6.88。
+- 在 TensorDock 上，存储按标准价格在你的出价之外另收，被别人出价超过期间也照收不误。主机会设定最低出价，一般约为按需价格的 50%。
 
-## 7. 可中断机器
+隐藏的成本是重复劳动。如果任务不能从检查点恢复，一次中断就可能把省下的钱全抵掉。检查点要存得足够勤，勤到丢掉最后一段也不心疼。
 
-可中断（竞价）机器更便宜，通常能省一半甚至更多，但一旦有人出价更高，机器就可能被停掉。Vast.ai 称之为可中断实例，并表示通常便宜 50% 以上。在 TensorDock 上，即使你的出价被别人超过，存储费也照样计算。如果你的任务不能从检查点恢复，一次中断就意味着同样的活要付两次钱。
+## 银行的手续费
 
-## 8. 银行手续费
+几乎所有 GPU 平台都以美元收费，GPUFlow 也一样。如果你的银行卡是其他币种，银行可能会另收一笔手续费：
 
-几乎所有 GPU 平台都以美元收费。如果你的银行卡是其他币种，银行可能会额外收费：
+- 境外交易手续费通常为 1% 到 3%，有些银行即使价格以美元显示，只要商户在境外也会收取。
+- 大多数加拿大信用卡对其他币种的消费收取约 2.5%。
+- 在巴西，自 2025 年 7 月起，境外刷卡消费的 IOF 税为 3.5%。
 
-- 境外交易手续费通常为 **1% 到 3%**。有些银行即使标价是美元，只要商户在境外也会收取。
-- 很多加拿大信用卡对外币消费收取约 **2.5%** 的手续费。
-- 在巴西，**国际刷卡消费需缴纳 3.5% 的 IOF 税**。
+充值 $100，就有 $1 到 $3.50 不会出现在平台的发票上。用一张免境外交易手续费的卡，可以省掉大部分。
 
-以充值 $100 为例，会多出 $1 到 $3.50，而这笔钱不会出现在平台账单上。换一张免境外交易手续费的卡，可以省掉大部分。
+## 算例：每小时 $0.34，每月 $42
 
-## 9. 面向提供商：提现手续费和最低提现金额
+下面是一个真实的月份：在 RunPod Community Cloud 上以每小时 $0.34 租一块 RTX 4090，用一张加拿大信用卡付款：
 
-如果你出租自己的 GPU，平台会抽成，提现也有各自的规则：
+- 40 小时实际工作：40 × $0.34 = $13.60。这是大家做预算时用的数字。
+- 20 次会话，每次准备 15 分钟，共 5 小时：5 × $0.34 = $1.70。
+- 有两个晚上 pod 没关，每次 10 小时：20 × $0.34 = $6.80。
+- 一块 100 GB 的卷磁盘保留了一整个月。在当月 720 小时中运行 65 小时，停机 655 小时：100 × ($0.10 × 65/720 + $0.20 × 655/720) = 约 $19.10。
+- 小计 $41.20，再加 2.5% 的境外交易手续费：$1.03。
 
-| 平台 | 提供商所得 | 最低提现金额 | 提现手续费 |
-| --- | --- | --- | --- |
-| GPUFlow | 租金的 88% | $25 | 每次提现 $2.50 |
-| Vast.ai | Vast 表示挂牌价通常比主机方收入高约 25% | $20 | Vast 未说明；你使用的收款服务可能收费 |
-| TensorDock | 其托管协议写明收取 20% 或 25% 的费用（文中两种说法都有） | 满 $250 才能提现 | 未说明 |
+合计：$42.23，约为计划中 GPU 工作费用的 3.1 倍。RunPod 不收数据传输费，所以如果换成一个设了带宽价格的 Vast.ai 主机，还会再多一项。
 
-GPUFlow 还会将收益暂扣 7 天（注册不满 30 天的账户暂扣 14 天）后才可提现，用于应对银行卡争议。[GPUFlow 提现说明](https://docs.gpuflow.app/zh-cn/providers/getting-paid/)。
+<figure>
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">堆叠条形图：一个月计划花 13.60 美元的 RTX 4090 时间，加上准备时间、空闲的夜晚、磁盘存储和银行卡手续费后，账单变成 42.23 美元</title>
+<rect x="0" y="0" width="720" height="300" fill="#ffffff"/>
+<text x="20" y="28" fill="#1e1b4b" font-weight="600">以每小时 $0.34 使用一块 RTX 4090 一个月</text>
+<line x1="130" y1="50" x2="130" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="130" y="190" text-anchor="middle" fill="#64748b" font-size="13">$0</text>
+<line x1="250" y1="50" x2="250" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="250" y="190" text-anchor="middle" fill="#64748b" font-size="13">$10</text>
+<line x1="370" y1="50" x2="370" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="370" y="190" text-anchor="middle" fill="#64748b" font-size="13">$20</text>
+<line x1="490" y1="50" x2="490" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="490" y="190" text-anchor="middle" fill="#64748b" font-size="13">$30</text>
+<line x1="610" y1="50" x2="610" y2="170" stroke="#e2e8f0" stroke-width="1"/>
+<text x="610" y="190" text-anchor="middle" fill="#64748b" font-size="13">$40</text>
+<text x="120" y="84" text-anchor="end" fill="#1e1b4b">计划</text>
+<rect x="130" y="62" width="163.2" height="34" rx="3" fill="#6366f1"/>
+<text x="301.2" y="84" fill="#1e1b4b">$13.60</text>
+<text x="120" y="144" text-anchor="end" fill="#1e1b4b">实际账单</text>
+<rect x="130" y="122" width="163.2" height="34" fill="#6366f1"/>
+<rect x="293.2" y="122" width="20.4" height="34" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<rect x="313.6" y="122" width="81.6" height="34" fill="#f97316"/>
+<rect x="395.2" y="122" width="229.2" height="34" fill="#64748b"/>
+<rect x="624.4" y="122" width="12.4" height="34" fill="#1e1b4b"/>
+<text x="644.8" y="144" fill="#1e1b4b" font-weight="600">$42.23</text>
+<line x1="130" y1="50" x2="130" y2="170" stroke="#64748b" stroke-width="1.5"/>
+<rect x="20" y="209" width="16" height="16" fill="#6366f1"/>
+<text x="44" y="222" fill="#1e1b4b">GPU 工作：$13.60</text>
+<rect x="250" y="209" width="16" height="16" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+<text x="274" y="222" fill="#1e1b4b">准备时间：$1.70</text>
+<rect x="480" y="209" width="16" height="16" fill="#f97316"/>
+<text x="504" y="222" fill="#1e1b4b">空闲的夜晚：$6.80</text>
+<rect x="20" y="245" width="16" height="16" fill="#64748b"/>
+<text x="44" y="258" fill="#1e1b4b">卷磁盘：$19.10</text>
+<rect x="250" y="245" width="16" height="16" fill="#1e1b4b"/>
+<text x="274" y="258" fill="#1e1b4b">银行卡手续费：$1.03</text>
+</svg>
+<figcaption>本节的算例，按比例绘制：以每小时 $0.34 进行 40 小时实际 GPU 工作，加上 5 小时准备时间、两个忘了关机的夜晚、一块保留了一整个月的 100 GB 卷磁盘，以及 2.5% 的银行卡手续费。GPU 工作不到账单的三分之一。</figcaption>
+</figure>
 
-## 2026 年 9 月常见 GPU 价格
+最大的一项根本不是 GPU，而是一块当月 91% 时间都处于停机状态的磁盘。解决办法很无聊：删掉卷或者把它缩小，不干活时就把 pod 结束掉。
 
-作为参考，以下是我们 2026 年 9 月在 Vast.ai、RunPod、Salad、SimplePod、TensorDock、Hyperstack 和 Lambda 上查到的按需价格区间：
+### 租用前的检查清单
 
-| GPU | 常见每小时价格 |
-| --- | --- |
-| RTX 3060 12 GB | $0.05 – $0.08 |
-| RTX 3090 | $0.11 – $0.31 |
-| RTX 4090 | $0.30 – $0.46 |
-| RTX 5090 | $0.41 – $0.69 |
+1. 把 GPU 时间和存储费用加起来，存储按停机价格、按你要保留文件的时长计算。
+2. 如果平台有带宽价格，在上架信息里看清楚，并估算你要下载多少数据。
+3. 把准备时间算作计费时间。
+4. 想清楚怎样停止付费：结束租用、停止或解除分配机器、删除卷。
+5. 弄清楚余额归零时你的数据会怎样。
+6. 查一下你的银行卡的境外交易手续费。
 
-对比一下，AWS 上一块 NVIDIA L4（us-east-1 的 g6.xlarge）约每小时 $0.80，一块 A10G（g5.xlarge）约每小时 $1.01。
-
-## 租用前的检查清单
-
-1. 算上 GPU 时长，**再加上**文件保留期间的存储费。
-2. 如果平台收带宽费，查一下单价以及你要下载多少数据。
-3. 把准备环境的时间算作计费时间。
-4. 想清楚怎么停止计费：结束租用、停止机器、删除卷。
-5. 查一下你银行卡的境外交易手续费。
-
-如果你需要的是一个能从代码里调用的 AI 模型，而不是一台运行自己软件的机器，基于 API 的租用方式可以完全避开第 1、2、4 点。如果你需要完整的机器来做训练，上面这些平台才是合适的工具，而这份清单能帮你把账单控制在小时价附近。
-
-## 相关文章
-
-- [按小时租 GPU 还是按 token 调 API？运行 7B–8B 模型的真实成本](/zh_cn/hourly-gpu-vs-per-token-api/)
-- [GPUFlow、Vast.ai、RunPod 和 SaladCloud 对比：哪个适合你的任务](/zh_cn/gpuflow-vs-vast-ai-vs-runpod/)
-- [2026 年租用 GPU 需要准备什么](/zh_cn/what-you-need-to-rent-a-gpu/)
+如果你需要的是一个能从代码里调用的 AI 模型，而不是一台运行自己软件的机器，那么基于 API 的租用可以完全免掉存储、传输和准备时间这几项。[按小时租 GPU 还是按 token 调 API](/zh_cn/hourly-gpu-vs-per-token-api/)把它和按 token 付费做了比较，[GPUFlow、Vast.ai、RunPod 与 SaladCloud 对比](/zh_cn/gpuflow-vs-vast-ai-vs-runpod/)介绍了哪个平台适合哪种任务。对于训练或其他需要完整机器的任务，这份清单能让你的账单尽量接近小时价。
 
 ## 资料来源
 
-均于 2026 年 9 月核实。
+- RunPod：[Pod 价格和存储](https://docs.runpod.io/pods/pricing)、[价格页面](https://www.runpod.io/pricing)、[Pod 概览](https://docs.runpod.io/pods/overview)、[serverless 价格](https://docs.runpod.io/serverless/pricing)、[计费信息](https://docs.runpod.io/references/billing-information)、[RTX 4090 价格](https://www.runpod.io/gpu-models/rtx-4090)
+- Vast.ai：[价格](https://docs.vast.ai/guides/instances/pricing.md)、[计费](https://docs.vast.ai/documentation/reference/billing)、[快速入门（最低预存）](https://docs.vast.ai/guides/get-started/quickstart.md)
+- Lambda：[计费](https://docs.lambda.ai/public-cloud/billing/)、[管理计费](https://docs.lambda.ai/public-cloud/manage-billing/)
+- SaladCloud：[计费](https://docs.salad.com/general/explanation/billing.md)
+- TensorDock：[竞价实例](https://docs.tensordock.com/virtual-machines/spot-instances)
+- AWS：[EC2 按需价格](https://aws.amazon.com/ec2/pricing/on-demand/)、[停止和启动的工作原理](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/how-ec2-instance-stop-start-works.html)、[VPC 价格（公网 IPv4）](https://aws.amazon.com/vpc/pricing/)、[Vantage 上的 p5.4xlarge 价格](https://instances.vantage.sh/aws/ec2/p5.4xlarge?region=us-east-1)，gp3 价格：[CloudBurn EBS 价格指南](https://cloudburn.io/blog/amazon-ebs-pricing)
+- Google Cloud：[虚拟机实例价格](https://cloud.google.com/compute/vm-instance-pricing)
+- Azure：[Linux 虚拟机价格和 FAQ](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/)
+- 银行卡手续费：[Experian](https://www.experian.com/blogs/ask-experian/what-is-a-foreign-transaction-fee/)、[NerdWallet Canada](https://www.nerdwallet.com/ca/p/best/credit-cards/best-no-foreign-transaction-fee-credit-cards)，巴西 IOF：[Wise Brazil](https://wise.com/br/blog/iof-cartao-internacional)
+- GPUFlow：[计费](https://docs.gpuflow.app/zh-cn/renters/billing/)、[入门](https://docs.gpuflow.app/zh-cn/renters/getting-started/)、[市场](https://gpuflow.app/zh-CN/marketplace)
 
-- RunPod Pod 价格和存储：[docs.runpod.io/pods/pricing](https://docs.runpod.io/pods/pricing)
-- RunPod Serverless 计费：[docs.runpod.io/serverless/pricing](https://docs.runpod.io/serverless/pricing)
-- RunPod 计费和充值：[docs.runpod.io/references/billing-information](https://docs.runpod.io/references/billing-information)
-- Vast.ai 价格和计费：[docs.vast.ai/guides/instances/pricing.md](https://docs.vast.ai/guides/instances/pricing.md)、[docs.vast.ai/documentation/reference/billing](https://docs.vast.ai/documentation/reference/billing)
-- Vast.ai 充值：[docs.vast.ai 快速入门](https://docs.vast.ai/guides/get-started/quickstart.md)
-- Vast.ai 主机方提现：[docs.vast.ai/host/payment.md](https://docs.vast.ai/host/payment.md)，主机方收益文章：[vast.ai](https://vast.ai/article/how-much-money-can-you-earn-renting-out-your-gpu-on-vast-ai)
-- Lambda 计费：[docs.lambda.ai/public-cloud/billing](https://docs.lambda.ai/public-cloud/billing/)、[管理账单](https://docs.lambda.ai/public-cloud/manage-billing/)、[价格（“No egress fees”）](https://lambda.ai/pricing)
-- SaladCloud 计费：[docs.salad.com 计费](https://docs.salad.com/general/explanation/billing.md)
-- TensorDock 竞价实例：[docs.tensordock.com](https://docs.tensordock.com/virtual-machines/spot-instances)，供应商协议：[docs.tensordock.com](https://docs.tensordock.com/legal-information/supplier-hosting-agreement.md)
-- AWS EC2 计费：[aws.amazon.com/ec2/pricing/on-demand](https://aws.amazon.com/ec2/pricing/on-demand/)；EBS：[aws.amazon.com/ebs/pricing](https://aws.amazon.com/ebs/pricing/)；公网 IPv4：[aws.amazon.com/vpc/pricing](https://aws.amazon.com/vpc/pricing/)
-- AWS 实例价格：[instances.vantage.sh g6.xlarge](https://instances.vantage.sh/aws/ec2/g6.xlarge?region=us-east-1)、[g5.xlarge](https://instances.vantage.sh/aws/ec2/g5.xlarge?region=us-east-1)
-- Google Cloud 虚拟机计费：[cloud.google.com/compute/vm-instance-pricing](https://cloud.google.com/compute/vm-instance-pricing)
-- 银行卡境外交易手续费：[Experian](https://www.experian.com/blogs/ask-experian/what-is-a-foreign-transaction-fee/)、[NerdWallet Canada](https://www.nerdwallet.com/ca/p/best/credit-cards/best-no-foreign-transaction-fee-credit-cards)
-- 巴西 IOF 3.5%：[Wise Brazil](https://wise.com/br/blog/iof-cartao-internacional)
-- GPU 价格区间：[GPUFlow 文档：如何为你的 GPU 定价](https://docs.gpuflow.app/zh-cn/providers/pricing/)
+均于 2026 年 9 月核实。

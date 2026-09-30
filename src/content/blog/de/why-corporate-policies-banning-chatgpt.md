@@ -1,483 +1,202 @@
 ---
-title: "Warum Unternehmen ChatGPT verbieten (und was Sie stattdessen nutzen können)"
-description: "Eine Analyse, warum Unternehmen den Zugang ihrer Mitarbeitenden zu ChatGPT und Cloud-KI-Diensten einschränken. Datenschutzrisiken, Compliance-Verstöße und Bedenken beim Schutz geistigen Eigentums als Treiber der KI-Verbote – dazu praktische Alternativen mit Open-Weights-Modellen auf eigener Infrastruktur."
-excerpt: "Große Konzerne verbieten ChatGPT aus Datenschutz- und Compliance-Gründen. Erfahren Sie, warum KI-Richtlinien in Unternehmen strenger werden und wie Open-Weights-Modelle auf Infrastruktur unter Ihrer Kontrolle eine Alternative bieten."
+title: "Warum Unternehmen ChatGPT am Arbeitsplatz verbieten und was sie stattdessen nutzen"
+description: "Unternehmen schränken öffentliche KI-Chat-Apps ein, weil Mitarbeiter Daten eingeben, für deren Weitergabe es keinen Vertrag gibt. Die echten Fälle, die Regeln 2026 und Alternativen, die funktionieren."
+excerpt: "Bei den meisten ChatGPT-Verboten in Unternehmen geht es um Verträge und Voreinstellungen. Was bei Samsung schiefging, was die Business-Tarife heute versprechen und wohin Ihr Prompt bei jeder Option geht."
 pubDate: 2026-02-26
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "de"
 category: "case-studies"
 featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/corporate-ai-policy-restriction.png"
-heroImageAlt: "Büroumgebung mit digitalen Schlosssymbolen über den Bildschirmen als Sinnbild für eingeschränkten KI-Zugang"
+heroImageAlt: "Büroumgebung mit digitalen Schloss-Symbolen über Computerbildschirmen als Sinnbild für eingeschränkten KI-Zugang"
 faq:
-  - question: "Warum verbieten Unternehmen ChatGPT?"
-    answer: "Unternehmen verbieten ChatGPT vor allem wegen Datenschutzrisiken, Compliance-Anforderungen und des Schutzes geistigen Eigentums. Wenn Mitarbeitende proprietären Code, Kundendaten oder strategische Dokumente in ChatGPT eingeben, werden diese Informationen an Server von OpenAI übertragen. Dort können sie für das Modelltraining genutzt, unbegrenzt gespeichert oder bei Sicherheitsvorfällen offengelegt werden. Branchen, die HIPAA, der DSGVO, SOX oder Finanzmarktregeln unterliegen, tragen zusätzliche Haftungsrisiken, sobald sensible Daten kontrollierte Umgebungen verlassen."
-  - question: "Welche großen Unternehmen haben ChatGPT verboten?"
-    answer: "Zu den bekannten Unternehmen, die ChatGPT eingeschränkt oder verboten haben, gehören Samsung, Apple, JPMorgan Chase, Bank of America, Goldman Sachs, Citigroup, Deutsche Bank, Amazon, Verizon und Accenture. Viele Kanzleien, Gesundheitseinrichtungen und Behörden haben ähnliche Beschränkungen eingeführt. Die Spannweite reicht vom vollständigen Verbot bis zu eng begrenzten, genehmigten Anwendungsfällen mit strengen Vorgaben zum Umgang mit Daten."
-  - question: "Ist es legal, ChatGPT beruflich zu nutzen?"
-    answer: "Das hängt von Ihrer Rechtsordnung, Ihrer Branche und der Art der verarbeiteten Daten ab. Die Nutzung von ChatGPT mit öffentlich verfügbaren Informationen ist in der Regel zulässig. Die Eingabe personenbezogener Daten von EU-Bürgern kann jedoch gegen die DSGVO verstoßen. Die Verarbeitung von Patientendaten verstößt gegen HIPAA. Die Weitergabe vertraulicher Geschäftsinformationen kann Treuepflichten oder Arbeitsverträge verletzen. Viele Organisationen untersagen die Nutzung unabhängig von der Rechtslage, weil sie das Risiko nicht tragen wollen."
-  - question: "Welche Alternativen zu ChatGPT gibt es für Unternehmen?"
-    answer: "Unternehmen können Open-Weights-Modelle wie Llama, Mistral oder Qwen auf eigener Infrastruktur betreiben. Diese Modelle lassen sich mit eigenen Daten feinabstimmen, ohne Informationen an Dritte weiterzugeben. Als Betriebsformen kommen eigene Server im Rechenzentrum, private Cloud-Instanzen oder gemietete GPUs für Arbeiten mit nicht sensiblen Daten infrage."
-  - question: "Kann ChatGPT meine Unternehmensdaten sehen?"
-    answer: "Ja. Jeder Text, den Sie in ChatGPT eingeben, wird an Server von OpenAI übertragen. Laut den Datennutzungsrichtlinien von OpenAI können Eingaben zur Verbesserung der Modelle verwendet werden, sofern Sie nicht über einen Unternehmensvertrag oder die API-Konfiguration widersprechen. Selbst mit Opt-out werden die Daten auf der Infrastruktur von OpenAI verarbeitet und unterliegen deren Sicherheitspraktiken, Zugriffsregeln für Mitarbeitende und möglichen gesetzlichen Offenlegungspflichten."
-  - question: "Wie nutze ich KI, ohne gegen die Unternehmensrichtlinie zu verstoßen?"
-    answer: "Prüfen Sie zuerst die konkrete KI-Nutzungsrichtlinie Ihrer Organisation. Für eine regelkonforme Nutzung bieten sich Open-Weights-Modelle auf Infrastruktur an, die Sie selbst kontrollieren. Dazu gehören lokale Workstations mit ausreichender GPU-Leistung und private Cloud-Instanzen innerhalb Ihres Sicherheitsperimeters. Entscheidend ist, dass die Daten in Systemen bleiben, die den Sicherheitskontrollen Ihrer Organisation unterliegen."
-  - question: "Was ist der Unterschied zwischen ChatGPT und Open-Weights-Modellen?"
-    answer: "ChatGPT ist ein proprietärer Dienst von OpenAI, bei dem die gesamte Verarbeitung auf deren Infrastruktur stattfindet. Sie können das Modell nicht prüfen, nicht bestimmen, wo Ihre Daten verarbeitet werden, und eine mögliche Nutzung für das Training nicht verhindern. Open-Weights-Modelle wie Llama oder Mistral stehen als Modelldateien zum Download bereit und laufen auf beliebiger Hardware. Sie behalten die volle Kontrolle über die Datenverarbeitung, können vollständig vom Internet getrennt arbeiten und geben keine Daten an Dritte preis."
-  - question: "Sind Enterprise-Versionen von ChatGPT sicher für den Unternehmenseinsatz?"
-    answer: "ChatGPT Enterprise und der API-Zugang mit Opt-out bieten mehr Datenschutz als das Endkundenprodukt, beseitigen aber nicht alle Bedenken. Die Daten werden weiterhin an OpenAI übertragen und dort verarbeitet. Organisationen müssen den Sicherheitspraktiken, der Personalüberprüfung und den Compliance-Zertifizierungen von OpenAI vertrauen. In stark regulierten Branchen oder bei sensiblem geistigem Eigentum halten viele Sicherheitsteams jede Verarbeitung durch Dritte für inakzeptabel, unabhängig von vertraglichen Zusicherungen."
+  - question: "Warum verbieten Unternehmen ihren Mitarbeitern ChatGPT?"
+    answer: "Weil Mitarbeiter Firmen- und Kundendaten in ein privates Konto kopieren, mit dessen Anbieter das Unternehmen keinen Vertrag hat. Bei den Consumer-Tarifen von ChatGPT darf OpenAI Inhalte standardmäßig zur Verbesserung seiner Modelle nutzen, und es gibt weder einen Auftragsverarbeitungsvertrag noch ein HIPAA Business Associate Agreement, das das Unternehmen abdeckt."
+  - question: "Trainiert ChatGPT Enterprise mit Unternehmensdaten?"
+    answer: "Standardmäßig nicht. Laut der Enterprise-Datenschutzseite von OpenAI trainiert OpenAI nicht mit Daten aus ChatGPT Enterprise, Business, Edu oder der API, sofern der Kunde nicht zustimmt. Für Enterprise nennt die Seite außerdem SOC-2-Type-2-Audits und eine von Admins gesteuerte Aufbewahrung."
+  - question: "Welche Unternehmen haben ChatGPT eingeschränkt?"
+    answer: "Samsung hat generative KI auf Firmengeräten 2023 eingeschränkt, nachdem Berichte über abgeflossenen Quellcode und interne Daten aufkamen. Auch Apple, JPMorgan, Bank of America, Citi, Deutsche Bank, Goldman Sachs, Wells Fargo, Walmart und Verizon haben es laut Berichten im selben Jahr eingeschränkt."
+  - question: "Ist es nach der DSGVO erlaubt, Kundendaten in ChatGPT einzugeben?"
+    answer: "Nur mit Rechtsgrundlage und einem Auftragsverarbeitungsvertrag nach Art. 28 DSGVO. Ein Business-Tarif mit Auftragsverarbeitungsvertrag kann das erfüllen, das private Konto eines Mitarbeiters nicht, weil das Unternehmen für dieses Konto keinen Vertrag mit dem Anbieter hat."
+  - question: "Ab wann gelten die Hochrisiko-Regeln der KI-Verordnung?"
+    answer: "Nach der Änderung durch den AI-Omnibus, der am 27. Juli 2026 in Kraft getreten ist, gelten die Hochrisiko-Regeln für eigenständige Systeme wie das Sichten von Lebensläufen ab dem 2. Dezember 2027 und für KI in regulierten Produkten ab dem 2. August 2028. Die Transparenzpflichten nach Artikel 50 gelten seit dem 2. August 2026."
+  - question: "Kann ich GPUFlow für vertrauliche Unternehmensdaten nutzen?"
+    answer: "Nein. Bei GPUFlow läuft das Modell auf dem eigenen Computer eines Anbieters, Prompts und Antworten laufen also im Klartext über diesen Rechner. Die Nutzungsbedingungen verbieten Anbietern, sie aufzuzeichnen, aber das ist eine vertragliche Regel, keine technische Sperre. Nutzen Sie es nur für Daten, die Sie auch einem Fremden geben könnten."
 ---
 
-Das Rundschreiben stellt niemanden zufrieden, verändert aber alles.
+Die meisten Unternehmen, die „ChatGPT verbieten“, haben nichts gegen KI. Sie haben etwas dagegen, dass Mitarbeiter Firmendaten in ein privates Konto kopieren, mit dessen Anbieter das Unternehmen keinen Vertrag hat und bei dem der Anbieter die Daten standardmäßig zur Verbesserung seiner Modelle nutzen darf. Die übliche Lösung ist ein freigegebenes Tool: ein Business-Tarif mit Regeln gegen Training und zur Aufbewahrung, ein Modell-Endpunkt im eigenen Cloud-Konto des Unternehmens oder ein offenes Modell auf Hardware, die das Unternehmen selbst betreibt. Mit dem richtigen Vertrag sind die öffentlichen Tools für viele Aufgaben in Ordnung.
 
-Als die Halbleitersparte von Samsung feststellte, dass Ingenieure proprietäre Chipdesigns in ChatGPT hochgeladen hatten, fiel die Reaktion sofort und kompromisslos aus: ein konzernweites Verbot. Keine Ausnahmen. Kein Widerspruchsverfahren. Das Werkzeug, das zum Inbegriff KI-gestützter Produktivität geworden war, durfte in keinem Unternehmensnetz mehr genutzt werden.
+Im Folgenden: was in den Fällen, die alle zitieren, tatsächlich passiert ist, welche Regeln 2026 gelten, was die Business-Bedingungen der Anbieter heute sagen und wohin Ihr Text bei jeder Option geht. Alles wurde im September 2026 anhand der Primärquellen geprüft; sie stehen am Ende.
 
-Samsung war nicht allein. Innerhalb weniger Monate folgten ähnliche Ankündigungen von JPMorgan Chase, Apple, Amazon, Goldman Sachs, der Deutschen Bank und Dutzenden weiteren Unternehmen. Kanzleien, die Fortune-500-Konzerne beraten, untersagten ihren Associates die Nutzung. Kliniken sperrten den Zugang bereits an der Firewall. Behörden veröffentlichten Leitlinien, die jede Unklarheit über eine zulässige Nutzung beseitigten.
+## Was bei Samsung und den Banken passiert ist
 
-Das Muster zeigte etwas, das Technikbegeisterte in ihrer Euphorie über die Fähigkeiten von KI übersehen hatten: Für den Einsatz in Unternehmen gelten Einschränkungen, die für Privatanwender keine Rolle spielen.
+Samsung ist der Fall, den alle zitieren. Anfang 2023 erlaubte die Halbleitersparte ihren Ingenieuren, ChatGPT zu nutzen. Koreanische Medien berichteten danach von drei getrennten Vorfällen: Mitarbeiter fügten Quellcode ein, um Fehler zu beheben, ließen das Tool Besprechungsprotokolle schreiben und gaben Messdaten von Anlagen und Ausbeutedaten ein. Samsung bestätigte die Details damals nicht. Ende April 2023 teilte ein Memo den Mitarbeitern einer der größten Sparten mit, dass generative KI auf Firmencomputern vorübergehend eingeschränkt sei. In einer internen Umfrage im Vormonat hatten 65 % der Befragten angegeben, sich wegen der Sicherheitsrisiken Sorgen zu machen.
 
-Dieser Artikel untersucht, warum KI-Richtlinien in Unternehmen strenger werden, welche konkreten Risiken hinter diesen Entscheidungen stehen und wie Organisationen KI nutzen können, ohne inakzeptable Datenabflüsse in Kauf zu nehmen. Der Weg nach vorn verlangt nicht, auf KI zu verzichten. Er verlangt die Einsicht, dass die Infrastruktur genauso wichtig ist wie die Intelligenz.
+Apple schränkte ChatGPT und GitHub Copilot laut Wall Street Journal im Mai 2023 ein, weil es fürchtete, vertrauliche Daten könnten bei Entwicklern landen, die Modelle mit Nutzerdaten trainieren. Dieselben Berichte nannten JPMorgan, Bank of America, Citi, Deutsche Bank, Goldman Sachs, Wells Fargo, Walmart und Verizon als Unternehmen, die ChatGPT eingeschränkt hatten.
 
-![Sicherheitsteam eines Unternehmens prüft KI-Nutzungsrichtlinien auf mehreren Bildschirmen](../_images/enterprise-ai-policy-review.png)
+Zwei Dinge an diesen Fällen übersieht man leicht.
 
-## Die Vorfälle, die alles verändert haben
+Erstens wurde niemand gehackt. Die Daten gingen genau dorthin, wohin der Mitarbeiter sie geschickt hatte. Die Sorge galt dem, was danach passiert: wer sie behält, wie lange, ob damit ein Modell trainiert wird und ob ein Gericht den Anbieter zur Herausgabe zwingen kann.
 
-Die KI-Verbote in Unternehmen sind nicht aus theoretischen Risikobewertungen entstanden. Sie folgten auf reale Vorfälle, bei denen vertrauliche Informationen der Kontrolle der Organisation entglitten.
+Zweitens blieben die Verbote keine Verbote. JPMorgan baute eine eigene interne Plattform, LLM Suite, die Mitarbeitern Zugang zu großen Sprachmodellen „in einer sicheren Umgebung“ gibt. Sie wurde im Sommer 2024 eingeführt und hatte innerhalb von acht Monaten 200.000 freigeschaltete Nutzer. Das ist der typische Verlauf: erst die Consumer-App sperren, dann den Leuten etwas Freigegebenes geben.
 
-**Der Datenabfluss in Samsungs Halbleitersparte**
+## Worin das Risiko eigentlich besteht
 
-Anfang 2023 nutzten Mitarbeitende von Samsung Electronics ChatGPT, um Quellcode zu debuggen und Fertigungsprozesse für Halbleiter zu optimieren. Ingenieure fügten proprietären Code direkt in das Chatfenster ein. Andere luden Besprechungsnotizen mit strategischen Planungen hoch. Keine drei Wochen nachdem ChatGPT für den internen Gebrauch freigegeben worden war, stellte Samsungs IT-Sicherheitsteam mehrere Fälle fest, in denen vertrauliche Daten an Server von OpenAI übertragen worden waren.
+Wenn ein Mitarbeiter ein privates Consumer-Konto nutzt, kommen vier getrennte Probleme zusammen.
 
-In der Halbleiterindustrie werden Strukturgrößen in Nanometern gemessen und Wettbewerbsvorteile in Monaten. Die Möglichkeit, dass Samsungs Fertigungsprozesse nun im Trainingsbestand von OpenAI lagen – womöglich zugänglich für Wettbewerber, die denselben Dienst nutzen –, war inakzeptabel. Samsung verhängte ein vollständiges Verbot und begann mit der Entwicklung interner KI-Werkzeuge, die niemals Daten nach außen übertragen.
+**Training als Voreinstellung.** Bei ChatGPT Free, Plus und Pro dürfen Inhalte zur Verbesserung der Modelle von OpenAI genutzt werden, solange der Nutzer nicht unter Data controls die Option „Improve the model for everyone“ abschaltet. Klickt der Nutzer auf Daumen hoch oder runter, darf die ganze Unterhaltung auch nach dem Opt-out genutzt werden. Die Consumer-Tarife von Claude bei Anthropic nutzen Chats für das Training, wenn der Nutzer die Modellverbesserung erlaubt. Ob Ihr Quellcode in einem Trainingsdatensatz landet, hängt also von einer Einstellung im Konto eines anderen ab.
 
-**Die Reaktion der Finanzbranche**
+**Aufbewahrung, die Sie nicht steuern.** Geschäftsdaten auf der Plattform von OpenAI werden innerhalb von 30 Tagen gelöscht, nachdem der Nutzer sie gelöscht hat, „sofern wir nicht gesetzlich zur Aufbewahrung verpflichtet sind“. Dieser letzte Halbsatz ist keine Floskel. Im Rechtsstreit mit der New York Times verpflichtete ein Gerichtsbeschluss OpenAI vom Juni 2025 bis zum 26. September 2025, Inhalte aus Consumer-ChatGPT und der Standard-API aufzubewahren, die sonst gelöscht worden wären. Kunden von ChatGPT Enterprise und Edu sowie API-Kunden mit Zero Data Retention waren nicht betroffen.
 
-JPMorgan Chase schränkte den Zugang zu ChatGPT ein, bevor überhaupt ein Vorfall öffentlich wurde, weil die Bank die regulatorischen Folgen vorausschauend erkannte. Wenn Bankmitarbeitende Kundenportfolios analysieren, Fusionsstrategien besprechen oder Kreditrisiken bewerten, arbeiten sie mit Informationen, die SEC-Vorschriften, dem Bankgeheimnis und Treuepflichten unterliegen. Solche Informationen an einen externen KI-Dienst zu übermitteln – ganz gleich, was dessen Datenschutzrichtlinien versprechen –, schafft ein Compliance-Risiko, das keine Rechtsabteilung akzeptieren würde.
+**Kein Vertrag.** Rechtlich wiegt das am schwersten. Nach der DSGVO muss ein Unternehmen, das einen Anbieter personenbezogene Daten verarbeiten lässt, einen Auftragsverarbeiter wählen, der „hinreichende Garantien“ bietet, und einen verbindlichen Vertrag mit ihm schließen (Art. 28). Ein Leistungserbringer im US-Gesundheitswesen braucht ein Business Associate Agreement. Das private Konto eines Mitarbeiters hat weder das eine noch das andere. Der Verstoß passiert also im Moment des Einfügens, egal ob danach je etwas abfließt.
 
-Goldman Sachs, Citigroup, Bank of America und die Deutsche Bank folgten mit ähnlichen Beschränkungen. Die abgestimmte Reaktion der Finanzbranche war keine Paranoia, sondern Ausdruck eines professionellen Verständnisses regulatorischer Haftung. Ein Datenleck durch die ChatGPT-Nutzung von Mitarbeitenden wäre meldepflichtig, würde eine aufsichtsrechtliche Untersuchung auslösen und könnte Sanktionen nach sich ziehen.
+**Keine Aufzeichnungen.** Regulierte Unternehmen müssen geschäftliche Kommunikation überwachen und archivieren. Ein Chat in einem privaten Konto liegt außerhalb jedes Archivs, das die Compliance-Abteilung betreibt.
 
-**Folgen für die Rechtsbranche**
+## Die Regeln, die 2026 gelten
 
-Die American Bar Association hat KI-Werkzeuge nicht pauschal verboten, doch die Anforderungen an das Anwaltsgeheimnis (Attorney-Client Privilege) wirken in der Praxis fast wie ein Verbot. Bespricht ein Anwalt Mandatsangelegenheiten mit ChatGPT, kann dadurch der Schutz des Anwaltsgeheimnisses entfallen. Informationen, die Dritten offengelegt werden – auch KI-Systemen –, können die Vertraulichkeit verlieren, die rechtliche Beratung schützt.
+### DSGVO
 
-Große Kanzleien wie Davis Polk, Cravath und Sullivan & Cromwell führten Beschränkungen ein, die von vollständigen Verboten bis zu Richtlinien reichen, nach denen nur genehmigte Anwendungsfälle mit Zustimmung eines Partners erlaubt sind. Die Reaktion der Rechtsbranche zeigte, dass KI-Risiken weit über Datensicherheit hinausgehen und grundlegende Fragen der Berufspflichten berühren.
+Personenbezogene Daten von Kunden oder Mitarbeitern in der EU in einem Prompt sind eine Verarbeitung. Sie braucht eine Rechtsgrundlage, einen Auftragsverarbeitungsvertrag nach Art. 28 und für jede Übermittlung außerhalb der EU einen rechtlichen Weg. Für US-Anbieter ist das EU-US Data Privacy Framework weiterhin gültig: Das Gericht der EU hat die Klage Latombe am 3. September 2025 abgewiesen (Rechtssache T-553/23). Ein Rechtsmittel ist beim Gerichtshof als C-703/25 P anhängig. Behalten Sie das im Blick.
 
-## Wie Cloud-KI technisch mit Daten umgeht
+Aufsichtsbehörden sind direkt gegen Chat-Dienste vorgegangen. Die italienische Datenschutzbehörde Garante sperrte ChatGPT Ende März 2023 vorübergehend und verhängte im Dezember 2024 ein Bußgeld von 15 Millionen € gegen OpenAI: wegen der Verarbeitung personenbezogener Daten zum Training von ChatGPT ohne ausreichende Rechtsgrundlage, einer nicht gemeldeten Datenpanne vom März 2023, mangelnder Transparenz und fehlender Altersprüfung. OpenAI nannte das Bußgeld unverhältnismäßig und kündigte Rechtsmittel an.
 
-Um zu verstehen, warum Unternehmen ChatGPT verbieten, muss man sich ansehen, was tatsächlich passiert, wenn Sie eine Nachricht an einen Cloud-KI-Dienst senden.
+### HIPAA
 
-**Der Übertragungsweg der Daten**
+Jeder Dienst, der für eine Covered Entity elektronische geschützte Gesundheitsdaten empfängt, speichert oder überträgt, ist ein Business Associate und braucht ein unterschriebenes BAA. Das US-Gesundheitsministerium HHS stellt klar, dass auch ein Cloud-Anbieter, der nur verschlüsselte Daten hält und keinen Schlüssel hat, ein Business Associate ist. OpenAI gibt an, für seine API BAAs unterzeichnen zu können. Das private ChatGPT-Konto eines Arztes kommt ohne jedes BAA.
 
-Wenn Sie einen Prompt in ChatGPT eingeben, gelangt Ihr Text von Ihrem Gerät über das Unternehmensnetz und das öffentliche Internet zur Infrastruktur von OpenAI. OpenAI läuft überwiegend auf Microsoft Azure. Ihre Daten durchlaufen also das Netz von Microsoft und liegen auf Servern, die Microsoft verwaltet.
+### Finanzdienstleistungen
 
-Diese Übertragung erfolgt unabhängig davon, wie sensibel der Inhalt ist. Das System unterscheidet nicht zwischen der Bitte, ein Gedicht zu schreiben, und der Bitte, vertrauliche Fusionsbedingungen zu analysieren. Jedes Zeichen, das Sie eingeben, nimmt denselben Weg zum selben Ziel.
+Die Regulatory Notice 24-09 der FINRA (27. Juni 2024) sagt, dass ihre Regeln für generative KI gelten, „genauso wie sie gelten, wenn Mitgliedsfirmen jede andere Technologie oder jedes andere Tool nutzen“. Aufsicht, Kommunikation mit der Öffentlichkeit und Aufbewahrungspflichten gelten weiter. Die meisten Einschränkungen der Banken von 2023 folgten genau daraus.
 
-**Richtlinien zur Datenspeicherung**
+### KI-Verordnung der EU
 
-Die Datennutzungsrichtlinien von OpenAI haben sich im Lauf der Zeit verändert, einige Grundsätze sind aber gleich geblieben. Eingaben werden protokolliert. Unterhaltungen werden gespeichert. Wie lange und wofür, hängt von Ihrem Abonnement und den konkreten Vereinbarungen ab.
+Die KI-Verordnung ist am 1. August 2024 in Kraft getreten. Die Verbote untersagter Praktiken und die Pflicht zur KI-Kompetenz gelten seit dem 2. Februar 2025, die Pflichten für Anbieter von KI-Modellen mit allgemeinem Verwendungszweck seit dem 2. August 2025. Die Änderung durch den AI-Omnibus, Verordnung (EU) 2026/1744, wurde am 24. Juli 2026 veröffentlicht und trat am 27. Juli 2026 in Kraft. Sie hat die Hochrisiko-Fristen verschoben: auf den 2. Dezember 2027 für eigenständige Hochrisiko-Systeme, zu denen KI in der Personalauswahl wie das Sortieren von Lebensläufen gehört, und auf den 2. August 2028 für KI in regulierten Produkten. Die Transparenzpflichten nach Artikel 50 gelten planmäßig seit dem 2. August 2026, und die Pflicht zur KI-Kompetenz wurde zu einer Pflicht abgeschwächt, Maßnahmen zu ihrer „Unterstützung“ zu ergreifen.
 
-Bei kostenlosen Konten und Plus-Abonnements behält sich OpenAI ausdrücklich vor, Eingaben zur Verbesserung der Modelle zu nutzen. Ihre Prompts werden zu Trainingsdaten. Der vertrauliche Code, den Sie zur Fehlersuche eingefügt haben, kann beeinflussen, wie das Modell künftigen Nutzern antwortet – womöglich auch Ihren Wettbewerbern.
+Für ein Unternehmen, das einen Chat-Assistenten zum Entwerfen von E-Mails nutzt, ändert die KI-Verordnung wenig. Fängt derselbe Assistent an, Bewerber zu bewerten, betreiben Sie ein Hochrisiko-System, und für Sie gilt der Termin im Dezember 2027.
 
-API-Nutzer und Enterprise-Kunden können der Verwendung für Trainingsdaten widersprechen, ihre Eingaben werden aber trotzdem auf der Infrastruktur von OpenAI verarbeitet. Die Daten liegen weiterhin auf Servern, die Sie nicht kontrollieren, verwaltet von Mitarbeitenden, die Sie nicht überprüft haben, und unterliegen Rechtsverfahren, auf die Sie keinen Einfluss haben.
+## Was die Business-Tarife versprechen
 
-**Das Drittanbieterproblem**
+Jeder große Anbieter verkauft inzwischen einen Business-Tarif mit anderen Voreinstellungen als die Consumer-App. Die Tabelle fasst zusammen, was die Seiten der Anbieter selbst im September 2026 sagen.
 
-Sicherheitsarchitekturen in Unternehmen unterscheiden zwischen First-Party-Systemen (Infrastruktur, die Sie selbst besitzen und betreiben), Second-Party-Systemen (Anbieter mit direkter Vertragsbeziehung und geprüften Sicherheitskontrollen) und Third-Party-Systemen (Dienste, die ohne tiefere Sicherheitsintegration genutzt werden).
+| Angebot | Standardmäßig Training mit Ihren Daten? | Aufbewahrung und Kontrolle | Compliance |
+| --- | --- | --- | --- |
+| ChatGPT Free, Plus, Pro | Möglich, außer der Nutzer widerspricht | Pro Nutzerkonto | Kein Vertrag mit dem Unternehmen |
+| ChatGPT Business, Enterprise, Edu | Nein | Workspace-Admins legen die Aufbewahrung fest | SOC 2 Type 2 für Enterprise und Business |
+| OpenAI API | Nein | Löschung nach 30 Tagen; Zero Data Retention für geeignete Anwendungen | BAA verfügbar |
+| Claude Team, Enterprise, API | Nein | Feedback kann bis zu 5 Jahre aufbewahrt werden; Inhaber können Feedback abschalten | Gewerbliche Bedingungen |
+| Microsoft 365 Copilot und Copilot Chat | Nein, kein Training von Foundation Models | Ihre Aufbewahrungsrichtlinien, Labels und Audits gelten | AVV, EU Data Boundary (ohne Modelle von Anthropic) |
+| Gemini in Google Workspace | Ohne Erlaubnis kein Training außerhalb Ihrer Domain | Bestehende Workspace-Kontrollen gelten | HIPAA-Unterstützung, FedRAMP High |
 
-Für die meisten Nutzer ist ChatGPT ein ungeprüfter Drittanbieter. Solange Ihre Organisation keinen eigenen Unternehmensvertrag mit Sicherheitszusätzen, Rechten für Penetrationstests und auf Ihre Anforderungen abgestimmten Compliance-Zertifizierungen ausgehandelt hat, steht ChatGPT außerhalb Ihres Sicherheitsperimeters – mit Zugriff auf alle Daten, die Mitarbeitende dort eingeben.
+Die Modell-Endpunkte in den großen Clouds gehen weiter. Microsoft schreibt, dass Prompts und Antworten für Modelle, die Azure in Microsoft Foundry verkauft, „OpenAI und anderen Anbietern NICHT zugänglich“ sind und in der gewählten Region verarbeitet werden, sofern Sie kein Global- oder DataZone-Deployment wählen. Bei Amazon Bedrock laufen die Modelle in Deployment-Konten, auf die die Modellanbieter keinen Zugriff haben. Sie sehen Ihre Prompts und Antworten also nie.
 
-Diese architektonische Realität erklärt, warum Sicherheitsteams ChatGPT anders behandeln als Microsoft Office oder Salesforce. Diese Systeme laufen zwar ebenfalls in der Cloud, aber unter Unternehmensverträgen mit festgelegten Sicherheitskontrollen, Prüfrechten und Haftungsregeln. ChatGPT bietet einem Nutzer mit einem Abo für 20 $ im Monat keinen dieser Schutzmechanismen.
+Was ein Business-Tarif nicht ändert: Der Text liegt weiter auf den Servern des Anbieters, so lange die Aufbewahrungsregeln es zulassen, und ein Gerichtsbeschluss kann ihn weiterhin erreichen. Das ist dasselbe Vertrauen, das Sie schon Ihren E-Mail- und Dokumentenanbietern entgegenbringen. Für die meiste interne Arbeit ist das ein vernünftiger Tausch. Für Geschäftsgeheimnisse, regulierte Daten ohne BAA oder Material, das ein Kundenvertrag nicht an Unterauftragsverarbeiter gehen lässt, vielleicht nicht.
 
-![Diagramm des Datenflusses vom Unternehmensnetz zu Cloud-KI-Servern mit markierten Sicherheitsgrenzen](../_images/cloud-ai-data-flow-diagram.png)
+## Wohin Ihr Prompt bei jeder Option geht
 
-## Regulatorische Rahmenbedingungen hinter der Vorsicht der Unternehmen
+Ehrlich vergleichen lassen sich die Optionen, wenn man einem Prompt folgt und fragt, wer ihn lesen kann.
 
-KI-Richtlinien in Unternehmen entstehen nicht im luftleeren Raum. Sie reagieren auf rechtliche Anforderungen, die älter sind als ChatGPT und es überdauern werden.
-
-**DSGVO und europäischer Datenschutz**
-
-Die Datenschutz-Grundverordnung stellt strenge Anforderungen an die Verarbeitung personenbezogener Daten von Personen in der EU. Fügt ein Mitarbeiter Kundendaten in ChatGPT ein, löst er eine Datenübermittlung an einen Auftragsverarbeiter in den USA aus. Diese Übermittlung braucht eine Rechtsgrundlage – einen Angemessenheitsbeschluss, Standardvertragsklauseln oder verbindliche interne Datenschutzvorschriften.
-
-Die Auftragsverarbeitungsverträge von OpenAI mögen die DSGVO-Anforderungen für manche Anwendungsfälle erfüllen, doch die meisten Mitarbeitenden, die das Endkundenprodukt nutzen, haben keinen solchen Vertrag. Sie übermitteln schlicht personenbezogene Daten ohne Befugnis an ein ausländisches Unternehmen.
-
-Die italienische Datenschutzbehörde hat ChatGPT 2023 wegen DSGVO-Bedenken vorübergehend gesperrt. Der Dienst wurde zwar wieder freigegeben, nachdem OpenAI nachgebessert hatte, doch der Vorfall zeigte, dass Aufsichtsbehörden zum Handeln bereit sind. Europäische Unternehmen haften direkt für DSGVO-Verstöße ihrer Mitarbeitenden – ein starker Anreiz für restriktive Richtlinien.
-
-**HIPAA und Gesundheitsdaten**
-
-Der US-amerikanische Health Insurance Portability and Accountability Act (HIPAA) verbietet die Offenlegung geschützter Gesundheitsinformationen (PHI), außer unter eng definierten, zulässigen Umständen. Eine Pflegekraft oder ein Arzt, der Patientenfälle mit ChatGPT bespricht, legt PHI gegenüber einem nicht befugten Empfänger offen.
-
-Zwischen typischen Gesundheitseinrichtungen und OpenAI besteht kein Business Associate Agreement. Kein Sicherheitsaudit hat bestätigt, dass ChatGPT die technischen Schutzmaßnahmen nach HIPAA erfüllt. Keine rechtliche Grundlage erlaubt die Offenlegung.
-
-Gesundheitseinrichtungen, die feststellen, dass Mitarbeitende PHI über ChatGPT geteilt haben, unterliegen Meldepflichten, möglichen Untersuchungen durch das Office for Civil Rights (OCR) und Strafen von bis zu 1,5 Mio. $ pro Verstoßkategorie und Jahr. Diese Folgen erklären, warum Kliniken ChatGPT auf Netzwerkebene sperren, statt sich auf die Einhaltung von Richtlinien zu verlassen.
-
-**Finanzmarktregulierung**
-
-Banken, Broker-Dealer und Anlageberater unterliegen Vorschriften von SEC, FINRA, OCC und Federal Reserve, die eine Aufzeichnung und Überwachung geschäftlicher Kommunikation vorschreiben. Wenn ein Analyst mit ChatGPT Kundenkorrespondenz entwirft, müsste diese Unterhaltung im Compliance-Archiv erfasst werden.
-
-ChatGPT lässt sich nicht in Archivierungssysteme von Unternehmen einbinden. Keine Überwachungswerkzeuge markieren problematische Nutzung. Die Unterhaltung existiert nur auf den Servern von OpenAI und dem Gerät des Mitarbeiters – und keines von beiden erfüllt die aufsichtsrechtlichen Aufbewahrungspflichten.
-
-Über die Aufzeichnungspflichten hinaus sorgen sich Finanzaufsichten um KI-generierte Anlageberatung, KI-Beteiligung an Kreditentscheidungen und KI-Analysen, die als Marktmanipulation gelten könnten. Die Regulierung ist noch im Fluss, und Compliance-Verantwortliche reagieren auf Unsicherheit, indem sie die Nutzung einschränken, statt sie bis zur Klärung zu erlauben.
-
-**Neue KI-spezifische Regulierung**
-
-Der europäische AI Act, der 2025 und 2026 schrittweise in Kraft tritt, stellt zusätzliche Anforderungen an den Einsatz von KI-Systemen. Hochrisiko-Anwendungen – etwa solche, die Beschäftigung, Kreditvergabe oder Bildung betreffen – erfordern Konformitätsbewertungen, Dokumentation und menschliche Aufsicht.
-
-Organisationen, die ChatGPT in diesen Bereichen einsetzen, betreiben womöglich nicht konforme KI-Systeme, sobald die Vorschriften greifen. Vorausschauende Unternehmen schränken die Nutzung schon jetzt ein, statt später nachbessern zu müssen.
-
-## Geistiges Eigentum: das Risiko, das kein Vertrag löst
-
-Regulatorische Compliance ist eine Kategorie von Bedenken. Der Schutz geistigen Eigentums ist eine andere – und für viele Unternehmen die folgenreichere.
-
-**Geschäftsgeheimnisse und Vertraulichkeit**
-
-Der Schutz von Geschäftsgeheimnissen nach dem US-amerikanischen Defend Trade Secrets Act und entsprechenden Gesetzen der Bundesstaaten setzt voraus, dass die Informationen durch angemessene Schutzmaßnahmen vertraulich bleiben. Fügt ein Mitarbeiter proprietäre Algorithmen, Fertigungsprozesse oder strategische Pläne in ChatGPT ein, haben die Schutzmaßnahmen der Organisation versagt.
-
-Gerichte prüfen bei Klagen wegen Verletzung von Geschäftsgeheimnissen, ob die klagende Partei angemessene Schritte zur Geheimhaltung unternommen hat. Wer Mitarbeitenden erlaubt, vertrauliche Informationen mit externen KI-Diensten zu teilen, untergräbt diese Voraussetzung. Selbst wenn die Informationen die Systeme von OpenAI nie verlassen, kann schon die Offenlegung an sich den rechtlichen Schutz gefährden.
-
-Das betrifft nicht nur hypothetische Rechtsstreitigkeiten. Unternehmen machen regelmäßig Ansprüche wegen Geheimnisverletzung gegen ausscheidende Mitarbeitende und Wettbewerber geltend. Zeigt sich im Verfahren, dass die „geheimen“ Informationen zuvor mit ChatGPT geteilt wurden – und damit über ein mögliches Modelltraining Millionen Nutzern zugänglich sein könnten –, verliert der Anspruch erheblich an Gewicht.
-
-**Quellcode und technische Werte**
-
-Softwareunternehmen sind besonders exponiert. Entwickler möchten KI-Werkzeuge ganz selbstverständlich nutzen, um Code zu debuggen, Boilerplate zu erzeugen und die Entwicklung zu beschleunigen. Quellcode ist aber das Kernkapital eines Softwareunternehmens. Sobald er an ChatGPT übertragen wurde, liegt er außerhalb der Kontrolle der Organisation.
-
-Die Sorge um Trainingsdaten ist nicht theoretisch. Große Sprachmodelle lernen aus ihren Eingaben. OpenAI erklärt zwar, dass Enterprise- und API-Kunden der Nutzung für das Training widersprechen können, für das Endkundenprodukt gibt es diese Zusicherung jedoch nicht. Code, den ein Entwickler teilt, kann Vervollständigungen beeinflussen, die einem anderen angezeigt werden – womöglich bei einem Konkurrenten.
-
-Amazon verwies in einer internen Warnung an die Belegschaft ausdrücklich auf das Risiko, dass Antworten von ChatGPT vertraulichen Amazon-Informationen ähneln könnten – ein Hinweis darauf, dass ähnliche Daten bereits in das Modell eingeflossen sein könnten. Ob es sich tatsächlich um Amazon-Code in den Trainingsdaten oder nur um ähnliche Muster handelte, ist unklar. Allein diese Unklarheit führte zur restriktiven Richtlinie.
-
-**Mandanten- und Kundeninformationen**
-
-Dienstleister wie Unternehmensberater, Wirtschaftsprüfer, Anwälte und Architekten arbeiten mit Informationen, die ihren Mandanten gehören, nicht ihnen selbst. Wer Mandantendaten mit ChatGPT teilt, verstößt womöglich gegen Mandatsvereinbarungen, Vertraulichkeitsvereinbarungen und berufsrechtliche Regeln.
-
-Ein Berater, der die Finanzprognosen eines Mandanten zur Analyse in ChatGPT hochlädt, hat vertrauliche Informationen dieses Mandanten an einen Dritten weitergegeben. Fliegt das auf, drohen seiner Firma Schadenersatzforderungen wegen Vertragsverletzung, berufsrechtliche Konsequenzen und der Verlust von Mandantenbeziehungen.
-
-Diese Bedenken gelten genauso für jedes Unternehmen, das mit Kundendaten arbeitet. Ein Vertriebsmitarbeiter, der Kundenkorrespondenz in ChatGPT einfügt, um eine Antwort zu entwerfen, hat Kundenkommunikation an OpenAI übermittelt. Je nach Branche und geltenden Vereinbarungen kann das gegen Zusagen zum Umgang mit Kundendaten verstoßen.
-
-![Juristisches Dokument mit Vertraulichkeitsstempel neben einer leuchtenden KI-Oberfläche als Sinnbild für Risiken beim geistigen Eigentum](../_images/intellectual-property-ai-risk.png)
-
-## Warum Enterprise-KI-Verträge nicht ausreichen
-
-OpenAI bietet ChatGPT Enterprise gezielt an, um die Bedenken von Unternehmen auszuräumen. Microsoft stellt mit Azure OpenAI Service ein Angebot mit Sicherheitsfunktionen für Unternehmen bereit. Diese Produkte sind besser als die Endkundenangebote, beseitigen die grundlegenden Bedenken bei hochsensiblen Anwendungsfällen aber nicht.
-
-**Was Enterprise-Verträge bieten**
-
-ChatGPT Enterprise enthält mehrere spürbare Verbesserungen:
-
-- Daten werden nicht für das Modelltraining verwendet
-- Zertifizierung nach SOC 2 Type 2
-- Verschlüsselung der Daten im Ruhezustand und bei der Übertragung
-- SSO-Anbindung und Verwaltungsfunktionen
-- Steuerung der Datenaufbewahrung
-
-Diese Funktionen genügen für viele Anwendungsfälle in Unternehmen. Ein Marketingteam, das Kampagnentexte entwirft, geht nur ein geringes Risiko ein. Eine Kundenservice-Abteilung, die Antwortvorlagen erstellt, bewegt sich in einem vertretbaren Rahmen.
-
-**Was Enterprise-Verträge nicht leisten können**
-
-In regulierten Branchen und bei sensiblem geistigem Eigentum greifen Enterprise-Verträge in grundlegenden Punkten zu kurz.
-
-Erstens werden die Daten weiterhin auf Infrastruktur verarbeitet, die Sie nicht kontrollieren. Ihre Informationen liegen auf Servern von OpenAI, verwaltet von Mitarbeitenden von OpenAI und abhängig von den Sicherheitspraktiken von OpenAI. Sie vertrauen deren Umsetzung. Sie vertrauen deren Personalüberprüfung. Sie vertrauen deren Reaktion auf Sicherheitsvorfälle. Dieses Vertrauen mag berechtigt sein, es bleibt aber Vertrauen – keine Überprüfung.
-
-Zweitens bleiben die Daten rechtlichen Verfahren ausgesetzt. Eine gerichtliche Anordnung gegen OpenAI könnte die Herausgabe Ihrer Unterhaltungen erzwingen. Eine behördliche Untersuchung gegen einen anderen Kunden könnte gemeinsam genutzte Infrastruktur berühren. National Security Letters und Anordnungen des FISA-Gerichts unterliegen Geheimhaltungspflichten, die OpenAI daran hindern würden, Sie über einen Zugriff zu informieren.
-
-Drittens umfasst die Angriffsfläche die gesamte Organisation von OpenAI. Ihr Sicherheitsperimeter endet nicht mehr an Ihrer Netzwerkgrenze. Jeder Mitarbeiter von OpenAI mit Systemzugang, jeder Dienstleister mit Infrastrukturzugriff und jede Sicherheitslücke in den Systemen von OpenAI wird Teil Ihres Risikoprofils.
-
-Viertens sind Ausstieg und Portabilität eingeschränkt. Ihr Gesprächsverlauf, angepasste Verhaltensweisen und das in ChatGPT angesammelte Organisationswissen sind an Interaktionen mit dem System von OpenAI gebunden. Ein Wechsel zu einer Alternative bedeutet, von vorn anzufangen.
-
-Für ein Pharmaunternehmen, das neue Wirkstoffe entwickelt, einen Rüstungszulieferer mit Forschung nahe an Verschlusssachen oder ein Finanzinstitut, dessen Handelsalgorithmen Milliarden wert sein können, sind diese Grenzen entscheidend. Enterprise-Verträge verringern das Risiko. Sie beseitigen es nicht.
-
-## Die Alternative: Open-Weights-Modelle
-
-Die Einschränkungen, die zu ChatGPT-Verboten führen, gelten nicht für KI im Allgemeinen. Sie gelten speziell für Cloud-KI-Dienste, bei denen Daten die Kontrolle der Organisation verlassen. Eine andere Architektur beseitigt diese Bedenken vollständig.
-
-**Was Open-Weights-Modelle bieten**
-
-Open-Weights-Modelle – Llama von Meta, Mistral von Mistral AI, Qwen von Alibaba und Dutzende weitere – stehen als Modelldateien zum Download bereit und laufen auf jeder kompatiblen Hardware. Die Modellgewichte sind öffentlich. Der Inferenzcode ist Open Source. Sie können das gesamte System auf Infrastruktur betreiben, die Ihnen gehört und die Sie selbst verwalten.
-
-Wenn Sie Llama auf Ihrem eigenen Server betreiben, verlassen Ihre Prompts nie Ihr Netzwerk. Kein Dritter erhält Ihre Daten. Kein Clouddienst protokolliert Ihre Anfragen. Keine Trainingspipeline verarbeitet Ihre Eingaben. Das Modell läuft lokal, rechnet lokal und speichert nichts außer dem, was Sie ausdrücklich konfigurieren.
-
-Diese Architektur erfüllt jede Anforderung, die hinter ChatGPT-Verboten steht:
-
-- **Regulatorische Compliance:** Die Daten bleiben innerhalb Ihres Sicherheitsperimeters, unterliegen Ihren Kontrollen und werden nach Ihren Richtlinien verwaltet. Eine Datenübermittlung im Sinne der DSGVO findet nicht statt, weil keine Daten übermittelt werden. HIPAA-Bedenken erledigen sich, weil keine Offenlegung gegenüber Unbefugten erfolgt.
-
-- **Schutz geistigen Eigentums:** Geschäftsgeheimnisse bleiben geheim. Quellcode verlässt nie Ihre Systeme. Die Vertraulichkeit gegenüber Mandanten bleibt gewahrt, weil kein Dritter Mandanteninformationen erhält.
-
-- **Kontrolle über die Sicherheit:** Die Angriffsfläche bleibt Ihre eigene. Sie überprüfen Ihre Sicherheitspraktiken. Sie überprüfen Ihr Personal. Sie steuern Ihre Reaktion auf Vorfälle. Die Schwachstellen fremder Organisationen betreffen Ihre Daten nicht.
-
-- **Audit und Compliance:** Jede Anfrage, jede Antwort und jede Interaktion mit dem Modell lässt sich nach Ihren Vorgaben protokollieren. Die aufsichtsrechtliche Aufzeichnung fügt sich in Ihre bestehenden Archivsysteme ein.
-
-**Leistungsvergleich**
-
-Naheliegend ist die Frage, ob Open-Weights-Modelle mit ChatGPT mithalten können. Die ehrliche Antwort: Es kommt auf den Anwendungsfall an.
-
-Bei allgemeinen Wissensfragen bietet ChatGPT dank Training auf Daten im Internetmaßstab eine Breite, die kleinere offene Modelle nicht erreichen. Die Fähigkeiten von GPT-4 beim Lösen komplexer Probleme übertreffen die von Llama-3-8B.
-
-Anwendungsfälle in Unternehmen erfordern aber selten Wissen im Internetmaßstab. Ein Rechtsteam, das Verträge analysiert, braucht Dokumentverständnis und präzise Formulierungen – Fähigkeiten, bei denen feinabgestimmte offene Modelle glänzen. Ein Entwicklungsteam, das Code debuggt, braucht Mustererkennung innerhalb einer bestimmten Codebasis – eine Aufgabe, bei der individuelles Training generische Modelle deutlich übertrifft.
-
-Die entscheidende Erkenntnis: Feinabstimmung macht aus generischen Modellen Fachspezialisten. Ein Llama-3-8B-Modell, das auf die Dokumente, Programmierrichtlinien und Kommunikationsmuster Ihrer Organisation feinabgestimmt ist, übertrifft GPT-4 bei Ihren konkreten Aufgaben – bei vollständiger Datenisolation.
-
-Unser Leitfaden zur [privaten LLM-Feinabstimmung auf gemieteten GPUs](/de/private-llm-fine-tuning-guide/) beschreibt den vollständigen technischen Ablauf.
-
-## Infrastrukturoptionen für den privaten KI-Betrieb
-
-Für den Betrieb von Open-Weights-Modellen brauchen Sie GPU-Rechenleistung. Organisationen haben mehrere Möglichkeiten, sie zu beschaffen.
-
-**Eigene Hardware im Rechenzentrum**
-
-Der Kauf von NVIDIA-GPUs für das eigene Rechenzentrum bietet maximale Kontrolle. Die Hardware steht in Ihren Räumen, wird von Ihren Leuten betreut und ist mit Ihrem Netzwerk verbunden. Keine externe Partei hat Zugriff.
-
-Die Hürden sind Investitionskosten und Lieferzeit. Eine NVIDIA H100 kostet rund 30.000 $. Ein sinnvoller Cluster für Training braucht mehrere davon. Beschaffungen ziehen sich über Monate. Der laufende Betrieb erfordert Spezialwissen.
-
-Für große Unternehmen mit eigenem Rechenzentrumsbetrieb ist KI-Infrastruktur vor Ort eine naheliegende Erweiterung. Für kleinere Organisationen oder solche ohne GPU-Know-how sind die Hürden erheblich.
-
-**Private Cloud-Instanzen**
-
-AWS, GCP und Azure bieten GPU-Instanzen, die mehr Kontrolle erlauben als SaaS-KI-Produkte. Sie konfigurieren die Umgebung. Sie steuern den Zugriff. Ihre Daten werden auf dedizierten Instanzen verarbeitet statt in gemeinsam genutzten Diensten.
-
-Dieser Ansatz ist besser als die Architektur von ChatGPT, der Cloud-Anbieter bleibt aber beteiligt. Ihre Daten liegen weiterhin auf Infrastruktur, die Sie nicht physisch kontrollieren. Mitarbeitende des Cloud-Anbieters mit ausreichenden Rechten könnten theoretisch auf Ihre Systeme zugreifen. Rechtliche Verfahren gegen den Cloud-Anbieter könnten Ihre Daten erfassen.
-
-Außerdem sind private GPU-Instanzen in der Cloud teuer. AWS-Instanzen vom Typ p4d.24xlarge (8x A100) kosten rund 32 $ pro Stunde. Längere Trainingsläufe oder dauerhaft laufende Inferenzdienste verursachen erhebliche monatliche Kosten. Neue Konten starten zudem mit einem GPU-Kontingent von null und müssen Zugriff erst beantragen.
-
-**Gemietete GPUs auf Marktplätzen**
-
-Eine dritte Option kommt ohne Investitionskosten aus: Consumer-GPUs stundenweise auf Marktplätzen wie Vast.ai, RunPod oder GPUFlow mieten, auf denen ein Großteil der Hardware Privatpersonen gehört.
-
-Was das bietet:
-
-- **Niedrige Kosten:** Eine RTX 4090 kostete im September 2026 etwa 0,30 bis 0,46 $ pro Stunde, ein Bruchteil dessen, was GPU-Instanzen im Rechenzentrum kosten. Unser [GPU-Mietpreisvergleich](/de/gpu-rental-pricing-comparison-2026/) rechnet die Kosten im Detail durch.
-
-- **Schneller Start:** Kein Vertriebsprozess, kein Kontingentantrag. Sie laden Guthaben im Voraus auf und mieten.
-
-- **Open-Weights-Modelle nach Bedarf:** Sie wählen das Modell selbst, und nichts wird mit einem Modellanbieter geteilt.
-
-Was es nicht bietet: Die Hardware gehört jemand anderem, und es gibt keine Compliance-Zertifizierungen. Für regulierte oder vertrauliche Daten ist das nicht der richtige Ort. Gut geeignet ist es für Training mit öffentlichen oder anonymisierten Daten und zum Testen von Modellen, bevor Sie Hardware kaufen.
-
-Der Ablauf: Sie übertragen Ihre Daten über eine verschlüsselte SSH-Verbindung direkt auf die gemietete Maschine, führen Ihren Trainings- oder Inferenzjob aus, laden die Ergebnisse herunter und bereinigen die entfernte Umgebung, bevor Sie die Verbindung trennen. Unser Leitfaden [Wie Sie Ihren Datensatz auf einem öffentlichen GPU-Knoten absichern](/de/how-to-secure-dataset-on-public-gpu-node/) behandelt die nötigen Sicherheitspraktiken im Detail. Bei API-basierten Mietangeboten wie GPUFlow laufen die Prompts über die Maschine des Anbieters. Es gilt also dieselbe Regel: keine sensiblen Daten.
-
-
-## Eine regelkonforme KI-Strategie umsetzen
-
-Organisationen, die von ChatGPT-Verboten zu einem privaten KI-Betrieb übergehen, sollten den Übergang systematisch angehen.
-
-**Phase 1: Richtlinie entwickeln**
-
-Legen Sie zunächst fest, was Ihre KI-Richtlinie tatsächlich verbietet und erlaubt. Viele frühe ChatGPT-Verbote waren reaktiv – pauschale Verbote, schnell eingeführt, um ein akutes Risiko zu stoppen. Eine ausgereifte Richtlinie unterscheidet:
-
-- Datenkategorien, die niemals von externen KI-Systemen verarbeitet werden dürfen
-- Anwendungsfälle, in denen Cloud-KI-Dienste mit geeigneten Kontrollen akzeptabel sind
-- Freigegebene Werkzeuge und Plattformen für verschiedene Schutzstufen
-- Genehmigungsverfahren für die Einführung neuer KI-Werkzeuge
-- Meldepflichten bei Richtlinienverstößen
-
-Dieser Rahmen erlaubt die weitere Nutzung von KI, wo sie angemessen ist, und schützt zugleich sensible Bereiche.
-
-**Phase 2: Infrastruktur bewerten**
-
-Bewerten Sie Ihre Optionen für den privaten KI-Betrieb anhand der Ressourcen und Anforderungen Ihrer Organisation:
-
-- **Vorhandene GPU-Ressourcen:** Viele Organisationen besitzen Workstations oder Server mit NVIDIA-GPUs für andere Zwecke (Visualisierung, Rendering, wissenschaftliches Rechnen), die auch KI-Workloads tragen könnten.
-
-- **Cloud-Budget und Risikobereitschaft:** Akzeptiert Ihr Sicherheitsteam die Beteiligung eines Cloud-Anbieters mit geeigneten Kontrollen, sind private GPU-Instanzen in der Cloud einfacher zu betreiben als eigene Hardware oder gemietete GPUs.
-
-- **Datenschutzanforderungen:** Betrifft Ihr Anwendungsfall Daten, die unter keinen Umständen auf die Infrastruktur eines Cloud-Anbieters gelangen dürfen, führt kein Weg an eigener Hardware vorbei.
-
-- **Umfang und Häufigkeit:** Gelegentliche Feinabstimmungsjobs passen zum Mietmodell. Dauerhaft laufende Inferenz kann eine Investition rechtfertigen.
-
-**Phase 3: Modell auswählen und anpassen**
-
-Generische Open-Weights-Modelle sind ein Ausgangspunkt, der eigentliche Nutzen für die Organisation entsteht aber durch Anpassung. Durch Feinabstimmung auf Ihre Daten entstehen Modelle, die Ihr Fachgebiet, Ihre Terminologie und Ihre Anforderungen verstehen.
-
-Überlegen Sie, welche Anwendungsfälle den größten Nutzen versprechen:
-
-- **Dokumentenanalyse:** Verträge, behördliche Meldungen, interne Richtlinien
-- **Unterstützung beim Programmieren:** Entwicklung innerhalb Ihrer eigenen Frameworks und Standards
-- **Kundenkommunikation:** Antworten im Ton Ihrer Marke und mit Ihrem Produktwissen
-- **Internes Wissen:** Abfragen von Dokumentation und Erfahrungswissen der Organisation
-
-Jeder Anwendungsfall kann ein eigenes feinabgestimmtes Modell rechtfertigen, oder ein einzelnes Modell, das auf vielfältigen Organisationsdaten trainiert wurde, deckt mehrere Zwecke ab.
-
-**Phase 4: In den Betrieb integrieren**
-
-Ein privater KI-Betrieb erfordert Fähigkeiten, die SaaS-Produkte Ihnen sonst abnehmen:
-
-- **Infrastruktur für die Modellbereitstellung:** Inferenz im großen Maßstab braucht GPU-Ressourcen, Lastverteilung und API-Schnittstellen. Werkzeuge wie vLLM, Text Generation Inference und Ollama vereinfachen die Bereitstellung.
-
-- **Zugriffskontrollen:** Wer darf das Modell abfragen? Was wird protokolliert? Wie prüfen Sie die Nutzung?
-
-- **Update-Prozesse:** Wie fließen neue Trainingsdaten ein? Wie bringen Sie verbesserte Modellversionen in Betrieb?
-
-- **Reaktion auf Vorfälle:** Was passiert, wenn ein Modell problematische Ausgaben erzeugt? Wer prüft Grenzfälle?
-
-Organisationen, die an die Einfachheit von SaaS gewöhnt sind, unterschätzen diesen Betriebsaufwand leicht. Planen Sie Budget für die laufende Wartung ein, nicht nur für die Einführung.
-
-## Fallstudie: Compliance-Architektur bei einem Finanzdienstleister
-
-Eine Regionalbank mit 50 Mrd. $ Bilanzsumme stand vor einem bekannten Dilemma. Die Kundenbetreuer wünschten sich KI-Unterstützung beim Entwerfen von Kundenschreiben und bei der Analyse von Portfoliopositionen. Die Compliance-Verantwortlichen wussten, dass die Übermittlung von Finanzdaten der Kunden an ChatGPT sowohl gegen aufsichtsrechtliche Vorgaben als auch gegen Treuepflichten verstoßen würde.
-
-Die gewählte Lösungsarchitektur zeigt, wie Organisationen beiden Seiten gerecht werden können.
-
-**Datenklassifizierung**
-
-Die Bank führte drei Stufen von Daten ein, die mit KI verarbeitet werden dürfen:
-
-- **Stufe 1 (öffentlich):** Marketingmaterial, öffentliche Inhalte zur Finanzbildung, allgemeine Produktbeschreibungen. Cloud-KI-Dienste sind nach den üblichen Nutzungsregeln erlaubt.
-
-- **Stufe 2 (intern):** Interne Richtlinien, Schulungsunterlagen, Arbeitsabläufe. Cloud-KI-Dienste sind mit Unternehmensverträgen und Zusätzen zum Datenumgang erlaubt.
-
-- **Stufe 3 (vertraulich):** Kundendaten, Portfolioinformationen, Transaktionsdetails, strategische Planung. Keine externe KI-Verarbeitung, unter keinen Umständen.
-
-Diese Einstufung ermöglichte den KI-Einsatz dort, wo das Risiko vertretbar war, und schützte sensible Kategorien ohne Kompromisse.
-
-**Betrieb auf eigener Infrastruktur**
-
-Für Anwendungsfälle der Stufe 3 setzte die Bank ein feinabgestimmtes Llama-Modell auf eigenen GPU-Servern in ihrem bestehenden Rechenzentrum ein. Das Modell wurde trainiert mit:
-
-- Anonymisierter historischer Kundenkorrespondenz (mit Zustimmung der Kunden)
-- Internen Compliance-Leitlinien und Auslegungen aufsichtsrechtlicher Vorgaben
-- Produktdokumentation und Anlageresearch
-- Von Compliance freigegebenen Kommunikationsvorlagen
-
-Das resultierende Modell beherrschte Bankterminologie, aufsichtsrechtliche Grenzen und die Kommunikationsstandards der Bank. Kundenbetreuer konnten Kundenschreiben mit KI-Unterstützung entwerfen und wussten dabei, dass keine Kundendaten den Sicherheitsperimeter der Bank verließen.
-
-**Betriebliche Kontrollen**
-
-Jede Interaktion mit dem Modell wurde im bestehenden Compliance-Archiv der Bank protokolliert. Vorgesetzte konnten KI-gestützte Kommunikation zusammen mit herkömmlicher Korrespondenz prüfen. Die Prüfpfade erfüllten die aufsichtsrechtlichen Aufzeichnungspflichten.
-
-Das Modell selbst arbeitete innerhalb von Leitplanken, die bestimmte Ausgaben verhinderten – Anlageempfehlungen, Garantieformulierungen oder Aussagen, die als erlaubnispflichtige Beratung gelten könnten. Diese Grenzen wurden auf Anwendungsebene umgesetzt, statt sich allein auf das Verhalten des Modells zu verlassen.
-
-**Messbare Ergebnisse**
-
-Sechs Monate nach der Einführung meldete die Bank:
-
-- 40 % weniger Zeitaufwand für das Entwerfen routinemäßiger Kundenschreiben
-- Keinen einzigen Compliance-Vorfall im Zusammenhang mit KI-Nutzung
-- Eine erfolgreiche aufsichtsrechtliche Prüfung ohne Feststellungen zum KI-Einsatz
-- Gestiegene Zufriedenheitswerte bei den Kundenbetreuern
-
-Die Investition in eigene Infrastruktur – rund 200.000 $ einschließlich Hardware, Entwicklung und Integration – hatte sich allein durch Produktivitätsgewinne innerhalb des ersten Jahres amortisiert.
-
-## Fallstudie: Forschungseinrichtung im Gesundheitswesen
-
-Ein großes Universitätsklinikum mit klinischer Forschung stand vor HIPAA-Vorgaben, die jede Cloud-KI-Nutzung mit Patientendaten rechtlich problematisch machten. Die Forschenden wollten KI für Literaturrecherche, Protokollentwicklung und Datenanalyse einsetzen.
-
-**Der hybride Ansatz**
-
-Statt zwischen vollständigem Verbot und inakzeptablem Risiko zu wählen, führte die Einrichtung eine hybride Architektur ein:
-
-- **Öffentliche Forschungsaufgaben** (Literaturrecherche, Methodenfragen, statistische Verfahren) liefen über Cloud-KI-Dienste – mit klaren Richtlinien, die jede Eingabe von Patientendaten untersagten.
-
-- **Die Analyse von Patientendaten** erfolgte mit lokal betriebenen Modellen auf physisch vom Netz getrennten Workstations innerhalb der gesicherten Forschungsumgebung. Diese Rechner hatten keine Internetverbindung. Die Daten konnten sie unabhängig vom Verhalten der Nutzer nicht verlassen.
-
-**Training auf gemieteten GPUs**
-
-Der Einrichtung fehlte das Investitionsbudget für trainingsfähige GPU-Hardware, sie brauchte aber Modelle, die auf medizinische Fachliteratur und Forschungsprotokolle feinabgestimmt waren. Für die Trainingsläufe nutzte sie gemietete GPUs – ausschließlich mit öffentlicher medizinischer Literatur und anonymisierten Datensätzen ohne HIPAA-Relevanz.
-
-Der Trainingsablauf folgte den Sicherheitspraktiken aus unserem [Leitfaden zur Datensatzsicherheit](/de/how-to-secure-dataset-on-public-gpu-node/):
-
-1. Nur nicht sensible Trainingsdaten auf die gemieteten Knoten übertragen
-2. Feinabstimmungsjobs ausführen
-3. Die resultierenden Modellgewichte herunterladen
-4. Die entfernten Umgebungen vollständig bereinigen
-5. Die trainierten Modelle auf der vom Netz getrennten internen Infrastruktur bereitstellen
-
-So erhielt die Einrichtung angepasste medizinische KI-Fähigkeiten, ohne geschützte Gesundheitsinformationen gegenüber externen Systemen offenzulegen.
-
-**Aufsichtsrechtliche Prüfung**
-
-Die Ethikkommission (IRB) der Einrichtung prüfte den KI-Einsatz im Rahmen von Änderungen der Forschungsprotokolle. Die klare Trennung zwischen Training mit öffentlichen Daten (extern) und Inferenz mit Patientendaten (intern, vom Netz getrennt) erfüllte die Datenschutzanforderungen. Die HIPAA-Compliance-Verantwortlichen genehmigten die Architektur nach einer Sicherheitsbewertung.
-
-![Medizinische Forschungsumgebung mit gesicherten Workstations und isolierter KI-Architektur](../_images/healthcare-ai-secure-deployment.png)
-
-## Die strategische Notwendigkeit
-
-Organisationen, die KI-Richtlinien nur als Mittel zur Risikominderung betrachten, übersehen das größere Bild. Die Unternehmen, die heute ChatGPT verbieten, geben KI nicht auf. Sie positionieren sich für einen nachhaltigen Vorsprung.
-
-**Differenzierung durch Daten**
-
-Die wertvollsten KI-Fähigkeiten entstehen aus eigenen Daten. Ein generisches Sprachmodell, das auf Internettexten trainiert wurde, bietet generische Fähigkeiten, die allen zur Verfügung stehen. Ein Modell, das auf Ihre Kundeninteraktionen, Ihre Betriebsdaten und Ihr Organisationswissen feinabgestimmt ist, bietet Fähigkeiten, die nur Ihre Organisation hat.
-
-Diese Differenzierung setzt voraus, dass eigene Daten auch eigene Daten bleiben. Organisationen, die ihre Wettbewerbsvorteile in Cloud-KI-Dienste einspeisen, tragen zu Modellen bei, von denen alle Nutzer profitieren – auch die Konkurrenz. Organisationen, die die Kontrolle über ihre Daten behalten und private KI betreiben, bauen Vorteile auf, die sich mit der Zeit vervielfachen.
-
-**Die regulatorische Richtung**
-
-Die KI-Regulierung wird strenger, nicht lockerer. Der EU AI Act setzt einen Präzedenzfall, dem andere Rechtsordnungen folgen werden. US-Behörden wie FTC, SEC und die Bankenaufsicht arbeiten an KI-spezifischen Leitlinien. China hat KI-Vorschriften eingeführt, die Training und Einsatz von Modellen betreffen.
-
-Organisationen, die jetzt private KI-Infrastruktur aufbauen, bereiten sich auf regulatorische Rahmenbedingungen vor, die die Nutzung von Cloud-KI zunehmend einschränken werden. Die Investition in eine regelkonforme Architektur gewinnt an Wert, je strenger die Compliance-Anforderungen werden.
-
-**Lieferkette und Abhängigkeiten**
-
-Die Abhängigkeit von einem einzigen KI-Anbieter ist eine strategische Schwachstelle. OpenAI ändert Preise, Richtlinien und Funktionen nach eigenem Ermessen. Störungen treffen alle Kunden gleichzeitig. Richtlinienänderungen können bisher zulässige Anwendungsfälle über Nacht verbieten.
-
-Ein privater KI-Betrieb beseitigt die Abhängigkeit von einem einzelnen Anbieter. Open-Weights-Modelle lassen sich herunterladen und bleiben dauerhaft verfügbar. Für den Betrieb gibt es mehrere Hardwareoptionen. Die Organisation kontrolliert ihre KI-Lieferkette selbst, statt von externen Entscheidungen abzuhängen.
-
-## Fahrplan für die Umsetzung
-
-Für Organisationen, die über ChatGPT-Verbote hinaus zu eigenen privaten KI-Fähigkeiten kommen wollen, empfehlen wir ein schrittweises Vorgehen.
-
-**Sofortmaßnahmen (Woche 1–2)**
-
-1. Die aktuelle KI-Nutzung in der gesamten Organisation erfassen
-2. Datentypen nach Sensibilität und regulatorischen Anforderungen einstufen
-3. Dokumentieren, welche Anwendungsfälle private Infrastruktur erfordern und wo Cloud-Nutzung akzeptabel ist
-4. Eine Übergangsrichtlinie festlegen, die verbotene und erlaubte Tätigkeiten klar benennt
-
-**Kurzfristige Entwicklung (Monat 1–3)**
-
-1. Infrastrukturoptionen nach Schutzbedarf und Budget bewerten
-2. Erste Anwendungsfälle für den privaten KI-Betrieb auswählen
-3. Quellen für Trainingsdaten zur Modellanpassung bestimmen
-4. Gegebenenfalls Sicherheitsprotokolle für die Nutzung externer GPUs festlegen
-
-**Mittelfristige Einführung (Monat 3–6)**
-
-1. Modelle nach [unserem technischen Leitfaden](/de/private-llm-fine-tuning-guide/) auf Organisationsdaten feinabstimmen
-2. Inferenz-Infrastruktur mit geeigneten Zugriffskontrollen bereitstellen
-3. Die Lösung in bestehende Compliance- und Auditsysteme einbinden
-4. Nutzer in freigegebenen Abläufen und Werkzeugen schulen
-
-**Laufender Betrieb**
-
-1. Regelmäßige Modell-Updates mit neuen Trainingsdaten
-2. Sicherheitsbewertungen der KI-Infrastruktur
-3. Anpassungen der Richtlinie an regulatorische Änderungen
-4. Ausweitung auf weitere Anwendungsfälle
-
-## Fazit
-
-Die ChatGPT-Verbote in Unternehmen sind rationales Risikomanagement, keine Technikfeindlichkeit. Als Samsung das Werkzeug verbot, nachdem proprietäre Halbleiterdesigns hochgeladen worden waren, war das die richtige Entscheidung. Als JPMorgan den Zugang vorsorglich einschränkte, zeigte die Bank angemessenes regulatorisches Bewusstsein. Wenn Kliniken den Zugang an der Firewall sperren, schützen sie die Privatsphäre ihrer Patienten, wie es das Gesetz verlangt.
-
-Ein Verbot ist aber keine Strategie. Organisationen, die beim „Nein“ stehen bleiben, verschenken Produktivitätsvorteile, die sich ihre Wettbewerber sichern werden. Erfolgreich werden die Unternehmen sein, die erkennen, dass es einen dritten Weg gibt.
-
-Open-Weights-Modelle auf eigener Infrastruktur bieten KI-Fähigkeiten ohne Datenabfluss. Die Modelle sind heute verfügbar. Die Infrastruktur ist zugänglich. Die technischen Abläufe sind dokumentiert. Die einzige Hürde ist der Wille der Organisation, sie umzusetzen.
-
-Ihre Wettbewerber, die Modelle auf ihre eigenen Daten feinabstimmen – und damit Systeme trainieren, die ihre Kunden, Produkte und Abläufe verstehen –, bauen Vorteile auf, die Sie mit dem Abo eines generischen Dienstes nicht nachbilden können. Während Sie über Richtlinien diskutieren, bringen sie Fähigkeiten in den Einsatz.
-
-Die Infrastrukturentscheidungen, die Sie heute treffen, bestimmen, ob KI zu Ihrem Wettbewerbsvorteil wird oder zum Vorteil Ihrer Wettbewerber gegenüber Ihnen. Cloud-KI-Dienste machen Ihre Daten zur gemeinsamen Ressource. Ein privater KI-Betrieb macht Ihre Daten zu einer einzigartigen Fähigkeit.
-
-Die Frage ist nicht, ob Sie KI nutzen. Die Frage ist, ob Sie sie kontrollieren.
-
----
-
-## Weiterführende Ressourcen
-
-Dieser Artikel behandelt den strategischen und regulatorischen Rahmen für KI-Entscheidungen in Unternehmen. Die folgenden Ressourcen helfen bei der technischen Umsetzung:
-
-**Zentraler Umsetzungsleitfaden**
-
-- [Der ultimative Leitfaden zur privaten LLM-Feinabstimmung auf gemieteten GPUs](/de/private-llm-fine-tuning-guide/) – der vollständige technische Ablauf zum Training eigener Modelle
-
-**Sicherheit und Betrieb**
-
-- [Wie Sie Ihren Datensatz auf einem öffentlichen GPU-Knoten absichern](/de/how-to-secure-dataset-on-public-gpu-node/) – Sicherheitspraktiken für gemietete Rechenleistung
-- [GPU mieten 2026: Was Sie dafür brauchen](/de/what-you-need-to-rent-a-gpu/) – Registrierung, Verifizierung und Zahlung auf jeder Plattform
-
-**Plattformen und Kosten**
-
-- [GPU-Mietpreisvergleich 2026](/de/gpu-rental-pricing-comparison-2026/) – Kostenanalyse der verschiedenen Betriebsoptionen
-- [GPU pro Stunde oder API pro Token?](/de/hourly-gpu-vs-per-token-api/) – was der Betrieb eines offenen Modells wirklich kostet
-- [GPUFlow vs. Vast.ai vs. RunPod vs. SaladCloud](/de/gpuflow-vs-vast-ai-vs-runpod/) – Maschinen, Container und API-Schlüssel im Vergleich
-
-**Technische Vergleiche**
-
-- [Ollama vs. vLLM vs. TGI: Inferenzgeschwindigkeit auf Consumer-GPUs im Benchmark](/de/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/) – die Wahl des Inferenzservers für den Betrieb
-- [RunPod vs. Vast.ai im Vergleich](/de/runpod-vs-vastapi-comparison/) – Marktplätze für GPU-Miete im Überblick
+<figure>
+<svg viewBox="0 0 720 470" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">Wohin der Prompt eines Mitarbeiters in fünf verschiedenen KI-Setups geht und was ihn jeweils schützt</title>
+<rect x="0" y="0" width="720" height="470" fill="#ffffff"/>
+<text x="325" y="30" text-anchor="middle" fill="#64748b">Wohin der Text geht</text>
+<text x="475" y="30" fill="#64748b">Was ihn schützt</text>
+<rect x="20" y="200" width="140" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="90" y="231" text-anchor="middle" fill="#1e1b4b">Prompt des</text>
+<text x="90" y="252" text-anchor="middle" fill="#1e1b4b">Mitarbeiters</text>
+<line x1="160" y1="235" x2="200" y2="80" stroke="#6366f1" stroke-width="2"/>
+<line x1="160" y1="235" x2="200" y2="160" stroke="#6366f1" stroke-width="2"/>
+<line x1="160" y1="235" x2="200" y2="240" stroke="#6366f1" stroke-width="2"/>
+<line x1="160" y1="235" x2="200" y2="320" stroke="#6366f1" stroke-width="2"/>
+<line x1="160" y1="235" x2="200" y2="400" stroke="#6366f1" stroke-width="2"/>
+<rect x="200" y="50" width="250" height="60" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="325" y="76" text-anchor="middle" fill="#1e1b4b">Consumer-Chat-App</text>
+<text x="325" y="97" text-anchor="middle" fill="#64748b" font-size="13">privates Konto: Free, Plus, Pro</text>
+<text x="475" y="76" fill="#1e1b4b" font-size="14">Training standardmäßig erlaubt</text>
+<text x="475" y="97" fill="#1e1b4b" font-size="14">Kein Vertrag mit Ihrer Firma</text>
+<rect x="200" y="130" width="250" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="325" y="156" text-anchor="middle" fill="#1e1b4b">Business-Tarif des Anbieters</text>
+<text x="325" y="177" text-anchor="middle" fill="#64748b" font-size="13">Server des Anbieters, Firmenkonto</text>
+<text x="475" y="156" fill="#1e1b4b" font-size="14">Standardmäßig kein Training</text>
+<text x="475" y="177" fill="#1e1b4b" font-size="14">AVV, Aufbewahrung steuerbar</text>
+<rect x="200" y="210" width="250" height="60" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="325" y="236" text-anchor="middle" fill="#1e1b4b">Endpunkt in Ihrer Cloud</text>
+<text x="325" y="257" text-anchor="middle" fill="#64748b" font-size="13">Azure Foundry, Amazon Bedrock</text>
+<text x="475" y="236" fill="#1e1b4b" font-size="14">Ihr Tenant, Ihre Region</text>
+<text x="475" y="257" fill="#1e1b4b" font-size="14">Modellhersteller sieht nichts</text>
+<rect x="200" y="290" width="250" height="60" rx="10" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+<text x="325" y="316" text-anchor="middle" fill="#1e1b4b">Eigene Server</text>
+<text x="325" y="337" text-anchor="middle" fill="#64748b" font-size="13">offenes Modell, eigenes Netzwerk</text>
+<text x="475" y="316" fill="#1e1b4b" font-size="14">Nichts verlässt Ihr Netzwerk</text>
+<text x="475" y="337" fill="#1e1b4b" font-size="14">Betrieb und Patches bei Ihnen</text>
+<rect x="200" y="370" width="250" height="60" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="325" y="396" text-anchor="middle" fill="#1e1b4b">Marktplatz-GPU (GPUFlow)</text>
+<text x="325" y="417" text-anchor="middle" fill="#64748b" font-size="13">Rechner eines Anbieters</text>
+<text x="475" y="396" fill="#1e1b4b" font-size="14">Klartext auf diesem Rechner</text>
+<text x="475" y="417" fill="#1e1b4b" font-size="14">AGB verbieten Aufzeichnung</text>
+<text x="360" y="458" text-anchor="middle" fill="#64748b" font-size="13">Orange: nur für öffentliche Daten. Grün: für alles, was Ihre eigene IT halten darf.</text>
+</svg>
+<figcaption>Derselbe Prompt, fünf Ziele. Nur die selbst betriebene Option hält ihn in Ihrem Netzwerk; Business-Tarif und Cloud-Endpunkt halten ihn unter einem Vertrag, den Ihr Unternehmen unterschrieben hat.</figcaption>
+</figure>
+
+## Offene Modelle selbst betreiben
+
+Die stärkste Option für vertrauliche Daten ist auch die aufwendigste: ein offenes Modell (Llama, Qwen, Mistral, Gemma und andere) herunterladen und auf Rechnern im eigenen Netzwerk betreiben. Prompts verlassen das Netzwerk nie. Sie entscheiden, was protokolliert wird und wie lange. Das macht es leichter, Aufbewahrungspflichten und die Speicherregeln der DSGVO einzuhalten, und keine fremde Aufbewahrungsklausel und kein Gerichtsbeschluss berührt die Daten.
+
+Die Kosten sind allerdings real. Sie betreiben jetzt einen Inferenzdienst: GPUs, eine Engine wie Ollama oder vLLM, Authentifizierung, Logging, Updates und jemanden in Rufbereitschaft. Und ein 8B- oder 14B-Modell, das auf eine einzelne Workstation-Karte passt, ist bei langen Denkketten schwächer als ein Frontier-Modell. Für Klassifizieren, Extrahieren von Feldern, Zusammenfassen interner Dokumente und das Entwerfen von Routinetexten reicht es meist. Testen Sie es an Ihren eigenen Aufgaben, bevor Sie entscheiden. Unser [Benchmark Ollama vs. vLLM vs. TGI](/de/ollama-vs-vllm-vs-tgi-rtx-4090-benchmark/) behandelt die Wahl der Engine, und die [Anleitung zum privaten LLM-Fine-Tuning](/de/private-llm-fine-tuning-guide/) zeigt, wie Sie ein Modell an Ihre Dokumente anpassen.
+
+Viele Firmen gehen einen Mittelweg: Sie betreiben das offene Modell auf GPU-Instanzen in dem Cloud-Konto, das sie ohnehin haben. Der Cloud-Anbieter ist dann Auftragsverarbeiter unter einem AVV, den Sie für alles andere schon ausgehandelt haben, und ein Modellanbieter ist gar nicht beteiligt.
+
+## Wo gemietete GPUs und GPUFlow hingehören
+
+GPU-Marktplätze sind das günstige Ende des Markts, und in diesen Vergleich gehören sie nur mit einem klaren Etikett.
+
+GPUFlow ist einer davon. Sie mieten eine GPU für eine bestimmte Zahl von Stunden und bekommen einen OpenAI-kompatiblen API-Schlüssel für das offene Modell, das der Anbieter darauf betreibt, meist mit Ollama. Das Modell läuft auf dem eigenen Computer des Anbieters. Ihre Prompts und die Antworten laufen also während der Miete im Klartext über diesen Rechner. Die Nutzungsbedingungen von GPUFlow verbieten Anbietern, Anfragen oder Antworten von Mietern aufzuzeichnen, zu lesen, aufzubewahren oder weiterzugeben, und GPUFlow selbst speichert den Text nicht. Aber der Anbieter hat Root-Rechte auf dem Rechner, und das Aufzeichnungsverbot wird per Vertrag durchgesetzt; technisch hindert ihn nichts.
+
+GPUFlow ist also **nicht** die Lösung für regulierte oder vertrauliche Daten. Schicken Sie keine Kundendatensätze, keine Gesundheitsdaten, keinen Quellcode, der Ihnen wichtig ist, und nichts, was ein Kundenvertrag einschränkt. Unsere eigene Doku sagt es noch deutlicher: Senden Sie keine Passwörter, Kartennummern oder andere Geheimnisse, die Sie keinem Fremden geben würden.
+
+Wo es passt: ein offenes Modell auf echter Hardware ausprobieren, bevor Sie eine Karte kaufen, Prompts über öffentliche oder synthetische Daten laufen lassen und eine App gegen eine OpenAI-kompatible API bauen und testen, bevor Sie sie auf Ihren eigenen Server umstellen. Community-Cloud-Rechner auf anderen Marktplätzen werfen dieselbe Frage für alles auf, was Sie hochladen; [Einen Datensatz auf einem öffentlichen GPU-Knoten absichern](/de/how-to-secure-dataset-on-public-gpu-node/) behandelt diese Seite.
+
+## Eine Richtlinie, an die sich die Leute auch halten
+
+Ein pauschales Verbot ohne Alternative verlagert die Nutzung vor allem auf private Handys, wo Sie noch weniger sehen. Besser funktioniert etwas, das kurz genug ist, um es sich zu merken:
+
+| Datenklasse | Beispiele | Erlaubte Tools |
+| --- | --- | --- |
+| Öffentlich | Veröffentlichte Dokumente, Marketingtexte | Jedes freigegebene Tool, auch Consumer-Apps |
+| Intern | Richtlinien, interne Wikis, unkritischer Code | Business-Tarife mit AVV und abgeschaltetem Training |
+| Vertraulich | Kundendaten, Geschäftsgeheimnisse, Vertragskonditionen | Cloud-Endpunkt in Ihrem Tenant oder selbst betrieben |
+| Reguliert | Gesundheitsdaten, Kartendaten, personenbezogene Daten in großem Umfang | Selbst betrieben oder ein Anbieter mit der passenden Vereinbarung (BAA, AVV) |
+
+Dann kommen die unspektakulären Teile:
+
+1. Kaufen Sie einen Business-Tarif oder einen Cloud-Endpunkt und machen Sie ihn zum Standard, mit Single Sign-on, damit Konten geschlossen werden, wenn Leute gehen.
+2. Stellen Sie die Aufbewahrung auf den kürzesten Zeitraum, der Ihre Aufbewahrungspflichten erfüllt, und prüfen Sie in der Admin-Konsole, dass das Training abgeschaltet ist.
+3. Sperren Sie Consumer-KI-Chats auf verwalteten Geräten erst, wenn das freigegebene Tool läuft.
+4. Führen Sie ein Verzeichnis der KI-Anwendungen. Alles, was Personalauswahl, Kreditvergabe oder ähnliche Entscheidungen berührt, braucht vor Dezember 2027 eine eigene Prüfung.
+5. Sagen Sie den Leuten, was sie stattdessen tun sollen, nicht nur, was sie lassen sollen. Das Memo bei Samsung kam, nachdem die Daten schon weg waren.
+
+Zu den laufenden Kosten von Selbstbetrieb im Vergleich zu Diensten mit Abrechnung pro Token siehe [GPU pro Stunde oder API pro Token?](/de/hourly-gpu-vs-per-token-api/).
+
+## Quellen
+
+- Einschränkung und Umfrage bei Samsung: [CNBC, 2. Mai 2023](https://www.cnbc.com/2023/05/02/samsung-bans-use-of-ai-like-chatgpt-for-staff-after-misuse-of-chatbot.html); Details zu den Vorfällen: [The Register, 2. Mai 2023](https://www.theregister.com/2023/05/02/samsung_generative_ai_ban/)
+- Apple und andere Unternehmen: [TechCrunch, 19. Mai 2023](https://techcrunch.com/2023/05/19/apple-reportedly-limits-internal-use-of-ai-powered-tools-like-chatgpt-and-github-copilot/)
+- LLM Suite von JPMorgan: [Technologie-Blog von JPMorganChase, 3. Juni 2025](https://www.jpmorganchase.com/about/technology/blog/llmsuite-ab-award)
+- Business-Bedingungen von OpenAI: [Enterprise-Datenschutz](https://openai.com/enterprise-privacy/); Trainingseinstellungen für Consumer: [Wie Ihre Daten zur Verbesserung der Modelle genutzt werden](https://help.openai.com/en/articles/5722486-how-your-data-is-used-to-improve-model-performance)
+- Aufbewahrungsanordnung im NYT-Verfahren: [OpenAI, Antwort auf die Datenforderungen der NYT](https://openai.com/index/response-to-nyt-data-demands/)
+- Anthropic: [Geschäftliche Daten und Training](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training), [Consumer-Daten und Training](https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training)
+- Microsoft: [Enterprise-Datenschutz in Microsoft 365 Copilot und Copilot Chat](https://learn.microsoft.com/en-us/copilot/microsoft-365/enterprise-data-protection), [Daten, Datenschutz und Sicherheit für Foundry-Modelle, die Azure verkauft](https://learn.microsoft.com/en-us/azure/ai-foundry/responsible-ai/openai/data-privacy)
+- Google: [Privacy Hub zu generativer KI in Google Workspace](https://knowledge.workspace.google.com/admin/generative-ai/generative-ai-in-google-workspace-privacy-hub)
+- AWS: [Datenschutz in Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html)
+- Art. 28 DSGVO: [gdpr-info.eu](https://gdpr-info.eu/art-28-gdpr/)
+- Urteil zum Data Privacy Framework: [Jones Day, September 2025](https://www.jonesday.com/en/insights/2025/09/eu-general-court-upholds-euus-data-privacy-framework); Rechtsmittel: [Digital Policy Alert](https://digitalpolicyalert.org/event/35459-latombe-filed-appeal-against-general-court-dismissal-of-challenge-to-european-unionunited-states-data-protection-framework-adequacy-decision-in-latombe-v-commission)
+- Bußgeld der Garante: [The Hacker News, Dezember 2024](https://thehackernews.com/2024/12/italy-fines-openai-15-million-for.html)
+- HIPAA und Cloud-Anbieter: [HHS, Leitfaden zu HIPAA und Cloud Computing](https://www.hhs.gov/hipaa/for-professionals/special-topics/health-information-technology/cloud-computing/index.html)
+- FINRA: [Regulatory Notice 24-09](https://www.finra.org/rules-guidance/notices/24-09)
+- KI-Verordnung der EU: [Europäische Kommission, KI-Verordnung](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai); Omnibus: [White & Case, EU-AI-Omnibus tritt in Kraft](https://www.whitecase.com/insight-alert/eu-ai-omnibus-enters-force-amending-ai-act)
+- GPUFlow: [API-Schnellstart](https://docs.gpuflow.app/de/renters/api-quickstart/), [Worauf Mieter zugreifen können und worauf nicht](https://docs.gpuflow.app/de/providers/security/), [Nutzungsbedingungen](https://gpuflow.app/de/terms), [Datenschutzerklärung](https://gpuflow.app/de/privacy)
+
+Alle geprüft im September 2026.

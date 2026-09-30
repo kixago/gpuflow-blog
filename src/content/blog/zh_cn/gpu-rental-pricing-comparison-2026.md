@@ -1,507 +1,227 @@
 ---
-title: "2026 年 GPU 租用价格对比"
-description: "全面对比 AWS、GCP、Azure、Lambda Labs 等主流云服务商的 GPU 租用价格，帮你为机器学习工作负载选出合适的方案。"
-excerpt: "对比主流云服务商的 GPU 租用成本，为你的机器学习工作负载找到性价比最高的选择。"
+title: "2026 年 GPU 租用价格：AWS、Google Cloud、Azure、RunPod、Vast 对比"
+description: "2026 年 9 月 AWS、Google Cloud、Azure、Lambda、RunPod、Vast.ai 和 GPUFlow 的 GPU 租用小时价：从 RTX 3090 到 H100，按需与竞价实例，附实际任务的费用算例。"
+excerpt: "同一块 H100，在 Google Cloud 上每小时 $11.06，在 Vast.ai 上不到 $2。本文列出 2026 年 9 月常见 GPU 的价格、每个数字包含什么，以及三个实际任务的花费。"
 pubDate: 2026-02-07
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "zh_cn"
 category: "pricing"
 featured: false
 draft: false
 author: "GPUFlow Team"
-heroImage: "../_images/gpu-rental-pricing-comparison-2026.jpg"
-heroImageAlt: "GPU 租用价格对比图，展示 AWS、Azure、GCP、RunPod 和 Vast.ai 的成本"
+heroImage: "../_images/gpu-rental-pricing-comparison-2026-hero.png"
+heroImageAlt: "长短不一的横条，对比各云服务商和市场平台的 GPU 租用小时价"
 faq:
-  - question: "租用 GPU 训练 AI，最便宜的方式是什么？"
-    answer: "Vast.ai 等点对点算力市场的 GPU 租用价格最低，通常比主流云服务商便宜 60%–80%。2026 年 2 月，Vast.ai 上 RTX 4090 的租金为每小时 0.29–0.78 美元，而在 AWS 或 Azure 上获得同等算力每小时需要 3–5 美元。"
-  - question: "租用一块 NVIDIA A100 GPU 要多少钱？"
-    answer: "A100 的租用价格因服务商而异，差距很大。AWS 的 8×A100 实例每小时约 32.77 美元。RunPod 的单块 A100 每小时 1.39–1.49 美元。Vast.ai 市场价格为每小时 0.84–1.49 美元，具体取决于提供方的可靠性和所在地区。"
-  - question: "租 GPU 比买 GPU 更划算吗？"
-    answer: "对大多数用户来说，租用更划算。一块 RTX 4090 的购买价格为 1,600–2,000 美元。按每小时 0.60 美元的租金计算，盈亏平衡点约为 2,700 小时。除非你每天都需要使用 GPU 超过 8 小时，否则租用在经济上更合算。"
-  - question: "云 GPU 服务商和 GPU 算力市场有什么区别？"
-    answer: "AWS、Azure、GCP 等云服务商运营企业级数据中心，提供有保障的可用性 SLA 和合规认证。Vast.ai 等 GPU 算力市场则以点对点模式连接个人 GPU 所有者和租用者，价格更低，但可用性不固定，可靠性依靠社区保障。"
-  - question: "训练 Stable Diffusion 模型该租哪种 GPU？"
-    answer: "对于 Stable Diffusion 训练和 LoRA 微调，配备 24GB 显存的 RTX 4090 或 RTX 3090 性价比最高。这些 GPU 在算力市场平台上的租金为每小时 0.40–0.80 美元，大多数 LoRA 训练任务 1–3 小时即可完成，总花费不到 5 美元。"
+  - question: "2026 年租一块 H100 每小时多少钱？"
+    answer: "2026 年 9 月，一块 H100 的价格为：AWS 每小时 $6.88（p5.4xlarge），Azure $6.98（94 GB 的 H100 NVL），Google Cloud 8 卡 A3 机型折合每卡约 $11.06，Lambda $3.99，RunPod $2.69 至 $3.49，Vast.ai 约 $1.47 起。"
+  - question: "租 RTX 4090 最便宜的方式是什么？"
+    answer: "去市场平台。2026 年 9 月，按需 RTX 4090 的最低报价在 Vast.ai 上约为每小时 $0.31 至 $0.33，在 RunPod Community Cloud 上为 $0.34。RunPod Secure Cloud 收 $0.74。AWS、Google Cloud 和 Azure 不出租消费级 RTX 显卡。"
+  - question: "A100 80GB 每小时多少钱？"
+    answer: "截至 2026 年 9 月：RunPod Community Cloud $1.39，RunPod Secure Cloud $1.59，Lambda 每卡 $2.79，Azure $3.67（NC24ads A100 v4），Google Cloud $5.07（a2-ultragpu-1g），AWS 每卡 $3.43，但必须整台租下 p4de.24xlarge 的八块 GPU，每小时 $27.45。"
+  - question: "为什么 AWS、Google Cloud 和 Azure 的 GPU 贵这么多？"
+    answer: "它们的 GPU 实例捆绑了大量 CPU、内存和本地 NVMe，有些 GPU 只以 8 卡机型出售。你还在为 SLA 付钱，也在为 GPU 和云账户里其他资源放在一起付钱。竞价实例和 1 到 3 年的承诺使用折扣可以抹平大部分差距。"
+  - question: "GPUFlow 如何定价？"
+    answer: "每个提供商以美元为自己的 GPU 设定小时价。你按整小时预订，租用开始时从你的额度中预留全部金额，实际按秒计费，最低 1 分钟。租用结束时，未用完的时间退回你的额度。提供商拿 88%，GPUFlow 拿 12%。"
+  - question: "竞价 GPU 实例值得用吗？"
+    answer: "对能从检查点恢复的任务来说值得：2026 年 9 月，AWS p5.4xlarge（H100）竞价价格为每小时 $2.62，按需为 $6.88。对不能中断的任务，只要有一次任务得重跑，省下的钱就没了。"
 ---
 
-> **价格采集于 2026 年 2 月**。如需了解 2026 年 9 月各算力市场的价格，请参阅[《GPUFlow、Vast.ai、RunPod 与 SaladCloud 对比》](/zh_cn/gpuflow-vs-vast-ai-vs-runpod/)和[《租用 GPU 的真实成本》](/zh_cn/hidden-fees-in-gpu-rental/)。
+2026 年 9 月，一块 H100 的价格大致是：AWS 或 Azure 每小时约 $6.90，Google Cloud 每卡 $11.06，Lambda $3.99，RunPod $2.69 至 $3.49，Vast.ai 约 $1.50 起。消费级显卡只在市场平台上有：RTX 4090 最便宜的每小时 $0.31 至 $0.34，RunPod 的数据中心档位是 $0.74。同一块 H100，最贵的按需小时价约是最便宜的七倍半。
+
+本文余下部分说明每个数字的出处、小时价包含哪些东西，以及三个典型任务从头到尾的费用。除特别注明外，所有价格均为按需价格，美国区域（AWS 为 us-east-1，Azure 为 East US，Google Cloud 为 us-central1），Linux，于 2026 年 9 月核实。价格每月都在变，请把它们当作一次快照，花钱之前先查一下原始出处。
+
+## 价格一览
+
+数据中心 GPU，每卡每小时美元价：
+
+| 提供商 | L4 24 GB | A10G / A10 24 GB | A100 80 GB | H100 |
+| --- | --- | --- | --- | --- |
+| AWS | $0.81（g6.xlarge） | $1.01（g5.xlarge，A10G） | $3.43（仅 8 卡 p4de） | $6.88（p5.4xlarge） |
+| Google Cloud | $0.71（g2-standard-4） | 无 | $5.07（a2-ultragpu-1g） | $11.06（8 卡 A3，÷ 8） |
+| Azure | 无 | $3.20（NV36ads A10 v5） | $3.67（NC24ads A100 v4） | $6.98（NC40ads H100 v5，NVL 94 GB） |
+| Lambda | 无 | 无 | $2.79 | $3.99 |
+| RunPod Community / Secure | 无 / $0.49 | 无 | $1.39 / $1.59 | $2.69 / $3.49 |
+| Vast.ai | 约 $0.27 起 | 无 | 约 $0.43 起 | 约 $1.47 起 |
+
+“无”表示我们在该提供商的价格表中没有找到对应的单卡选项。消费级显卡，每小时美元价：
+
+| GPU | Vast.ai（最低报价） | RunPod Community / Secure | 各租用平台的常见区间 |
+| --- | --- | --- | --- |
+| RTX 3090 24 GB | $0.11 – $0.13 | $0.22 / $0.50 | $0.11 – $0.31 |
+| RTX 4090 24 GB | $0.31 – $0.33 | $0.34 / $0.74 | $0.30 – $0.46 |
+| RTX 5090 32 GB | $0.41 – $0.47 | $0.69 / $0.99 | $0.41 – $0.69 |
+
+AWS、Google Cloud、Azure 和 Lambda 都不提供消费级 RTX 显卡。Vast.ai 的数字写成区间，是因为 getdeploying.com 同一天的两次快照给出的最低价略有不同，这本身就说明了市场平台价格的特点。最后一列是 [GPUFlow 提供商定价指南](https://docs.gpuflow.app/zh-cn/providers/pricing/)在 2026 年 9 月从 Vast.ai、RunPod、Salad、SimplePod、TensorDock、Hyperstack 和 Lambda 收集的价格区间。
+
+## 小时价包含什么
+
+这些数字对应的其实不完全是同一种产品，这一点比小数点后第二位重要得多。
+
+超大规模云的实例除了 GPU 还捆绑了很多东西。AWS 的 p5.4xlarge 带 16 个 vCPU、256 GiB 内存和 3.84 TB 本地 NVMe。Azure 的 NC24ads A100 v4 有 24 个 vCPU 和 220 GiB 内存。Azure 的整卡 A10 规格 NV36ads A10 v5 有 36 个 vCPU、440 GiB 内存，外加虚拟工作站用的 GRID 许可证，这也部分解释了它为什么比 AWS 上同类显卡贵三倍。如果你只需要 GPU，这些东西你照样得付钱。
+
+有些 GPU 只能整台大机器租。AWS 上的 A100 80 GB 以 p4de.24xlarge 出售：八块 GPU，每小时 $27.45，没有更小的规格。表中 Google Cloud 的 A3 High H100 机型是 8 卡的 a3-highgpu-8g，每小时 $88.49。Lambda 的价格表给的是每卡价格，但它在 H100 旁边列出的机器规格（208 个 vCPU，1,800 GiB 内存）描述的是一台多卡系统，所以在按 $3.99 做计划之前，先确认实际能租到哪些规格。
+
+市场平台的价格由机器的所有者决定。在 Vast.ai 上，每个主机自己定价，存储和带宽按每条上架信息单独计价。RunPod 的 Community Cloud 连接的是独立提供商；Secure Cloud 运行在 Tier 3 和 Tier 4 数据中心。同一块 RTX 4090，在前者是 $0.34，在后者是 $0.74。
+
+小时价之外的费用（磁盘、数据传输、准备时间、空闲时间）在[GPU 租用的真实成本](/zh_cn/hidden-fees-in-gpu-rental/)中有详细介绍。对小任务来说，这些额外费用可能比 GPU 时间本身还多。
+
+## H100 价格对比
+
+<figure>
+<svg viewBox="0 0 720 380" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">2026 年 9 月按需 H100 每卡每小时价格的条形图，从 Google Cloud 的 11.06 美元到 Vast.ai 的 1.47 美元</title>
+<rect x="0" y="0" width="720" height="380" fill="#ffffff"/>
+<text x="20" y="28" fill="#1e1b4b" font-weight="600">一块 H100，按需，每卡每小时美元价</text>
+<line x1="190" y1="44" x2="190" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="190" y="336" text-anchor="middle" fill="#64748b" font-size="13">$0</text>
+<line x1="270" y1="44" x2="270" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="270" y="336" text-anchor="middle" fill="#64748b" font-size="13">$2</text>
+<line x1="350" y1="44" x2="350" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="350" y="336" text-anchor="middle" fill="#64748b" font-size="13">$4</text>
+<line x1="430" y1="44" x2="430" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="430" y="336" text-anchor="middle" fill="#64748b" font-size="13">$6</text>
+<line x1="510" y1="44" x2="510" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="510" y="336" text-anchor="middle" fill="#64748b" font-size="13">$8</text>
+<line x1="590" y1="44" x2="590" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="590" y="336" text-anchor="middle" fill="#64748b" font-size="13">$10</text>
+<line x1="670" y1="44" x2="670" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+<text x="670" y="336" text-anchor="middle" fill="#64748b" font-size="13">$12</text>
+<text x="180" y="69" text-anchor="end" fill="#1e1b4b">Google Cloud</text>
+<rect x="190" y="50" width="442.4" height="26" rx="3" fill="#6366f1"/>
+<text x="640.4" y="69" fill="#1e1b4b">$11.06</text>
+<text x="180" y="107" text-anchor="end" fill="#1e1b4b">Azure (H100 NVL)</text>
+<rect x="190" y="88" width="279.2" height="26" rx="3" fill="#6366f1"/>
+<text x="477.2" y="107" fill="#1e1b4b">$6.98</text>
+<text x="180" y="145" text-anchor="end" fill="#1e1b4b">AWS</text>
+<rect x="190" y="126" width="275.2" height="26" rx="3" fill="#6366f1"/>
+<text x="473.2" y="145" fill="#1e1b4b">$6.88</text>
+<text x="180" y="183" text-anchor="end" fill="#1e1b4b">Lambda</text>
+<rect x="190" y="164" width="159.6" height="26" rx="3" fill="#16a34a"/>
+<text x="357.6" y="183" fill="#1e1b4b">$3.99</text>
+<text x="180" y="221" text-anchor="end" fill="#1e1b4b">RunPod Secure</text>
+<rect x="190" y="202" width="139.6" height="26" rx="3" fill="#16a34a"/>
+<text x="337.6" y="221" fill="#1e1b4b">$3.49</text>
+<text x="180" y="259" text-anchor="end" fill="#1e1b4b">RunPod Community</text>
+<rect x="190" y="240" width="107.6" height="26" rx="3" fill="#16a34a"/>
+<text x="305.6" y="259" fill="#1e1b4b">$2.69</text>
+<text x="180" y="297" text-anchor="end" fill="#1e1b4b">Vast.ai（最低价）</text>
+<rect x="190" y="278" width="58.8" height="26" rx="3" fill="#16a34a"/>
+<text x="256.8" y="297" fill="#1e1b4b">$1.47</text>
+<line x1="190" y1="44" x2="190" y2="316" stroke="#64748b" stroke-width="1.5"/>
+<rect x="190" y="352" width="14" height="14" fill="#6366f1"/>
+<text x="212" y="364" fill="#64748b" font-size="13">超大规模云</text>
+<rect x="360" y="352" width="14" height="14" fill="#16a34a"/>
+<text x="382" y="364" fill="#64748b" font-size="13">GPU 云和市场平台</text>
+</svg>
+<figcaption>2026 年 9 月单块 H100 的按需价格。Google Cloud 的价格是其 8 卡 A3 机型的价格除以 8。Azure 的单卡规格用的是 94 GB 的 H100 NVL。Vast.ai 为 getdeploying.com 当天报告的最低报价。</figcaption>
+</figure>
 
-对于从事机器学习、AI 研究或其他计算密集型工作的人来说，GPU 租用成本已成为必须认真考虑的因素。本文分析了五家主要服务商的价格，把企业级云平台与点对点算力市场放在一起比较，帮助你根据自己的具体需求和预算做出明智的决定。
+这张图按比例绘制，有两点很明显。三大云每卡价格都集中在 $7 左右，Google Cloud 的 8 卡 A3 机型还要高出一大截。而 AWS 和 Vast.ai 最便宜的报价之间差了四倍多，两者做的是完全一样的运算。
 
----
+多花的钱确实买到了东西：SLA、合规文件、就在旁边的其余基础设施，以及一份支持合同。在市场平台上放弃的东西也是实实在在的：主机可能是个小运营者，可靠性因上架信息而异，也没有 SLA。周末做个实验，市场平台轻松胜出。对受监管的生产系统来说，市场平台往往根本不在考虑范围内。
 
-## 要点速览
+## 竞价和可中断实例价格
 
-| 需求                | 最佳选择    | 费用                  |
-| ------------------- | ----------- | --------------------- |
-| **总体最便宜**      | Vast.ai     | $0.29/小时（RTX 4090） |
-| **最均衡**          | RunPod      | $0.59/小时（RTX 4090） |
-| **企业 / 合规需求** | AWS/Azure   | $3–30+/小时           |
+本文对比的每家提供商都会低价出售闲置算力，代价是随时可能被收回。
+
+| 实例 | 按需 | 竞价 | 节省 |
+| --- | --- | --- | --- |
+| AWS g6.xlarge（1× L4） | $0.805 | $0.605 | 25% |
+| AWS g5.xlarge（1× A10G） | $1.006 | $0.469 | 53% |
+| AWS p5.4xlarge（1× H100） | $6.88 | $2.623 | 62% |
+| Google Cloud g2-standard-4（1× L4） | $0.707 | $0.403 | 43% |
+| Google Cloud a3-highgpu-8g（8× H100） | $88.49 | $41.60 | 53% |
+| Azure NC24ads A100 v4（1× A100 80 GB） | $3.673 | $0.679 | 82% |
+| Azure NC40ads H100 v5（1× H100 NVL） | $6.98 | $1.29 | 82% |
 
----
+Azure 的竞价价格取自其零售价格 API，其中 A100 和 H100 的竞价价格分别于 2026 年 7 月和 8 月生效。这个 H100 竞价价格比我们在市场平台上找到的最便宜的按需 H100 报价还低。竞价价格变动频繁，也不保证有货，所以只把它当作一次快照。
 
-## 目录
+Vast.ai 的文档称，可中断实例“通常比按需便宜 50% 以上”；getdeploying.com 显示 RTX 3090 的可中断报价从 $0.08 起。只有当任务会写检查点、能从中断处接着跑时，竞价实例才真正省钱。否则一次中断就意味着同样的时长要付两次钱。
 
-- [执行摘要](#执行摘要)
-- [了解 GPU 租用市场](#了解-gpu-租用市场)
-- [服务商分析](#服务商分析)
-  - [Amazon Web Services（AWS）](#amazon-web-servicesaws)
-  - [Microsoft Azure](#microsoft-azure)
-  - [Google Cloud Platform（GCP）](#google-cloud-platformgcp)
-  - [RunPod](#runpod)
-  - [Vast.ai](#vastai)
-  - [GPUFlow 的定位](#gpuflow-的定位)
-- [价格对比表](#价格对比表)
-- [功能对比](#功能对比)
-- [真实场景成本测算](#真实场景成本测算)
-- [决策框架](#决策框架)
-- [常见问题](#常见问题)
-- [方法与数据来源](#方法与数据来源)
+## GPUFlow 的定位
 
----
+GPUFlow 也是一个市场平台，但出租的东西范围更窄。提供商在自己的 Linux 机器上运行 AI 模型（通常用 Ollama），你按小时租用其中一块 GPU，拿到一个 OpenAI 兼容 API 密钥（base URL 为 `https://gpuflow.app/v1`，提供 `/v1/chat/completions` 和 `/v1/models`）。没有 SSH、没有 shell，也不能访问文件，所以不能训练、微调或运行自己的代码。如果只是想在脚本或应用里调用一个开源模型，准备工作可以完全省掉：模型已经装在提供商的机器上了。
 
-## 执行摘要
+GPUFlow 不定价，所以表里没有 GPUFlow 的价格。它的定价方式如下：
 
-2026 年的 GPU 租用价格跨度很大，取决于服务商类型和硬件选择。AWS、Azure 和 GCP 等企业级云服务商收费较高，入门级 GPU 每小时 0.80 美元起，高端配置每小时超过 30 美元。点对点算力市场提供同样的硬件，价格低 60%–80%，但可用性保障较弱。
+- 每个提供商以美元为自己的上架信息设定小时价。设定时，上架表单会显示这个价格在其他租用平台价格区间中的位置，以及扣除手续费后能赚多少。
+- 你按整小时预订，默认 1 到 168 小时。租用开始时，从你的额度中预留全部预订金额。
+- 实际按秒计费，最低 1 分钟，向上取整到分（[GPU 按秒计费与按小时计费](/zh_cn/per-second-vs-hourly-gpu-billing/)一文有详细算例）。你提前结束或时间用完时，预留金额中未用完的部分直接退回你的额度。
+- 如果提供商的机器 10 分钟没有响应，租用会结束，你只需支付到机器最后一次心跳为止的费用。
+- token 会计数但不计费。账单上没有磁盘或数据传输费用，因为你根本拿不到一台可以存文件的机器。
+- 额度通过 Stripe 用银行卡购买，每次充值 $10 到 $500，无手续费。1 额度 = $0.01，额度不会过期。每笔扣费中提供商拿 88%，GPUFlow 拿 12%。
 
-**本文的主要发现**：
+![GPUFlow 上架表单，小时价为 $0.35，旁边的价格条将其与其他租用平台上 RTX 4090 的 $0.30 至 $0.46 区间对比，并显示扣除 12% 手续费后提供商可得 $0.31](../_images/screens/zh_cn/provider-price-bar.png)
 
-| 服务商类型                        | A100 典型价格  | 适用场景                          |
-| --------------------------------- | -------------- | --------------------------------- |
-| 企业级云（AWS、Azure、GCP）       | $25–35/小时    | 合规、有保障的可用性、企业级支持  |
-| 托管式算力市场（RunPod）          | $1.39–1.89/小时 | 兼顾可靠性与成本                  |
-| 点对点算力市场（Vast.ai）         | $0.84–1.49/小时 | 最大限度节省成本、灵活的工作负载  |
+租 API 密钥和租容器的详细对比，见 [GPUFlow、Vast.ai、RunPod 与 SaladCloud 对比](/zh_cn/gpuflow-vs-vast-ai-vs-runpod/)。如果你在比较按小时租 GPU 和按 token 计费的 API，[相关计算在这里](/zh_cn/hourly-gpu-vs-per-token-api/)。
 
-最经济的选择取决于三个因素：可用性要求、合规需求和工作负载的灵活性。本指南提供具体的价格数据和决策标准，帮你找到适合自己的方案。
+## 算例一：在 24 GB 显卡上跑 3 小时批处理任务
 
----
+假设你要用一个 7B 到 8B 的开源模型处理一大批文档，大约需要三小时。任何 24 GB 显卡都行。
 
-## 了解 GPU 租用市场
+| 方案 | 算式 | GPU 费用 |
+| --- | --- | --- |
+| Vast.ai RTX 4090 | 3 × $0.31 | $0.93 |
+| RunPod Community RTX 4090 | 3 × $0.34 | $1.02 |
+| Google Cloud L4（g2-standard-4） | 3 × $0.707 | $2.12 |
+| RunPod Secure RTX 4090 | 3 × $0.74 | $2.22 |
+| AWS L4（g6.xlarge） | 3 × $0.805 | $2.42 |
+| AWS A10G（g5.xlarge） | 3 × $1.006 | $3.02 |
 
-GPU 租用市场已经分化为两大类别。企业级云服务商运营自己的数据中心，提供标准化的硬件、有保障的可用性和企业级服务等级协议（SLA）。它们面向的是需要合规认证、稳定性能和专属支持渠道的机构。
+以上每个方案都还要为准备工作付钱：安装推理服务器、下载模型，都在计费时间内进行。花 20 分钟做这些，Vast.ai 那块卡要多付 $0.10，AWS L4 要多付 $0.27。
 
-点对点算力市场走的是另一条路。这类平台把个人 GPU 所有者（从游戏玩家到加密货币矿工都有）和需要算力的用户连接起来。分布式模式省去了数据中心的开销，把大量成本节省让利给租用者，同时也为硬件所有者创造了收入。
+在 GPUFlow 上，以一条每小时 $0.35 的上架信息为例（这是截图里的价格，不是报价）。你预订 3 小时，预留 $1.05。任务在 2 小时 10 分钟（7,800 秒）后完成，你结束租用。扣费为 7,800 × 35 ÷ 3,600 = 75.8 分，向上取整为 $0.76，$0.29 退回你的额度。前提是有提供商运行你要的模型。
 
-两种模式没有绝对的优劣，合适的选择取决于工作负载的特点。可以容忍中断的训练任务适合利用算力市场的价格优势；要求 99.999% 可用性的生产推理系统，则值得为企业级服务支付溢价。
+## 算例二：在 A100 80 GB 上微调 8 小时
 
-**当前的市场形势对租用者有利**。2024–2026 年 GPU 供应的改善，让各类服务商的价格都有所回落。算力市场之间的竞争已把消费级 GPU 的价格压到每小时 0.50 美元以下。企业级服务商也推出了更灵活的承诺使用方案，并提供更多竞价实例。
+微调需要一台你能控制的机器，所以这里用不了 GPUFlow。
 
----
+| 方案 | 算式 | 费用 |
+| --- | --- | --- |
+| Vast.ai，最低 A100 报价 | 8 × $0.43 | $3.44 |
+| RunPod Community A100 SXM | 8 × $1.39 | $11.12 |
+| RunPod Secure A100 SXM | 8 × $1.59 | $12.72 |
+| Lambda A100 SXM 80 GB | 8 × $2.79 | $22.32 |
+| Azure NC24ads A100 v4 | 8 × $3.673 | $29.38 |
+| Google Cloud a2-ultragpu-1g | 8 × $5.069 | $40.55 |
+| AWS p4de.24xlarge（8 卡） | 8 × $27.45 | $219.60 |
 
-## 服务商分析
+Vast.ai 一行是 getdeploying.com 报告的最便宜的 A100 报价（一台 2 卡机器中的 SXM 卡，未显示显存大小），所以在指望这个价格之前先看清上架信息。AWS 一行不是笔误：如果你在 AWS 上需要一块 A100 80 GB，就得租八块。Lambda 一行假设你能租到对应规格，见上文说明。
 
-### Amazon Web Services（AWS）
+如果你的训练循环每 15 到 30 分钟保存一次检查点，用 Azure 每小时 $0.679 的竞价价格，这个任务只要 $5.43，前提是你能抢到算力。
 
-Amazon Web Services 通过 EC2 实例提供 GPU 算力，可使用包括 V100、A100 以及更新的 H100 在内的 NVIDIA 数据中心 GPU。AWS 代表了 GPU 租用的高端档位，优先考虑的是可靠性和生态集成，而不是成本效率。
+## 算例三：一块 L4 全天候提供推理服务
 
-**AWS GPU 实例最适合已深度使用 AWS 生态的机构**，这些机构需要与 S3 存储、SageMaker 流水线和企业安全框架无缝集成。其定价体现的是数据中心级的可靠性，SLA 承诺 99.99% 的可用性。
+一个小型推理端点，按一个月 720 小时运行：
 
-**当前价格（美国东部区域，按需）**：
+| 方案 | 算式 | 每月 |
+| --- | --- | --- |
+| Vast.ai L4，最低报价 | 720 × $0.27 | $194.40 |
+| RunPod Secure L4 | 720 × $0.49 | $352.80 |
+| AWS g6.xlarge，1 年预留 | 720 × $0.524 | $377.28 |
+| Google Cloud g2-standard-4 | 720 × $0.707 | $509.04 |
+| AWS g6.xlarge，按需 | 720 × $0.805 | $579.60 |
 
-| 实例         | GPU 配置          | 每小时价格 |
-| ------------ | ----------------- | ---------- |
-| p4d.24xlarge | 8x A100 (40GB)    | $32.77     |
-| p3.2xlarge   | 1x V100 (16GB)    | $3.06      |
-| p3.8xlarge   | 4x V100 (16GB)    | $12.24     |
-| g6.xlarge    | 1x L4 (24GB)      | $0.80      |
-| g5.xlarge    | 1x A10G (24GB)    | $1.01      |
+跑这么长时间，承诺使用折扣就开始起作用了：同一实例在 AWS 上的 1 年预留价比按需低 35%。市场平台仍然最便宜，但单台主机就是单点故障。如果这个端点有真实用户，你大概需要两台机器，市场平台那一行就要翻倍，差距也就没有看上去那么大了。
 
-**优势**：
+## 我会怎么选
 
-- 企业级 SLA，保证 99.99% 的可用性
-- 拥有 SOC2、HIPAA、FedRAMP 等合规认证
-- 覆盖全球 30 多个区域
-- 与 AWS 机器学习服务深度集成
+做实验、生成图片、训练 LoRA，以及任何可以重来的任务：市场平台上的 RTX 3090 或 4090。最便宜的每小时 $0.11 到 $0.34，大型云上没有能接近的。
 
-**局限**：
+需要 A100 或 H100 跑大模型、且不涉及监管要求：先看 RunPod 或 Lambda；如果你愿意逐个查看主机的可靠性评分，也可以用 Vast.ai。做决定前看看 Azure 和 Google Cloud 的竞价价格；2026 年 9 月它们出人意料地有竞争力。
 
-- 在本文分析的所有服务商中价格最高
-- 不提供消费级 GPU（没有 RTX 系列）
-- 定价结构复杂，带宽和存储另行收费
-- 大幅折扣需要 1–3 年的承诺使用
+受监管的数据、公司已经在用 AWS、Azure 或 Google Cloud，或任何需要 SLA 的场景：留在你现有的云上，用承诺使用折扣或竞价算力把价格压下来。每小时花 $7 租一块 H100，往往比对一家新供应商做安全评审更便宜。
 
-**来源**：[AWS EC2 定价](https://aws.amazon.com/ec2/pricing/on-demand/)
+想在代码里调用开源模型、又不想自己运维服务器：用 API。如果有按 token 计费的 API 托管了你要的模型，就用它；如果你想在某个提供商的模型上拿到固定的小时价，就在 GPUFlow 上按小时租用。账户方面的事项见[租用 GPU 需要准备什么](/zh_cn/what-you-need-to-rent-a-gpu/)。
 
----
+## 资料来源
 
-### Microsoft Azure
+- AWS：[EC2 按需价格](https://aws.amazon.com/ec2/pricing/on-demand/)、[P5 实例](https://aws.amazon.com/ec2/instance-types/p5/)、[P4 实例](https://aws.amazon.com/ec2/instance-types/p4/)。小时价取自 Vantage 收录的 AWS 价格表：[g6.xlarge](https://instances.vantage.sh/aws/ec2/g6.xlarge?region=us-east-1)、[g5.xlarge](https://instances.vantage.sh/aws/ec2/g5.xlarge?region=us-east-1)、[p5.4xlarge](https://instances.vantage.sh/aws/ec2/p5.4xlarge?region=us-east-1)、[p5.48xlarge](https://instances.vantage.sh/aws/ec2/p5.48xlarge?region=us-east-1)、[p4de.24xlarge](https://instances.vantage.sh/aws/ec2/p4de.24xlarge?region=us-east-1)
+- Google Cloud：[加速器优化型虚拟机价格](https://cloud.google.com/products/compute/pricing/accelerator-optimized)、[虚拟机实例价格](https://cloud.google.com/compute/vm-instance-pricing)
+- Azure：[Linux 虚拟机价格](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/)、[Azure 零售价格 API](https://prices.azure.com/api/retail/prices)，规格：[NC A100 v4](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nca100v4-series)、[NCads H100 v5](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ncadsh100v5-series)、[NVads A10 v5](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvadsa10v5-series)
+- Lambda：[价格](https://lambda.ai/pricing)
+- RunPod：[价格](https://www.runpod.io/pricing)、[RTX 3090](https://www.runpod.io/gpu-models/rtx-3090)、[RTX 4090](https://www.runpod.io/gpu-models/rtx-4090)、[RTX 5090](https://www.runpod.io/gpu-models/rtx-5090)、[A100 SXM](https://www.runpod.io/gpu-models/a100-sxm)、[H100 SXM](https://www.runpod.io/gpu-models/h100-sxm)、[Pod 概览](https://docs.runpod.io/pods/overview)
+- Vast.ai：[价格文档](https://docs.vast.ai/guides/instances/pricing.md)。市场平台价格来自 getdeploying.com：[Vast.ai](https://getdeploying.com/vast-ai)、[RTX 3090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-3090)、[RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090)、[RTX 5090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-5090)、[A100](https://getdeploying.com/reference/cloud-gpu/nvidia-a100)、[H100](https://getdeploying.com/reference/cloud-gpu/nvidia-h100)
+- GPUFlow：[如何为你的 GPU 定价](https://docs.gpuflow.app/zh-cn/providers/pricing/)、[计费](https://docs.gpuflow.app/zh-cn/renters/billing/)、[API 快速入门](https://docs.gpuflow.app/zh-cn/renters/api-quickstart/)、[市场](https://gpuflow.app/zh-CN/marketplace)
 
-Microsoft Azure 通过 N 系列和 ND 系列虚拟机提供 GPU 算力。Azure 在 AI 基础设施上投入巨大，包括独家提供某些 GPU 配置，并与 OpenAI 服务紧密集成。
-
-**Azure 把自己定位为企业级 AI 平台**，为基于微软 AI 技术栈构建应用的机构提供独特能力。与 OpenAI 的合作关系，使 Azure 成为需要专用算力、开发基于 GPT 的应用的团队的默认选择。
-
-**当前价格（美国东部区域，按需）**：
-
-| 实例            | GPU 配置          | 每小时价格 |
-| --------------- | ----------------- | ---------- |
-| NC24ads A100 v4 | 1x A100 (80GB)    | $3.67      |
-| ND96asr A100 v4 | 8x A100 (80GB)    | $27.20     |
-| NC6s v3         | 1x V100 (16GB)    | $3.06      |
-| NC4as T4 v3     | 1x T4 (16GB)      | $0.53      |
-| ND H100 v5      | 8x H100 (80GB)    | $98.32     |
-
-**优势**：
-
-- 独家提供某些 GPU 配置
-- 与 Azure Machine Learning 和 OpenAI 服务原生集成
-- 借助 Azure Arc 实现混合云能力
-- 完善的企业级安全与合规框架
-
-**局限**：
-
-- 价格与 AWS 同属高端
-- 热门区域的 GPU 资源可能紧张
-- 配额体系复杂，较大的实例需要审批
-- 不提供消费级 GPU
-
-**来源**：[Azure 虚拟机定价](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/)
-
----
-
-### Google Cloud Platform（GCP）
-
-Google Cloud Platform 通过 Compute Engine 提供 GPU 算力，NVIDIA GPU 以可挂载加速器的形式附加到标准虚拟机上。GCP 的差异化优势在于其 AI/ML 工具链，以及独有的 TPU（张量处理单元）硬件。
-
-**GCP 更受看重 Google 机器学习生态的研究人员和团队青睐**。该平台与 Vertex AI、BigQuery 和 TensorFlow 自然集成，对已经在使用 Google 数据分析技术栈的机构很有吸引力。
-
-**当前价格（美国东部区域，按需）**：
-
-| GPU 型号           | 显存   | 每小时价格 |
-| ------------------ | ------ | ---------- |
-| NVIDIA T4          | 16GB   | $0.35      |
-| NVIDIA L4          | 24GB   | $0.56      |
-| NVIDIA V100        | 16GB   | $2.48      |
-| NVIDIA P100        | 16GB   | $1.46      |
-| NVIDIA A100 (40GB) | 40GB   | $2.93\*    |
-
-\*A100 需搭配 A2 加速器优化型机器配置
-
-**优势**：
-
-- 可使用 TPU 处理特定工作负载（其他平台没有）
-- 通过 GKE 提供强大的 Kubernetes 集成
-- 竞价实例价格有竞争力（折扣 60%–91%）
-- 与 Google AI 服务紧密集成
-
-**局限**：
-
-- 不同可用区的 GPU 资源差异很大
-- 使用 A100/H100 需要配额审批
-- 不提供消费级 GPU
-- GPU 与计算资源组合计费，定价较复杂
-
-**来源**：[Google Cloud GPU 定价](https://cloud.google.com/compute/gpus-pricing)
-
----
-
-### RunPod
-
-RunPod 运营一个托管式 GPU 云，既有专用的数据中心硬件，也有社区提供的资源。该平台在企业级可靠性和算力市场价格之间找到了中间地带，因而发展迅速。
-
-**RunPod 是 GPU 租用的便捷入门选择**，价格有竞争力，界面也很友好。平台为热门框架提供预配置模板，常见 AI 工作负载可以一键部署。
-
-**当前价格（Secure Cloud）**：
-
-| GPU 型号         | 显存   | 每小时价格 |
-| ---------------- | ------ | ---------- |
-| RTX 4090         | 24GB   | $0.59      |
-| RTX 3090         | 24GB   | $0.46      |
-| A100 PCIe (80GB) | 80GB   | $1.39      |
-| A100 SXM (80GB)  | 80GB   | $1.49      |
-| H100 PCIe (80GB) | 80GB   | $2.39      |
-| L4               | 24GB   | $0.39      |
-| RTX A6000        | 48GB   | $0.49      |
-
-**优势**：
-
-- 提供消费级 GPU（RTX 3090、4090）
-- 按秒计费，减少浪费
-- 提供 Stable Diffusion、LLM 等工作负载的预构建模板
-- 社区活跃，支持响应及时
-
-**局限**：
-
-- Community Cloud 的可靠性因提供方而异
-- Secure Cloud 档位没有企业级 SLA
-- 与超大规模云厂商相比，地域覆盖有限
-- 竞价实例可能被中断
-
-**来源**：[RunPod 定价](https://www.runpod.io/gpu-instance/pricing)
-
----
-
-### Vast.ai
-
-Vast.ai 开创了点对点 GPU 算力市场模式，通过竞价机制连接个人 GPU 所有者和租用者。凭借分布式的提供方网络，该平台的价格是市场上最低的。
-
-**Vast.ai 能让灵活的工作负载获得最高的成本效率**。在算力市场模式下，价格随供需波动。只要愿意适应不固定的可用性，就能省下一大笔钱。
-
-**当前市场价格（代表性价格）**：
-
-| GPU 型号     | 显存   | 价格区间        |
-| ------------ | ------ | --------------- |
-| RTX 4090     | 24GB   | $0.29–0.78/小时 |
-| RTX 3090     | 24GB   | $0.40–0.60/小时 |
-| RTX 5090     | 32GB   | $0.38–1.08/小时 |
-| A100 (80GB)  | 80GB   | $0.84–1.49/小时 |
-| H100 (80GB)  | 80GB   | $1.47–2.94/小时 |
-| H200 (140GB) | 140GB  | $2.07–5.07/小时 |
-
-**优势**：
-
-- GPU 租用市场上的最低价格
-- 硬件选择丰富，包括最新的消费级 GPU
-- 提供方的可靠性指标公开透明
-- 租用时长灵活，从几小时到几个月都可以
-
-**局限**：
-
-- 可用性和价格都不固定
-- 提供方可靠性在 97% 到 99.9% 之间
-- 没有可用性 SLA 保障
-- 需要适应点对点市场的运作方式
-
-**来源**：[Vast.ai 市场](https://cloud.vast.ai/)
-
----
-
-### GPUFlow 的定位
-
-GPUFlow 没有出现在下面的价格表中，因为它租的是另一种东西。上面这些服务商租给你的是一台机器或一个容器。而在 GPUFlow 上，你租到的是一个与 OpenAI 兼容的 API 密钥，背后是已经运行在别人消费级 GPU 上的 AI 模型，按秒计费。你不能在上面训练模型或运行自己的代码，但也无需任何配置。提供方自行设定每小时价格，并获得 88% 的收入。
-
-两种方式的详细对比，请参阅[《GPUFlow、Vast.ai、RunPod 与 SaladCloud 对比》](/zh_cn/gpuflow-vs-vast-ai-vs-runpod/)。
-
-**来源**：[GPUFlow 文档](https://docs.gpuflow.app/zh-cn/)
-
----
-
-## 价格对比表
-
-### 消费级 GPU 价格
-
-下表对比了常用于 AI 训练、图像生成和推理的消费级 GPU 的租用价格。
-
-| GPU              | AWS | Azure | GCP | RunPod | Vast.ai    |
-| ---------------- | --- | ----- | --- | ------ | ---------- |
-| RTX 4090 (24GB)  | 无  | 无    | 无  | $0.59  | $0.29–0.78 |
-| RTX 3090 (24GB)  | 无  | 无    | 无  | $0.46  | $0.40–0.60 |
-| RTX A6000 (48GB) | 无  | 无    | 无  | $0.49  | $0.40–0.70 |
-
-### 数据中心 GPU 价格
-
-企业级数据中心 GPU 显存更大、可靠性更高，适合生产环境的工作负载。
-
-| GPU         | AWS      | Azure     | GCP   | RunPod     | Vast.ai    |
-| ----------- | -------- | --------- | ----- | ---------- | ---------- |
-| A100 (40GB) | ~$4.10\* | 无        | $2.93 | 无         | $0.80–1.20 |
-| A100 (80GB) | ~$4.10\* | $3.67     | 无    | $1.39–1.49 | $0.84–1.49 |
-| H100 (80GB) | ~$6.90\* | ~$12.29\* | 无    | $2.39      | $1.47–2.94 |
-| V100 (16GB) | $3.06    | $3.06     | $2.48 | 无         | $0.70–1.10 |
-| L4 (24GB)   | $0.80    | 无        | $0.56 | $0.39      | $0.35–0.50 |
-
-\*AWS 和 Azure 的价格为按多 GPU 实例价格折算的单 GPU 成本
-
-### 成本效率排名
-
-按同等算力计算，各服务商的成本效率排名如下：
-
-1. **Vast.ai**：绝对价格最低，可用性不固定
-2. **RunPod**：价格与可靠性最均衡
-3. **GCP**：超大规模云厂商中最有竞争力
-4. **Azure**：企业级价格中的中档
-5. **AWS**：价格最高，可靠性也最高
-
----
-
-## 功能对比
-
-除了价格，还有几个因素会影响服务商的选择。下表汇总了主要差异。
-
-| 功能           | AWS      | Azure    | GCP      | RunPod   | Vast.ai  |
-| -------------- | -------- | -------- | -------- | -------- | -------- |
-| 可用性 SLA     | 99.99%   | 99.95%   | 99.95%   | 尽力而为 | 社区保障 |
-| 消费级 GPU     | 否       | 否       | 否       | 是       | 是       |
-| 开通时间       | 10–30 分钟 | 10–30 分钟 | 10–30 分钟 | 2–5 分钟 | 2–5 分钟 |
-| 最小计费单位   | 1 分钟   | 1 分钟   | 1 分钟   | 1 秒     | 1 秒     |
-| 企业级支持     | 有       | 有       | 有       | 付费档位 | 无       |
-| 合规认证       | 全套     | 全套     | 全套     | 有限     | 无       |
-
----
-
-## 真实场景成本测算
-
-脱离工作负载谈价格对比，参考价值有限。以下场景展示了常见 GPU 租用用途的实际成本。
-
-### 场景 1：Stable Diffusion LoRA 训练
-
-为 Stable Diffusion 训练一个自定义 LoRA 模型，通常需要在 24GB GPU 上运行 1–3 小时。
-
-**工作负载**：在 RTX 4090 上运行 2 小时
-
-| 服务商  | 计算方式              | 总成本    |
-| ------- | --------------------- | --------- |
-| AWS     | 无（不提供该 GPU）    | —         |
-| Azure   | 无（不提供该 GPU）    | —         |
-| GCP     | 无（不提供该 GPU）    | —         |
-| RunPod  | 2 小时 × $0.59        | **$1.18** |
-| Vast.ai | 2 小时 × $0.40（均价） | **$0.80** |
-
-**建议**：对于这类工作负载，算力市场服务商比企业级云便宜 80%–90%。AWS、Azure 和 GCP 均不提供消费级 GPU。
-
-### 场景 2：LLM 微调
-
-微调一个 70 亿参数的语言模型，需要大量显存和计算时间。
-
-**工作负载**：在 A100 (80GB) 上运行 8 小时
-
-| 服务商  | 计算方式              | 总成本      |
-| ------- | --------------------- | ----------- |
-| AWS     | 8 小时 × ~$4.10       | **~$32.80** |
-| Azure   | 8 小时 × $3.67        | **$29.36**  |
-| GCP     | 8 小时 × ~$2.93       | **~$23.44** |
-| RunPod  | 8 小时 × $1.39        | **$11.12**  |
-| Vast.ai | 8 小时 × $1.10（均价） | **$8.80**   |
-
-**建议**：算力市场服务商能把成本降低 60%–75%。对于长时间的训练任务，RunPod 的可靠性与价格之比最好。
-
-### 场景 3：生产环境推理服务器
-
-运行一个 7×24 小时的推理端点，需要长期稳定可用。
-
-**工作负载**：在 RTX 4090 上运行 720 小时（1 个月）
-
-| 服务商  | 计算方式                | 总成本      |
-| ------- | ----------------------- | ----------- |
-| AWS     | 无（不提供该 GPU）      | —           |
-| Azure   | 无（不提供该 GPU）      | —           |
-| GCP     | 无（不提供该 GPU）      | —           |
-| RunPod  | 720 小时 × $0.59        | **$424.80** |
-| Vast.ai | 720 小时 × $0.50（均价） | **$360.00** |
-
-**建议**：对于要求高可用性的生产工作负载，RunPod 的 Secure Cloud 档位虽然价格略高，但比纯算力市场方案更可靠。
-
----
-
-## 决策框架
-
-选择 GPU 租用服务商，需要把你的具体需求与服务商的能力对应起来。可以参考以下框架做决定。
-
-### 以下情况选 AWS：
-
-- 你的机构已有 AWS 基础设施和相关经验
-- 合规要求必须具备 SOC2、HIPAA 或 FedRAMP 认证
-- 工作负载要求有保障的 99.99% 可用性
-- 相比预算，更看重可靠性和支持
-- 需要与 SageMaker 或其他 AWS AI 服务集成
-
-### 以下情况选 Azure：
-
-- 你基于微软的 AI 技术栈（OpenAI、Azure ML）进行开发
-- 混合云需求涉及与本地环境集成
-- 你的机构统一使用微软的企业工具
-- 需要使用 Azure 独有的特定 GPU 配置
-
-### 以下情况选 GCP：
-
-- 你的工作负载需要使用 TPU
-- 你深度依赖 Google 的数据生态（BigQuery、Vertex AI）
-- TensorFlow 是你的主要框架
-- 你希望获得超大规模云厂商中最有竞争力的竞价实例价格
-
-### 以下情况选 RunPod：
-
-- 你希望以算力市场的价格获得托管服务的可靠性
-- 需要使用消费级 GPU（RTX 4090、3090）
-- 预配置模板能加快你的工作流程
-- 你希望在成本和支持之间取得平衡
-
-### 以下情况选 Vast.ai：
-
-- 绝对最低成本是你的首要优化目标
-- 你的工作负载能够容忍偶尔的中断
-- 你愿意自己评估各个提供方的可靠性
-- 地域分布或特定硬件配置对你很重要
-
-### 以下情况选 GPUFlow：
-
-- 你需要的是通过 OpenAI 兼容 API 调用的开放 AI 模型，而不是一台机器
-- 你不想自己配置驱动、容器或推理服务器
-- 你希望为预订的时长按秒付费，未使用的时间退款
-- 你不需要训练模型或运行自己的代码
-
----
-
-## 常见问题
-
-### 租用 GPU 训练 AI，最便宜的方式是什么？
-
-点对点算力市场的 GPU 租用价格最低。2026 年 2 月，Vast.ai 上的 RTX 4090 每小时 0.29 美元起，而在托管平台上获得同等算力需要 1.50 美元以上，在企业级云上则要 3 美元以上。代价是要接受不固定的可用性和依靠社区保障的可靠性，而不是有保障的 SLA。
-
-### 租用一块 NVIDIA A100 GPU 要多少钱？
-
-A100 的租用价格因服务商不同而差异悬殊。企业级云的单 GPU 价格为每小时 3–4 美元，不过通常要把多块 GPU 打包成更大的实例来计费。RunPod 的 A100 每小时 1.39–1.49 美元。Vast.ai 等算力市场平台上，个人提供方的 A100 每小时 0.84 美元起。
-
-### 租 GPU 比买 GPU 更划算吗？
-
-如果只是间歇使用，租用在经济上更有优势。一块 RTX 4090 的购买价格为 1,600–2,000 美元。按算力市场每小时 0.50–0.80 美元的租金计算，盈亏平衡点在 2,000–4,000 小时之间，相当于 7×24 小时不间断运行 83–167 天。大多数训练模型或定期运行推理任务的用户，远远达不到这个门槛。
-
-如果连续数月每天使用 8 小时以上，或者出于安全、延迟方面的原因需要专用硬件，那么购买更合理。
-
-### 云 GPU 服务商和 GPU 算力市场有什么区别？
-
-云 GPU 服务商（AWS、Azure、GCP）运营企业级数据中心，提供标准化的硬件配置、有保障的可用性 SLA 和合规认证。其价格包含了基础设施投入、支持开销和可靠性保障的成本。
-
-Vast.ai 等 GPU 算力市场汇集了个人硬件所有者的计算资源，包括游戏主机、退役矿机和私有数据中心。点对点模式省去了集中式基础设施的成本，价格因此可以低 60%–80%。代价是可用性不固定、不同提供方的性能参差不齐，支持也依靠社区而非有保障的服务。
-
-### 机器学习训练该租哪种 GPU？
-
-GPU 的选择取决于模型规模和训练需求：
-
-- **LoRA 微调、Stable Diffusion、小模型**：RTX 4090（24GB）性价比最佳
-- **70 亿–130 亿参数的 LLM**：A100（40GB 或 80GB）提供所需的显存容量
-- **700 亿参数以上的模型**：需要 H100（80GB）或多 GPU 配置
-- **推理工作负载**：L4 或 T4 GPU 能以较低成本提供推理服务
-
-对于大多数刚开始做 AI 开发的用户，先以每小时 0.50–0.80 美元的价格租用 RTX 4090，可以用最低的成本进行实验，等需求增长后再扩展到数据中心 GPU。
-
-### GPU 租用有隐藏费用吗？
-
-有几个因素会让 GPU 租用成本超出标价：
-
-- **存储**：许多服务商对超出最低默认配额的磁盘空间单独收费
-- **带宽**：企业级云会收取数据传输费，通常为每 GB 0.05–0.15 美元
-- **空闲时间**：GPU 一旦开通就持续计费，用完记得终止实例
-- **准备开销**：部署模板、配置环境和传输数据都会占用非计算时间
-- **平台费用**：算力市场从提供方的租金收入中抽取 10%–30%，这部分会反映在价格中
-
-算力市场平台的定价通常更透明，附加费用也更少。使用企业级云时，则需要仔细了解完整的费用结构。
-
----
-
-## 方法与数据来源
-
-本文的价格数据于 2026 年 2 月直接从各服务商官网和算力市场采集。云服务商价格为美国东部区域的按需价格，不含承诺使用折扣。算力市场价格为调研时所有可用挂单的观测价格区间。作为参考，在算力市场的 RTX 4090 上用 80 亿参数模型完成一次典型的 [LLM 微调流程](/zh_cn/private-llm-fine-tuning-guide/)，费用在 3 到 8 美元之间。
-
-**主要来源**：
-
-- [AWS EC2 按需定价](https://aws.amazon.com/ec2/pricing/on-demand/)
-- [Azure 虚拟机定价](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/)
-- [Google Cloud GPU 定价](https://cloud.google.com/compute/gpus-pricing)
-- [RunPod GPU 实例定价](https://www.runpod.io/gpu-instance/pricing)
-- [Vast.ai 市场](https://cloud.vast.ai/)
-
-云服务商的价格变动频繁。竞价实例和承诺使用折扣可以让成本大幅低于本文列出的按需价格。算力市场的价格则随供需关系波动。
-
-如需了解最新价格，请直接访问各服务商官网。
-
----
-
-**只需要通过 API 调用 AI 模型，而不需要一整台机器**？在 [GPUFlow](https://gpuflow.app/zh-CN/marketplace) 上，你可以按小时租用 GPU，获得一个与 OpenAI 兼容的 API 密钥，按秒计费。[了解使用方法](https://docs.gpuflow.app/zh-cn/renters/getting-started/)。
-
----
-
-_相关指南：_
-
-- [如何用不到 10 美元训练 Stable Diffusion LoRA 模型](/zh_cn/stable-diffusion-lora-training-under-10-dollars/)
-- [RunPod 与 Vast.ai：面向 AI 开发者的详细对比](/zh_cn/runpod-vs-vastapi-comparison/)
-- [租用 GPU 的真实成本](/zh_cn/hidden-fees-in-gpu-rental/)
+均于 2026 年 9 月核实。

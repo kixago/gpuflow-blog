@@ -1,595 +1,343 @@
 ---
-title: "Stable DiffusionのLoRAを10ドル以下で学習させる方法"
-description: "レンタルGPUを使ってStable Diffusion用のLoRAモデルを学習させる手順を解説します。GPUの選び方、データセットの準備、学習設定、コストの抑え方まで網羅した完全ガイドです。"
-excerpt: "GPUレンタルを使って高品質なLoRAモデルを学習させるための実践ガイドです。プロバイダーの選び方、設定、総費用を10ドル以下に抑えるコツを解説します。"
+title: "Stable Diffusion の LoRA をレンタル GPU で $10 以下で学習する"
+description: "レンタルした RTX 4090 で SDXL や Flux の LoRA を $10 を大きく下回る費用で学習する方法。VRAM で選ぶ GPU、キャプション、sd-scripts と ai-toolkit の設定、費用の計算例をまとめます。"
+excerpt: "2026 年 9 月時点で、レンタルした RTX 4090 での SDXL LoRA の学習は 1 回あたり約 $0.35〜$0.80 です。選ぶべき GPU、画像の準備とキャプション付け、実際の学習コマンド、そしてお金が実際にどこに消えるのかを説明します。"
 pubDate: 2026-02-11
-updatedDate: 2026-09-29
+updatedDate: 2026-09-30
 locale: "ja"
 category: "tutorials"
 featured: false
 draft: false
 author: "GPUFlow Team"
 heroImage: "../_images/stable-diffusion-lora-training-guide.jpg"
-heroImageAlt: "冷却ファンとLED照明が見える、サーバーラックに取り付けられたNVIDIAのグラフィックカード"
+heroImageAlt: "LoRA ネットワークの図を映した大きなモニターを囲む人々のイラスト。横にはサーバーラックと、2 つのエポックのサンプル画像を比べるパネルがある"
 faq:
-  - question: "GPUをレンタルせず、自分のGPUでLoRAモデルを学習させることはできますか？"
-    answer: "はい。RTX 3060以上など、12GB以上のVRAMを持つNVIDIA製GPUがあれば可能です。ただし、電気代、ハードウェアの消耗、コンシューマー向けハードウェアでは学習時間が大幅に長くなることを考えると、たまにしか学習しないプロジェクトではレンタルのほうが経済的な場合が多いです。"
-  - question: "LoRAの学習には通常どのくらい時間がかかりますか？"
-    answer: "RTX 4090やRTX 3090を使えば、ほとんどのLoRA学習は1〜3時間で完了します。正確な所要時間は、データセットのサイズ、エポック数、バッチサイズの設定によって変わります。"
-  - question: "LoRAの学習には最低何枚の画像が必要ですか？"
-    answer: "15〜20枚程度でも、それなりの結果は得られます。ただし、適切なキャプションを付けた30〜100枚のデータセットのほうが、通常は品質が高くなります。枚数よりも、画像の品質とキャプションの正確さのほうが重要です。"
-  - question: "LoRAの学習に最もコストパフォーマンスが高いGPUレンタルプロバイダーはどこですか？"
-    answer: "RTX 4090の時間単価が最も安いのは、たいていVast.aiです。GPUレンタルが初めての人にとって最も分かりやすいのはRunPodで、すぐに使えるテンプレートが用意されています。"
-  - question: "複数のLoRAモデルを1回のセッションでまとめて学習させたほうが安くなりますか？"
-    answer: "はい。複数のLoRAを1回の長めのセッションでまとめて学習させれば、セットアップを繰り返す時間がなくなり、GPUのアイドル時間の料金も最小限に抑えられます。4時間のセッションで3〜5個のLoRAモデルを学習させる場合、通常は個別に学習させる場合の半分以下の費用で済みます。"
+  - question: "レンタル GPU で LoRA を学習するのにいくらかかりますか？"
+    answer: "2026 年 9 月時点で、RTX 4090 のレンタル料金は Vast.ai で 1 時間あたり約 $0.31、RunPod の料金ページで 1 時間あたり $0.74 でした。セットアップと確認を含めて約 65 分の SDXL LoRA の作業なら、費用はおよそ $0.34〜$0.80 です。"
+  - question: "SDXL の LoRA を学習するには、どれくらいの VRAM が必要ですか？"
+    answer: "sd-scripts のドキュメントによると、U-Net だけを学習し、latent とテキストエンコーダーの出力をキャッシュし、gradient checkpointing を使えば、SDXL の LoRA は GPU メモリ 8 GB で学習でき、推奨は 10 GB です。RTX 3090 や 4090 のような 24 GB のカードなら、メモリ不足と格闘せずに 1024x1024 で学習できます。"
+  - question: "RTX 4090 で Flux の LoRA を学習できますか？"
+    answer: "できます。ai-toolkit には 24 GB カード向けと名付けられた FLUX.1 の設定例が付属しており、sd-scripts はブロックスワップを使って 8 GB までの FLUX.1 の設定を載せています。Black Forest Labs 自身のガイドでは、RTX 4090 での 1,800 ステップの FLUX.2 [klein] LoRA の学習は 1 時間かからないとしています。"
+  - question: "LoRA の学習には何枚の画像が必要ですか？"
+    answer: "1 人のキャラクター、1 つの物、1 つの画風なら、15〜40 枚の良い画像がよくある範囲です。Black Forest Labs は FLUX.2 [klein] について、見た目が共通する画像を 15〜40 枚用意するよう勧めています。枚数の多さより、鮮明で、変化があり、キャプションがきちんと付いていることのほうが重要です。"
+  - question: "LoRA の学習には kohya_ss、OneTrainer、ai-toolkit のどれがよいですか？"
+    answer: "どれでも学習できます。kohya の sd-scripts はコマンドラインの定番で、kohya_ss はその上に Web UI を載せたものです。OneTrainer にはデスクトップ UI とキャプション生成機能があり、ai-toolkit には Web UI、公式の RunPod テンプレートがあり、FLUX.2 や Qwen-Image などの新しいモデルへの対応も早いです。"
+  - question: "GPUFlow で LoRA を学習できますか？"
+    answer: "できません。GPUFlow が貸し出すのはプロバイダーの GPU 上の OpenAI 互換のチャット API で、シェルも SSH もファイルへのアクセスもないため、学習スクリプトは実行できません。Vast.ai や RunPod のように、マシンそのものを貸し出すプラットフォームを使ってください。"
 ---
 
-Stable Diffusion用に独自のLoRAモデルを学習させることは、自分好みのAI画像を生成する最も手軽な方法の1つになりました。特定の画風を再現したい、キャラクターの顔を一貫して生成したい、商品写真に合わせてモデルを調整したい。LoRAの学習なら、モデル全体をファインチューニングするほどの計算コストをかけずに、こうした目的を達成できます。
+SDXL や小さめの Flux モデルの LoRA なら、レンタル GPU での学習費用は $10 を大きく下回ります。2026 年 9 月時点で、RTX 4090 は Vast.ai で 1 時間あたり約 $0.31、RunPod で $0.74 で借りられ、SDXL の LoRA 1 回分の作業は、セットアップと確認を含めても 1 時間を少し超える程度です。1 回の試行は $0.34〜$0.80 なので、$10 の予算で 10 回以上やり直せます。
 
-この作業には高価なローカルのハードウェアか、多額のクラウド予算が必要だと思われがちです。どちらも事実ではありません。現在のGPUレンタル料金と効率的な学習設定を組み合わせれば、実用レベルのLoRAモデルを10ドル以下、多くの場合はそれよりずっと安く学習させられます。
+難しいのはお金ではありません。画像、キャプション、そしてどこで止めるかの判断です。このガイドではそのすべてを、そのまま貼り付けられるコマンド付きで扱います。料金とツールのバージョンは 2026 年 9 月に確認したもので、出典は最後にあります。
 
-本ガイドでは、適切なハードウェアの選択、学習用データセットの準備、学習パラメータの設定、学習の実行、結果の検証まで、一連の流れを解説します。各段階の費用も具体的に示します。「手頃な価格でAIを学習」といった曖昧な約束は、実際のプロジェクトの予算を立てる人の役には立たないからです。
+## 5 つのステップで見る作業の流れ
 
-**始める前に用意するもの：**
+<figure>
+<svg viewBox="0 0 720 250" role="img" aria-labelledby="d1-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d1-title">LoRA 学習の流れ：データセット、キャプション、学習、確認、利用。結果がおかしければデータセットに戻る</title>
+<defs><marker id="d1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6366f1"/></marker></defs>
+<rect width="720" height="250" fill="#ffffff"/>
+<line x1="20" y1="40" x2="280" y2="40" stroke="#16a34a" stroke-width="2"/>
+<text x="150" y="30" text-anchor="middle" fill="#16a34a" font-size="13">無料：自分の PC で</text>
+<line x1="300" y1="40" x2="560" y2="40" stroke="#f97316" stroke-width="2"/>
+<text x="430" y="30" text-anchor="middle" fill="#f97316" font-size="13">課金：レンタルした GPU で</text>
+<rect x="20" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="80" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">データセット</text>
+<text x="80" y="112" text-anchor="middle" fill="#64748b" font-size="13">画像 15〜40 枚</text>
+<rect x="160" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="220" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">キャプション</text>
+<text x="220" y="112" text-anchor="middle" fill="#64748b" font-size="13">画像ごとに .txt</text>
+<rect x="300" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="360" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">学習</text>
+<text x="360" y="112" text-anchor="middle" fill="#64748b" font-size="13">sd-scripts</text>
+<rect x="440" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="500" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">確認</text>
+<text x="500" y="112" text-anchor="middle" fill="#64748b" font-size="13">サンプル画像</text>
+<rect x="580" y="60" width="120" height="70" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="640" y="90" text-anchor="middle" fill="#1e1b4b" font-weight="600">利用</text>
+<text x="640" y="112" text-anchor="middle" fill="#64748b" font-size="13">ComfyUI, Forge</text>
+<line x1="140" y1="95" x2="158" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="280" y1="95" x2="298" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="420" y1="95" x2="438" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<line x1="560" y1="95" x2="578" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#d1-arrow)"/>
+<path d="M500,130 L500,180 L80,180 L80,134" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#d1-arrow)"/>
+<text x="290" y="205" text-anchor="middle" fill="#1e1b4b" font-size="13">うまくいかなければ、画像かキャプションを直して学習し直す</text>
+<text x="360" y="235" text-anchor="middle" fill="#64748b" font-size="13">品質の大半は、費用のかからない最初の 2 つで決まる</text>
+</svg>
+<figcaption>データセットとキャプションは、GPU を借りる前に済ませておきます。GPU に課金されるのは学習と確認の間だけです。結果が悪いとき、戻るべきはたいてい設定ではなく画像です。</figcaption>
+</figure>
 
-- 学習用の画像20〜100枚（選び方の基準は後述します）
-- コマンドラインの基本的な操作知識
-- GPUレンタルプラットフォームでクレジットを追加するための決済カード
-- 集中して作業できる時間として2〜4時間程度
-- 初回の学習用に5〜15ドルの予算
+## LoRA とは何か、なぜ安く済むのか
 
-![機械学習のワークロードに使われる高性能GPUサーバーが並ぶ最新のデータセンター内部](../_images/data-center-with-person.jpg)
+LoRA（Low-Rank Adaptation）は、ベースモデルを固定したまま、一部の層の横に置いた 2 つの小さな行列だけを学習します。元の論文では、GPT-3 175B のフルファインチューニングと比べて、学習するパラメーター数が 1 万分の 1、GPU メモリが 3 分の 1 になったと報告されています。画像モデルでも仕組みは同じです。SDXL のベースチェックポイントは 6.9 GB のファイルですが、学習する LoRA は別の小さなファイルで、ベースモデルの上に好きな強さで読み込んで使います。
 
----
+だからコンシューマー向けの GPU 1 枚で足り、1 回の学習が数日ではなく数十分で終わります。
 
-## 目次
+## VRAM で GPU を選ぶ
 
-- [LoRAとは何か、なぜ重要なのか](#loraとは何かなぜ重要なのか)
-- [学習に適したGPUの選び方](#学習に適したgpuの選び方)
-- [GPUレンタルプロバイダーの比較](#gpuレンタルプロバイダーの比較)
-- [学習用データセットの準備](#学習用データセットの準備)
-- [学習環境のセットアップ](#学習環境のセットアップ)
-- [学習パラメータの設定](#学習パラメータの設定)
-- [学習の実行](#学習の実行)
-- [LoRAの検証とテスト](#loraの検証とテスト)
-- [コスト最適化の戦略](#コスト最適化の戦略)
-- [よくある問題と解決策](#よくある問題と解決策)
-- [よくある質問](#よくある質問)
+何を学習できるかは VRAM で決まります。課金される時間が何分になるかは速度で決まるので、時間単価の高い速いカードが、1 回あたりではほぼ同じ費用になることもあります。
 
----
+| モデル系統 | ドキュメント上の最小値 | 余裕のある容量 | 備考 |
+| --- | --- | --- | --- |
+| SD 1.5 | 8 GB | 12 GB 以上 | 512x512 で学習。最も安く速い |
+| SDXL | 8 GB（推奨 10 GB） | 24 GB | U-Net のみ、latent とテキストエンコーダー出力をキャッシュ |
+| FLUX.1 [dev]（12B） | 8 GB（ブロックスワップを多用） | 24 GB | sd-scripts は 24、16、12、10、8 GB の設定を掲載 |
+| FLUX.2 [klein] 4B/9B | 記載なし | 24 GB | BFL：bf16 の重みは約 13 GB、LoRA の学習は 24 GB 未満に収まる |
 
-## LoRAとは何か、なぜ重要なのか
+VRAM の少ない設定でも学習はできますが、遅くなります。sd-scripts が FLUX.1 を 8〜16 GB に収めているのは、Transformer のブロックを GPU とシステム RAM の間で入れ替えているからで、入れ替えのたびに課金対象の時間がかかります。レンタルするなら、24 GB のカード、つまり RTX 3090 か 4090 を基本にするのが妥当です。RTX 5090（32 GB）も使えますが、sd-scripts によると PyTorch 2.8.0 と CUDA 12.8 または 12.9 が必要なので、テンプレートのスタックが十分に新しいか確認してください。
 
-LoRA（Low-Rank Adaptation）は、モデル全体を変更するのではなく、少数の追加パラメータだけを学習させることで大規模なニューラルネットワークをファインチューニングする手法です。オリジナルのStable Diffusionモデルには10億近いパラメータがあります。フルファインチューニングではそのすべてを更新する必要があり、大量のGPUメモリと長い学習時間が必要になります。
+![白い棚に立てた、ファンが 3 つある ASUS TUF のグラフィックカード](../_images/test-hero.jpg)
 
-LoRAは、元のモデルの重みを固定したまま、モデルの情報処理の仕方を変える小さなアダプター行列だけを学習させることで、この問題を回避します。一般的なLoRAファイルは10〜200MBで、2〜6GBあるStable Diffusionのフルチェックポイントと比べると非常に小さなサイズです。
+データセンター向けのカードのほうが速いのですが、RunPod では A100 80 GB が 1 時間 $1.59 で、4090 の 2 倍以上です。画像 20〜30 枚の LoRA では、速さがその差額を埋めることはまずありません。大きなデータセットやフルファインチューニングなら話は別です。
 
-実用面でのメリットは大きなものです。
+## どこで借りるか、いくらかかるか
 
-**メモリ効率。** LoRAの学習に必要なGPUのVRAMは、フルファインチューニングよりはるかに少なくて済みます。フルファインチューニングなら40GB以上が必要なSDXLモデルでも、24GBのGPUで余裕をもってLoRAを学習させられます。
+必要なのはマシンを貸してくれるプラットフォームです。シェルか Jupyter Notebook、ディスク、そしてファイルを出し入れする手段があることが条件です。この種の作業では Vast.ai と RunPod がよく選ばれます。
 
-**学習速度。** 学習させるパラメータが少ないため、1エポックあたりの時間が短くなります。フルファインチューニングで12時間かかる内容が、LoRAなら90分で済むことも珍しくありません。
+| GPU | VRAM | Vast.ai（最安） | RunPod 料金ページ | RunPod 追跡上の最安値 |
+| --- | --- | --- | --- | --- |
+| RTX 3090 | 24 GB | 約 $0.11〜0.13/時 | $0.50/時 | $0.22/時 |
+| RTX 4090 | 24 GB | 約 $0.31〜0.33/時 | $0.74/時 | $0.34/時 |
+| RTX 5090 | 32 GB | 約 $0.41〜0.47/時 | $0.99/時 | $0.69/時 |
 
-**組み合わせやすさ。** 推論時に複数のLoRAを組み合わせられます。画風用のLoRAとキャラクターの一貫性用のLoRAを、再学習せずにそれぞれ異なる強度で混ぜることもできます。
+料金は 2026 年 9 月時点のものです。「Vast.ai（最安）」と「RunPod 追跡上の最安値」は getdeploying.com の価格トラッカーから、中央の列は RunPod 自身の料金ページから取っています。Vast.ai ではホストが料金を決めるので、表示される提示価格は地域や信頼性スコアによって変わります。
 
-**保存と配布。** ファイルサイズが小さいため、共有や管理が簡単です。用途別のLoRAを何十個も手元に置いておいても、ストレージの心配はほとんどありません。
+どちらも秒単位の課金です。違うのは追加料金で、1 時間程度の作業では、時間単価から想像するより大きく効いてきます。
 
-こうした効率化によるコスト削減こそが、10ドル以下での学習を可能にしています。高価なハードウェアをレンタルする時間は、8〜24時間ではなく1〜3時間で済みます。
+- **Vast.ai** は「インスタンスが存在する間は、稼働状態にかかわらず」ストレージを課金し、帯域幅もバイト単位で、各ホストが決めた料金で課金します。帯域幅の高いホストで 7 GB のベースモデルをダウンロードすると、それなりの額になります。インスタンスは停止ではなく削除してください。
+- **RunPod** は、稼働中のコンテナディスクに 1 GB あたり月 $0.10 を課金し、停止後は課金しません。停止中のボリュームディスクは 1 GB あたり月 $0.20 です。データの受信と送信には課金しません。
 
----
+どちらにもすぐ使えるテンプレートがあります。ai-toolkit の作者は公式の RunPod テンプレートを管理しており、kohya_ss の README も RunPod を対応環境として挙げています。テンプレートを使えば、課金される時間に PyTorch をインストールする 10 分以上を節約できます。料金をもっと広く比べるなら、[GPUFlow・Vast.ai・RunPod・SaladCloud の比較](/ja/gpuflow-vs-vast-ai-vs-runpod/)と [GPU レンタルの隠れたコスト](/ja/hidden-fees-in-gpu-rental/)をご覧ください。
 
-## 学習に適したGPUの選び方
+## データセットとキャプションを準備する
 
-GPUを選ぶ際は、VRAM容量、学習速度、レンタル料金の3つのバランスを取る必要があります。最低限動く選択肢と最適な選択肢は、大きく異なります。
+ここまでの作業は、何かを借りる前に自分のコンピューターで済ませます。
 
-### 必要なVRAM
+### 画像
 
-Stable Diffusion 1.5のLoRA学習では、12GBのVRAMが実質的な最低ラインです。バッチサイズや解像度を下げれば8GBでも動かせますが、学習の品質が落ちることがよくあります。
+- **枚数。** 1 人の人物、1 つの物、1 つの画風について 15〜40 枚。Black Forest Labs は FLUX.2 [klein] について「見た目が共通する 15〜40 枚の画像」を勧めています。増やした画像の質が低いなら、多いほど良いわけではありません。
+- **一貫性と変化。** どの画像にもその概念が写っている必要があります。それ以外は変化させます。角度、照明、背景、構図です。製品の写真がすべて同じ白いテーブルの上なら、LoRA はテーブルを覚えます。
+- **品質。** ピントが合っていて露出が適正で、透かしや文字の重ね書きがないこと。LoRA はノイズや JPEG のブロックも、ほかのものと同じくらい忠実に覚えます。
+- **解像度。** SDXL と Flux では短辺 1024 ピクセル以上、SD 1.5 では 512 ピクセル以上です。正方形に切り抜く必要はありません。バケット機能を有効にすれば、sd-scripts が縦横比ごとに画像をまとめます。
 
-SDXLのLoRA学習では16GBが最低ラインで、24GBを強く推奨します。SDXLのモデルはより大きく、要求も厳しくなります。VRAMが足りない状態でSDXLを学習させると、メモリのスワップが頻発して処理が大幅に遅くなり、学習自体が失敗することもよくあります。
+### キャプション
 
-### 速度とコストのトレードオフ
+画像ごとに、同じ名前のテキストファイルを用意します（`photo01.jpg` と `photo01.txt`）。キャプションは、言葉ですでに説明されている部分をモデルに伝えます。そうすることで、LoRA は言葉で説明されていない部分を覚えます。先頭に珍しいトリガーワードを置き、そのあとに変えられるようにしておきたいものをすべて書きます。
 
-高価なGPUほど学習は速くなりますが、時間単価の上昇に比例してプロジェクトの総費用が下がるとは限りません。一般的なSD 1.5のLoRAを学習させる場合の比較を見てみましょう。
-
-| GPU         | VRAM | おおよその学習時間 | 一般的な時間単価 | 推定総費用 |
-| ----------- | ---- | ------------------ | ---------------- | ---------- |
-| RTX 3090    | 24GB | 2.5時間            | $0.50            | $1.25      |
-| RTX 4090    | 24GB | 1.5時間            | $0.70            | $1.05      |
-| RTX A6000   | 48GB | 1.5時間            | $0.80            | $1.20      |
-| A100 (40GB) | 40GB | 1.0時間            | $1.50            | $1.50      |
-
-通常、コスト効率が最も高いのはRTX 4090です。データセンター向けGPUとほぼ同じ速さで学習でき、時間単価は大幅に安くなります。4090の在庫が少ないときはRTX 3090でも十分で、総費用はわずかに高くなる程度です。
-
-SDXLのLoRA学習では、計算が少し変わります。モデルが大きいぶん、VRAMとメモリ帯域の余裕がより効いてくるからです。コンシューマー向けハードウェアでは4時間以上かかるような複雑なSDXLプロジェクトでは、A100の競争力が高まります。
-
-法人向けクラウドやマーケットプレイス型のプラットフォームを含め、主要なプロバイダー全体のGPUレンタル料金の詳しい分析は、[2026年版GPUレンタル料金の総合比較](/ja/gpu-rental-pricing-comparison-2026/)をご覧ください。
-
-![AIモデルの学習によく使われる、3連ファンを備えたNVIDIA RTX 4090グラフィックカード](../_images/test-hero.jpg)
-
----
-
-## GPUレンタルプロバイダーの比較
-
-LoRA学習のワークロードで検討に値するプロバイダーは2つあります。それぞれに特徴があり、技術的な慣れやコストをどれだけ重視するかによって向き不向きが分かれます。
-
-### Vast.ai
-
-Vast.aiは、GPUの所有者が個人で自分のハードウェアをレンタルに出すP2P型のマーケットプレイスを運営しています。この仕組みにより市場で最も安い料金が実現しており、RTX 4090が1時間あたり0.35〜0.60ドルで借りられることがよくあります。
-
-その代わり、ばらつきがあります。プロバイダーの信頼性はホストによって97%〜99.9%と幅があります。空き状況も需要によって変動します。データセットのアップロードに十分なネットワーク速度を持つホストが見つかるまで、何台か試す必要があるかもしれません。
-
-プロバイダーの指標を自分で評価できる経験者にとっては、Vast.aiが最も学習コストを抑えられる選択肢です。初回のセットアップとプロバイダーの評価に、30分ほど余分に見込んでおきましょう。
-
-### RunPod
-
-RunPodは、純粋なマーケットプレイスと法人向けクラウドプロバイダーの中間に位置づけられます。コミュニティが提供するGPUと、性能がより安定した専用の「Secure Cloud」インスタンスの両方を提供しています。
-
-料金はVast.aiより少し高く、Secure CloudのRTX 4090は通常1時間あたり0.59ドルです。その代わり、セットアップが簡単で、一般的なAIワークロード向けの設定済みテンプレートが用意されており、空き状況も予測しやすくなっています。
-
-GPUレンタルが初めての人や、コストを極限まで削るよりも分かりやすい画面を重視する人にとって、RunPodは妥当な中間の選択肢です。
-
-### GPUFlowについて
-
-GPUFlowはLoRAの学習には向いていません。GPUFlowがレンタルするのはOpenAI互換API経由のAIチャットモデルへのアクセスで、学習スクリプトを実行できるマシンではないからです。学習には、上の2つのようにマシンそのものを提供するプラットフォームを使ってください。それぞれのアプローチの違いは、[GPUFlow vs Vast.ai vs RunPod vs SaladCloud](/ja/gpuflow-vs-vast-ai-vs-runpod/)で解説しています。
-
-### プロバイダーのまとめ
-
-| プロバイダー | RTX 4090の料金帯          | セットアップ時間 | 支払い方法         | おすすめの用途     |
-| ------------ | ------------------------- | ---------------- | ------------------ | ------------------ |
-| Vast.ai      | $0.35-0.60/時間           | 5〜15分          | カード、暗号資産   | コストを最大限削減 |
-| RunPod       | $0.59/時間（Secure Cloud） | 2〜5分           | カード、暗号資産   | 使いやすさ         |
-
-料金は2026年2月時点のものです。2026年9月には、RTX 4090がVast.aiで1時間あたり約0.37ドルから、RunPod Secure Cloudで0.74ドルでした。[最新の比較](/ja/gpuflow-vs-vast-ai-vs-runpod/)もあわせてご覧ください。
-
----
-
-## 学習用データセットの準備
-
-学習の結果を最も大きく左右するのは、データセットの品質です。丁寧に選んだ30枚の画像は、雑に集めた200枚よりも良い結果を生みます。
-
-### 画像の選び方の基準
-
-**一貫性。** すべての画像が、モデルに学習させたいコンセプトを表している必要があります。特定の人物の顔を学習させるなら、すべての画像にその顔がはっきり写っているべきです。画風を学習させるなら、すべての画像がその画風の典型例であるべきです。
-
-**一貫性の中の多様性。** コンセプトの一貫性は保ちつつ、技術的な要素には変化を持たせます。角度、照明、背景、シチュエーションが異なる画像を含めてください。こうした多様性によって、モデルは特定の構図に過学習せず、汎化できるようになります。
-
-**技術的な品質。** ピントが合っていて、露出が適切な画像を使ってください。モーションブラー、ノイズ、圧縮によるアーティファクト、不十分な照明は、すべてモデルが学習する内容の一部になります。学習画像にざらつきがあれば、生成される画像もざらつきがちになります。
-
-**解像度。** 学習画像は、SD 1.5なら512x512ピクセル以上、SDXLなら1024x1024以上にしてください。元画像の解像度が高ければ、学習パイプラインで切り抜きやリサイズをしても品質が落ちません。
-
-### データセットのサイズの目安
-
-最適なデータセットのサイズは、コンセプトの複雑さによって変わります。
-
-**シンプルなコンセプト（1人の顔、基本的な画風）：** 20〜40枚
-**中程度のコンセプト（複数の衣装を持つキャラクター、微妙なニュアンスを持つ画風）：** 40〜80枚
-**複雑なコンセプト（細部まで作り込まれた環境、変化の大きい画風）：** 80〜150枚
-
-画像が多いほど必要な学習ステップが増え、時間と費用がかかります。最初は、それぞれの範囲の少ないほうから始めてください。
-
-### 画像へのキャプション付け
-
-学習画像にはそれぞれ、内容を説明するテキストのキャプションが必要です。キャプションによって、モデルはどのテキストのコンセプトをどの視覚的なパターンと結び付けるべきかを学びます。
-
-効果的なキャプションは、具体的で一貫しています。
-
-**悪いキャプション：** "a woman"
-**より良いキャプション：** "a photograph of Sarah Miller, a woman with short brown hair and green eyes, wearing a blue sweater"
-
-**悪いキャプション：** "fantasy art"
-**より良いキャプション：** "a digital painting in the style of luminescent fantasy, featuring glowing mushrooms in a dark forest, detailed linework, vibrant purple and blue color palette"
-
-推論時に使いたいトリガーワードやフレーズは、すべてのキャプションに含めてください。「in the style of luminescent fantasy」でLoRAを呼び出したいなら、その同じフレーズを学習用のキャプションすべてに入れます。
-
-データセットが小さければ、キャプションは手作業で付けられます。大量の画像がある場合は、BLIPやWD14 Taggerなどのツールで最初のキャプションを生成し、それを確認して手直しするとよいでしょう。
-
-![LoRA学習用に、学習画像と対応するキャプションのテキストファイルを並べて整理したフォルダ構成](../_images/file-folder-organization.png)
-
-### ディレクトリ構成
-
-学習データは、学習スクリプトが想定する決まった構成で整理します。
-
-```
-training_data/
-├── 10_concept_name/
-│   ├── image001.jpg
-│   ├── image001.txt
-│   ├── image002.jpg
-│   ├── image002.txt
-│   └── ...
+```text
+zxq_mug, a ceramic coffee mug on a wooden desk, morning light from the left, shallow depth of field
 ```
 
-フォルダ名の先頭の数字（この例では「10」）は、そのフォルダ内の各画像を学習中に何回繰り返すかを表します。数字を大きくすると、学習におけるその画像の重みが増します。
+最初の下書きは、2 つのツールが書いてくれます。
 
-数字の後にアンダースコアで区切って付けた名前は、独自のキャプションを使わない場合のデフォルトのトリガーワードになります。
+- **WD14 tagger** は sd-scripts に含まれており、カンマ区切りのタグを出力します。アニメ調のモデルや、タグで学習された SDXL のファインチューンモデルに向いています。
 
----
+  ```bash
+  python finetune/tag_images_by_wd14_tagger.py --onnx \
+    --repo_id SmilingWolf/wd-swinv2-tagger-v3 --batch_size 4 /workspace/dataset/img
+  ```
 
-## 学習環境のセットアップ
+- **JoyCaption** は拡散モデルの学習用に作られたオープン（Apache 2.0）のキャプション生成モデルで、自然な文章を書きます。Flux にはタグより文章のほうが合います。README によると bf16 で約 17 GB の VRAM が必要で、小さいカード向けに 8 ビット版と 4 ビット版もあります。
 
-データセットの準備とGPUレンタルの確保ができたら、次は学習環境を構築します。LoRA学習の標準的なツールは、コミュニティがメンテナンスしているオープンソースの学習スクリプト集、kohya_ss/sd-scriptsです。
+OneTrainer にも BLIP、BLIP2、WD-1.4 によるキャプション生成機能があります。どれで下書きを作っても、キャプションはすべて読んで直してください。プロジェクト全体で最も価値のある 30 分です。
 
-### 初期環境のセットアップ
+## 学習ツールを選ぶ
 
-レンタルしたGPUインスタンスに接続したら、学習用のリポジトリをクローンし、依存関係をインストールします。次のコマンドで基本的な環境が整います。
+ほとんどの人は 4 つのツールのどれかで足ります。どれも無料のオープンソースです。
+
+| ツール | インターフェース | 対応モデル（2026 年 9 月） | 向いている用途 |
+| --- | --- | --- | --- |
+| kohya-ss/sd-scripts | コマンドライン | SD 1.x/2.x、SDXL、SD3/3.5、FLUX.1、Lumina、HunyuanImage-2.1、Anima | 再現性のある学習、細かい制御 |
+| bmaltais/kohya_ss | sd-scripts の上の Web UI | sd-scripts と同じ | フラグを覚えずに sd-scripts を使う |
+| Nerogar/OneTrainer | デスクトップ UI と CLI | SD 1.5〜3.5、SDXL、FLUX.1、FLUX.2、Chroma、Qwen Image など | キャプション生成とマスクを内蔵 |
+| ostris/ai-toolkit | Web UI と YAML 設定 | SD 1.5、SDXL、FLUX.1、FLUX.2、Qwen-Image、Wan（動画）など | Flux と新しいモデル、RunPod テンプレート |
+
+sd-scripts はバージョン 0.11.1（2026 年 6 月）で、Python 3.10 でテストされており、PyTorch 2.6.0 以降が必要です。ai-toolkit は Python 3.12 を推奨し、現在は CUDA 13.0 向けにビルドされた PyTorch 2.13.0 をインストールします。OneTrainer には Python 3.10〜3.13 が必要です。
+
+私は SDXL には sd-scripts を使います。コマンドラインがそのまま設定のすべてなので、学習を繰り返したり比べたりするのが簡単だからです。Flux には ai-toolkit を使います。
+
+## sd-scripts で SDXL の LoRA を学習する
+
+NVIDIA ドライバーが入った新しい Linux インスタンスなら、セットアップは数個のコマンドで終わります。
 
 ```bash
-# Clone the training scripts repository
 git clone https://github.com/kohya-ss/sd-scripts.git
 cd sd-scripts
+python -m venv venv && source venv/bin/activate
+pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+pip install --upgrade -r requirements.txt
+accelerate config default --mixed_precision bf16
 
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-pip install -r requirements.txt
-pip install xformers
+# SDXL base model (not gated, CreativeML Open RAIL++-M license)
+hf download stabilityai/stable-diffusion-xl-base-1.0 sd_xl_base_1.0.safetensors \
+  --local-dir /workspace/models
 ```
 
-インストールには、ネットワーク速度にもよりますが通常5〜10分かかります。xformersパッケージは必須ではありませんが、学習中のメモリ使用量を大きく減らせるため推奨します。
-
-### ベースモデルのダウンロード
-
-LoRAの学習には、その土台となるStable Diffusionのベースモデルが必要です。インスタンスにダウンロードしておきます。
-
-```bash
-# Create a models directory
-mkdir -p models/sd
-
-# Download Stable Diffusion 1.5 (approximately 4GB)
-wget -O models/sd/v1-5-pruned.safetensors \
-  "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned.safetensors"
-```
-
-SDXLを学習させる場合は、代わりに約6.5GBのSDXLベースモデルを使います。
-
-### 学習データのアップロード
-
-準備したデータセットをGPUインスタンスに転送します。ほとんどのプロバイダーはSCPまたはSFTPに対応しています。
-
-```bash
-# From your local machine
-scp -r ./training_data user@gpu-instance-ip:~/sd-scripts/
-```
-
-データセットをクラウドストレージに保存している場合は、wgetやrcloneでインスタンスに直接ダウンロードすることもできます。
-
-### テンプレートでセットアップ時間を節約する
-
-RunPodとVast.aiはどちらも、Stable Diffusionの学習ツールがインストール済みのイメージを用意しています。何も入っていないインスタンスを一からセットアップする場合と比べて、通常15〜20分短縮でき、セットアップ時間にも料金がかかります。たまにしか学習しない場合、これはGPUレンタル費用全体のうち無視できない割合になります。
-
----
-
-## 学習パラメータの設定
-
-学習の設定は、出力の品質と学習時間の両方に大きく影響します。以下のパラメータは、無駄な計算をせずに安定した結果が得られる、控えめな出発点です。
-
-### 基本パラメータ
-
-`training_config.toml`という名前で設定ファイルを作成します。
+画像と `.txt` キャプションのフォルダーを、`scp`、`rsync`、またはプラットフォームのファイルブラウザーで `/workspace/dataset/img` にコピーします。次に、`/workspace/dataset.toml` にデータセットを記述します。
 
 ```toml
-[model]
-pretrained_model_name_or_path = "./models/sd/v1-5-pruned.safetensors"
-v2 = false
-v_parameterization = false
-
-[dataset]
-train_data_dir = "./training_data"
-resolution = 512
-batch_size = 2
+[general]
+caption_extension = ".txt"
 enable_bucket = true
-min_bucket_reso = 256
-max_bucket_reso = 1024
 
-[training]
-output_dir = "./output"
-output_name = "my_lora"
-max_train_epochs = 10
-learning_rate = 1e-4
-unet_lr = 1e-4
-text_encoder_lr = 5e-5
-lr_scheduler = "cosine_with_restarts"
-lr_warmup_steps = 100
-network_dim = 32
-network_alpha = 16
-optimizer_type = "AdamW8bit"
-mixed_precision = "fp16"
-save_every_n_epochs = 2
-save_model_as = "safetensors"
+[[datasets]]
+resolution = 1024
+batch_size = 1
+
+  [[datasets.subsets]]
+  image_dir = "/workspace/dataset/img"
+  num_repeats = 10
 ```
 
-### パラメータの説明
-
-**resolution：** 推論時に使う解像度に合わせます。SD 1.5なら512、SDXLなら1024です。
-
-**batch_size：** 値を大きくすると学習は速くなりますが、必要なVRAMが増えます。まず2で始め、メモリに余裕があれば4に上げてください。
-
-**max_train_epochs：** 1エポックは、モデルがすべての学習画像を1回ずつ見ることを意味します。ほとんどのデータセットでは、10エポックが妥当な出発点です。
-
-**learning_rate：** モデルをどれだけ大きく更新するかを決めます。上記の値は控えめな設定です。効果が弱い場合は、2e-4や3e-4に上げてみてください。
-
-**network_dimとnetwork_alpha：** LoRAの容量を決めるパラメータです。dim 32、alpha 16は品質とファイルサイズのバランスが取れた設定です。次元を大きくする（64、128）と、より細かな特徴を捉えられますが、ファイルが大きくなり、過学習のリスクも高まります。
-
-**optimizer_type：** AdamW8bitは、品質への影響をほとんど与えずにメモリ使用量を大きく減らします。24GBのカードでSDXLを学習させるには欠かせません。
-
-**mixed_precision：** FP16で学習すると、FP32と比べて必要なメモリが半分になります。ほとんどの用途で、品質への影響は無視できる程度です。
-
-### ハードウェアに合わせた調整
-
-VRAM 24GBのRTX 4090の場合：
-
-- SD 1.5では、通常batch_size = 4で問題ありません
-- SDXLではbatch_size = 2
-
-VRAM 24GBのRTX 3090の場合：
-
-- SD 1.5ではbatch_size = 2
-- SDXLではbatch_size = 1（gradient checkpointingを有効にします）
-
-VRAM 40GBのA100の場合：
-
-- SD 1.5ではbatch_size = 6〜8
-- SDXLではbatch_size = 4
-
-バッチサイズを大きくすると、それに比例して総学習時間が短くなります。バッチサイズを2倍にすると、必要な最適化ステップ数はおよそ半分になります。
-
-![学習率、バッチサイズ、ネットワーク次元のパラメータを含むLoRA学習の設定ファイルを表示したコードエディター](../_images/terminal-screenshot-code-editor.png)
-
----
-
-## 学習の実行
-
-環境の構築とパラメータの設定が終わったら、学習を開始します。
+そして学習を始めます。
 
 ```bash
-accelerate launch --num_cpu_threads_per_process=4 train_network.py \
-  --config_file="./training_config.toml" \
-  --logging_dir="./logs"
+accelerate launch --num_cpu_threads_per_process 1 sdxl_train_network.py \
+  --pretrained_model_name_or_path=/workspace/models/sd_xl_base_1.0.safetensors \
+  --dataset_config=/workspace/dataset.toml \
+  --output_dir=/workspace/output --output_name=zxq_mug \
+  --save_model_as=safetensors \
+  --network_module=networks.lora --network_dim=16 --network_alpha=8 \
+  --network_train_unet_only \
+  --optimizer_type=AdamW8bit --learning_rate=1e-4 \
+  --lr_scheduler=constant_with_warmup --lr_warmup_steps=100 \
+  --max_train_epochs=8 --save_every_n_epochs=2 \
+  --mixed_precision=bf16 --save_precision=bf16 \
+  --cache_latents --cache_latents_to_disk --cache_text_encoder_outputs \
+  --gradient_checkpointing --sdpa --seed=42 \
+  --sample_prompts=/workspace/prompts.txt --sample_every_n_epochs=2
 ```
 
-### 進捗の確認
+`prompts.txt` には 1 行に 1 つずつテスト用のプロンプトを書き、サイズ、シード、ステップ数を sd-scripts のインラインオプションで指定します。
 
-学習中は、loss値と進捗情報が出力されます。
-
-```
-epoch 1/10, step 50/500, loss=0.0823
-epoch 1/10, step 100/500, loss=0.0756
-epoch 1/10, step 150/500, loss=0.0691
-...
+```text
+zxq_mug, a ceramic coffee mug on a kitchen counter --w 1024 --h 1024 --d 42 --s 28
+zxq_mug, a ceramic coffee mug held by a hiker on a mountain top --w 1024 --h 1024 --d 42 --s 28
 ```
 
-**確認すべきポイント：**
+### 各設定の意味
 
-lossは通常、最初の数エポックで下がり、その後安定します。一般的な学習では、次のような推移になります。
+- **ステップ数。** 画像数 × 繰り返し数 × エポック数 ÷ バッチサイズです。画像 25 枚なら 25 × 10 × 8 = 2,000 ステップです。
+- **`network_dim` 16、`network_alpha` 8。** LoRA の容量です。1 つの物や顔なら 16 で十分で、画風には 32 が必要なこともあります。ランクを上げると過学習が早くなり、ファイルも大きくなります。
+- **`--network_train_unet_only`。** ここでは必須です。sd-scripts はテキストエンコーダーを学習しながらその出力をキャッシュすることを受け付けませんし、そもそもドキュメントでも SDXL の LoRA では U-Net のみの学習を「強く推奨」しています。
+- **キャッシュと gradient checkpointing。** SDXL を 8〜10 GB に収めているのはこの 2 つです。キャッシュを使うとキャプションのシャッフルとドロップアウトも無効になるので、データセットのファイルにはそれらを書いていません。
+- **`learning_rate` 1e-4 と AdamW8bit。** sd-scripts 自身の SDXL LoRA の例と同じ値です。4 エポック後もサンプルがほとんど変わらなければ 2e-4 を試してください。学習画像のコピーのようになってきたら、下げるか早めに止めます。
+- **2 エポックごとのチェックポイント。** エポック 2、4、6、8 のファイルができるので、その中から一番良いものを選びます。一番良い LoRA が最後のものとは限りません。
 
-- エポック1：lossは0.08〜0.10前後
-- エポック5：lossは0.05〜0.07前後
-- エポック10：lossは0.04〜0.06前後
+### 所要時間
 
-lossがいったん下がった後に上がり始めた場合は、過学習している可能性があります。最初からlossが横ばいのままの場合は、学習率が低すぎる可能性があります。
+kohya_ss の issue スレッドでは、RTX 4090 で gradient checkpointing を使い、1024x1024、バッチサイズ 1 で SDXL の LoRA を学習したとき、毎秒約 1.1〜1.4 イテレーションだったと報告されています。この速度なら 2,000 ステップで 24〜30 分、それに latent のキャッシュに数分かかります。同じスレッドには、カードの VRAM が足りずに共有メモリにあふれたときの惨状も載っています。1 ステップに 50 秒以上です。速度が想定の範囲を大きく下回るなら、設定を疑う前に `nvidia-smi` を確認してください。
 
-### チェックポイント
+## ai-toolkit で Flux と新しいモデルを学習する
 
-上記の設定では、2エポックごとにチェックポイントを保存します。この途中保存には2つの目的があります。
-
-1. **復旧。** 学習がクラッシュした場合や、途中で止める必要がある場合に、最後のチェックポイントから再開できます。
-
-2. **選択。** エポックによって、仕上がりの特徴が異なることがあります。エポック6ではコンセプトをうまく捉えていても、エポック10では過学習していることもあります。チェックポイントがあれば、テストして選べます。
-
-### 学習時間の目安
-
-上記の設定で、50枚の画像からSD 1.5のLoRAを学習させる場合：
-
-| GPU      | おおよその時間 |
-| -------- | -------------- |
-| RTX 3090 | 90〜120分      |
-| RTX 4090 | 60〜90分       |
-| A100     | 45〜60分       |
-
-SDXLの学習には、これらのおよそ1.5〜2倍の時間がかかります。
-
----
-
-## LoRAの検証とテスト
-
-学習が完了すると、出力ディレクトリに.safetensorsファイルが作成されます。プロジェクト完了とする前に、このファイルをテストする必要があります。
-
-### 基本的な検証
-
-LoRAファイルを、ローカルマシンまたはStable Diffusion WebUIが動いているシステムにコピーします。
+Flux なら ai-toolkit が一番手軽です。レンタルしたマシンで次のように実行します。
 
 ```bash
-# Download from GPU instance
-scp user@gpu-instance-ip:~/sd-scripts/output/my_lora.safetensors ./
+git clone https://github.com/ostris/ai-toolkit.git
+cd ai-toolkit
+python3 -m venv venv && source venv/bin/activate
+pip3 install --no-cache-dir torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0 \
+  --index-url https://download.pytorch.org/whl/cu130
+pip3 install -r requirements.txt
+cp config/examples/train_lora_flux_24gb.yaml config/zxq_mug.yml
+# edit the dataset path, trigger word and steps, then:
+python run.py config/zxq_mug.yml
 ```
 
-Automatic1111 WebUIでは、ファイルを`models/Lora`ディレクトリに置きます。ComfyUIの場合は`models/loras`ディレクトリを使います。
-
-### テストの方法
-
-次の要素を変えながら、テスト画像を何枚も生成します。
-
-**LoRAの重み：** 強度0.5、0.7、0.8、1.0でテストします。LoRAによっては、最大強度より低いほうがうまく機能します。
-
-**プロンプト内の位置：** トリガーワードをプロンプト内のさまざまな位置に置きます。先頭、中間、末尾で、結果が微妙に変わることがあります。
-
-**ネガティブプロンプト：** ネガティブプロンプトにコンセプトを入れた場合と入れない場合でテストします。トリガーをネガティブに加えて重みを低くすると、面白い反転効果が生まれることもあります。
-
-**シード値を変える：** 設定ごとに少なくとも5つの異なるシードを使い、一貫したパターンとランダムなばらつきを区別します。
-
-### 品質の評価
-
-次の基準で結果を評価します。
-
-**コンセプトの正確さ：** 生成結果に学習させたコンセプトが反映されているか。顔を学習させたなら、その顔だと分かるか。
-
-**なじみやすさ：** LoRAのコンセプトが、プロンプトの他の要素と自然になじむか。学習させたキャラクターを、さまざまな場面に配置できるか。
-
-**アーティファクト：** 繰り返しのパターン、不自然な要素、毎回現れる歪みがないか確認します。これらは学習の問題や過学習の兆候です。
-
-**柔軟性：** 極端なケースを試します。キャラクターを学習させたなら、異なる年齢で描けるか。違う服装にできるか。さまざまな動作をさせられるか。
-
-結果に満足できない場合の一般的な対処法は次のとおりです。
-
-- エポック数を増やす（学習不足の場合）
-- エポック数を減らす（過学習の場合）
-- 学習率を調整する
-- キャプションの品質を改善する
-- より多様な学習画像を追加する
-
-![LoRAの強度を変えたStable Diffusionの出力を並べ、AI生成画像の品質の違いを示す比較グリッド](../_images/side-by-side-comparison.png)
-
----
-
-## コスト最適化の戦略
-
-5ドルで済む学習と20ドルかかる学習の差は、プロバイダーの選び方よりも、作業の進め方の効率で決まることがほとんどです。
-
-### アップロード前にデータセットを準備する
-
-データセットの選別、切り抜き、キャプション付けは、GPUのレンタルを始める前にすべてローカルマシンで済ませておきます。1時間0.70ドルを払いながら手作業でファイルを確認したり名前を変えたりするのは、ハードウェアの高くつく使い方です。
-
-レンタル開始前のチェックリスト：
-
-- すべての画像を適切なアスペクト比に切り抜いた
-- すべてのキャプションを書き、見直した
-- データセットを正しいフォルダ構成で整理した
-- 学習用の設定ファイルを用意した
-- テスト用のコマンドを書き、すぐ貼り付けられるようにした
-
-### まとめて学習させる
-
-複数のLoRAが必要な場合は、1回のセッションでまとめて学習させます。環境構築やモデルのダウンロードといった固定コストを、すべての学習で分担できます。
-
-たとえば、3つのLoRAを学習させる場合：
-
-- 3回の別々のセッション：3 × (セットアップ20分 + 学習90分) = 330分
-- 1回のまとめたセッション：セットアップ20分 + (3 × 学習90分) = 290分
-
-40分の短縮は、約15%のコスト削減に相当します。
-
-### チェックポイントをテストする
-
-エポック15まで学習させて良い結果を祈るのではなく、次の方法を検討してください。
-
-1. エポック6まで学習させる（学習時間全体の約60%）
-2. そのチェックポイントをテストする
-3. 満足できれば、そこで止めて残りのGPU時間を節約する
-4. 学習不足なら、チェックポイントから学習を続ける
-
-この方法なら、予想より早く良い結果が得られることが多く、総費用を抑えられます。
-
-### すぐに終了する
-
-GPUの課金は通常、インスタンスを明示的に停止するまで続きます。出力ファイルをコピーしたら、すぐにセッションを終了してください。1時間0.70ドルのインスタンスを消し忘れて一晩放置すると、プロジェクトの費用が12ドル増えます。
-
-### レンタルするタイミング
-
-GPUの空き状況と料金は、需要に応じて変動します。週末の夜よりも、需要の少ない時間帯（たとえば米国時間の平日の午前）に学習させたほうが、料金もGPUの空き状況も有利なことがよくあります。
-
----
-
-## よくある問題と解決策
-
-### CUDA Out of Memory
-
-**症状：** 学習が「CUDA out of memory」エラーでクラッシュする。
-
-**解決策：**
-
-- 設定のbatch_sizeを下げる
-- `gradient_checkpointing = true`を追加してgradient checkpointingを有効にする
-- 解像度を下げる（ただし出力の品質に影響します）
-- VRAMの大きいGPUを使う
-
-### 学習のlossが下がらない
-
-**症状：** 学習中ずっと、loss値が横ばいのまま、またはランダムに上下する。
-
-**解決策：**
-
-- 学習率を上げる（2e-4や3e-4を試す）
-- キャプションが画像を正しく説明しているか確認する
-- 画像の形式が正しく、読み込めるか確認する
-- ベースモデルのパスが正しいか確認する
-
-### LoRAが生成結果に反映されない
-
-**症状：** LoRAを有効にしても無効にしても、生成画像が変わらない。
-
-**解決策：**
-
-- LoRAファイルが、使っているUIの正しいディレクトリにあるか確認する
-- トリガーワードが、学習時のキャプションで使ったものと一致しているか確認する
-- LoRAの重み（強度）の設定を上げる
-- 学習時の別のチェックポイントを試す
-
-### LoRAが過学習して柔軟性がない
-
-**症状：** LoRAが学習画像をほぼそのまま再現するが、プロンプトを変えるとうまくいかない。
-
-**解決策：**
-
-- エポック数を減らす
-- network_dimの値を下げる
-- 学習用データセットの多様性を増やす
-- 学習率を下げる
-
-### 学習が遅い
-
-**症状：** 学習の進みが、目安の時間よりずっと遅い。
-
-**解決策：**
-
-- GPUが実際に使われているか確認する（nvidia-smiでGPU使用率が高くなっているはずです）
-- xformersがインストールされているか確認する
-- mixed_precisionが有効になっているか確認する
-- network_dimを非常に大きな値にしている場合は下げる
-
----
-
-## よくある質問
-
-### GPUをレンタルせず、自分のGPUでLoRAモデルを学習させることはできますか？
-
-はい。RTX 3060以上など、12GB以上のVRAMを持つNVIDIA製GPUがあれば可能です。ただし、電気代、ハードウェアの消耗、コンシューマー向けハードウェアでは学習時間が大幅に長くなることを考えると、たまにしか学習しないプロジェクトではレンタルのほうが経済的な場合が多いです。1時間0.70ドルで2時間学習させる費用は、性能の低いハードウェアで必要になる4〜6時間、フル負荷で動かした場合の多くの家庭環境の電気代より安く済みます。
-
-### LoRAの学習には通常どのくらい時間がかかりますか？
-
-RTX 4090やRTX 3090を使えば、ほとんどのLoRA学習は1〜3時間で完了します。正確な所要時間は、データセットのサイズ、エポック数、バッチサイズの設定によって変わります。同等の学習を行う場合、SDXLモデルにはSD 1.5よりおよそ50〜100%長い時間がかかります。
-
-### LoRAの学習には最低何枚の画像が必要ですか？
-
-15〜20枚程度でも、それなりの結果は得られます。ただし、適切なキャプションを付けた30〜100枚のデータセットのほうが、通常は品質が高くなります。枚数よりも、画像の品質とキャプションの正確さのほうが重要です。丁寧に選んだ30枚は、急いで集めた100枚よりも良い結果になるのが普通です。
-
-### LoRAの学習に最もコストパフォーマンスが高いGPUレンタルプロバイダーはどこですか？
-
-RTX 4090の時間単価が最も安いのはたいていVast.aiで、2026年2月時点では1時間あたり0.35〜0.50ドルのことがよくありました。GPUレンタルが初めての人にとって最も分かりやすいのはRunPodです。すべてのプロバイダーの詳しい比較と最新の料金は、[GPUレンタル料金の総合比較](/ja/gpu-rental-pricing-comparison-2026/)をご覧ください。
-
-### 複数のLoRAモデルを1回のセッションでまとめて学習させたほうが安くなりますか？
-
-はい。複数のLoRAを1回の長めのセッションでまとめて学習させれば、セットアップを繰り返す時間がなくなり、GPUのアイドル時間の料金も最小限に抑えられます。4時間のセッションで3〜5個のLoRAモデルを学習させる場合、通常は別々にレンタルして個別に学習させる場合の半分以下の費用で済みます。
-
-### 学習させたLoRAは商用利用できますか？
-
-ベースモデルのライセンスによります。Stable Diffusion 1.5はCreativeML Open RAIL-Mライセンスを採用しており、一定の制限付きで商用利用が認められています。SDXLも同様に寛容なライセンスです。LoRAはベースモデルの制限を引き継ぎます。学習画像にもライセンス上の条件がある場合があるため、学習に使う画像については適切な権利を持っていることを確認してください。
-
----
-
-## まとめ
-
-独自のLoRAモデルの学習は、驚くほど身近なものになりました。かつては多額のハードウェア投資が必要だった計算上のハードルも、今ではGPUレンタル料の数ドルで越えられます。本ガイドで紹介した手法を、よく準備されたデータセットに適用すれば、初回から安定して実用的な結果が得られます。
-
-成功のための重要な要素は、より高価な学習方法の場合と変わりません。質の高い学習データ、適切なパラメータの選択、結果の丁寧な検証です。元画像の質が低かったり、学習の設定を誤っていたりすれば、どれだけ計算能力を投入しても補えません。
-
-まずは20〜30枚程度の控えめなデータセットから始めてください。控えめな設定で学習させ、より大きなプロジェクトに進む前に結果を十分にテストします。1回あたりの費用は十分に安いので、試行錯誤を繰り返すことも現実的です。最初の数回は、本番用の成果物ではなく学習の機会と考えましょう。同じワークフローは、他の種類のモデルにも使えます。画像ではなくテキストを扱う場合は、同じようなレンタルGPUで行う[大規模言語モデルのファインチューニング](/ja/private-llm-fine-tuning-guide/)のガイドをご覧ください。
-
-あらゆる種類のプロバイダーと価格帯でGPUレンタルの選択肢を比較したい場合は、[GPUレンタル料金比較](/ja/gpu-rental-pricing-comparison-2026/)で、コンシューマー向けGPU、データセンター向けハードウェア、法人向けクラウドの最新料金を紹介しています。
-
----
-
-_本ガイドの最終更新日は2026年2月12日です。GPUレンタルの料金や学習ツールの設定は頻繁に変わります。学習プロジェクトに取りかかる前に、各プロバイダーで最新の料金を直接確認してください。_
+あるいは `cd ui && npm run build_and_start` で Web UI を起動し、ポート 8675 を開きます。ほかの人がアクセスできるサーバーでは、README の推奨どおり、先に `AI_TOOLKIT_AUTH` にパスワードを設定してください。
+
+Flux のモデルを選ぶ前に、ライセンスについて知っておくべきことが 2 つあります。
+
+- **FLUX.1 [dev]** は Hugging Face でアクセス制限がかかっています。FLUX.1 [dev] Non-Commercial License に同意し、Hugging Face の読み取りトークンを使ってダウンロードします。モデルカードによると、生成した画像は商用利用できますが、重みとあなたが学習した LoRA は非商用ライセンスの対象です。
+- **FLUX.2 [klein] 4B** は Apache 2.0 で、アクセス制限もありません。9B 版は FLUX Non-Commercial License です。
+
+Black Forest Labs は 2026 年 6 月に、ai-toolkit で FLUX.2 [klein] の LoRA を学習するガイドを公開しました。RTX 4090 での 1,800 ステップの学習は「1 時間かからない」とし、750〜1,500 ステップあたりのチェックポイントを確認するよう勧めています。klein 4B の 3 倍の大きさがある FLUX.1 [dev] については、同じくらい信頼できる公開された所要時間を見つけられませんでした。時間を多めに見込み、最初の学習で実測してください。
+
+## 課金を止める前に LoRA を確認する
+
+マシンがまだ動いている間に、保存した各エポックのサンプル画像を見てください。LoRA が概念を覚えたかどうか、どこから過学習が始まったかが、追加費用なしでわかります。そのうえで、気に入ったチェックポイントをダウンロードします。
+
+```bash
+rsync -avP user@your-instance:/workspace/output/*.safetensors ./loras/
+```
+
+手元では、ファイルを ComfyUI の `models/loras` フォルダーか Forge の `models/Lora` に置き、シードを固定して確認します。
+
+- **強さ。** 0.6、0.8、1.0 を試します。1.0 未満のほうがきれいに出る LoRA もあります。
+- **柔軟性。** 学習データになかった場面にトリガーを入れてみます。山の上のマグカップ、絵画の中の顔などです。学習画像に似た場面でしかうまくいかないなら過学習です。前のエポックを使うか、繰り返し数を減らしてください。
+- **漏れ。** トリガーワードなしで生成してみます。それでも概念が出てくるなら、キャプションが画像を十分に説明できていません。
+
+結果がおかしいとき、直すべきはたいていデータセットです。質の低い画像を数枚外すか、変化させたいものをキャプションに書きます。学習率を変えるのはその次で、最初にやることではありません。
+
+## 費用の計算例
+
+SDXL の LoRA 1 つ、画像 25 枚、2,000 ステップ、RTX 4090 の場合です。
+
+| 作業 | 時間 |
+| --- | --- |
+| テンプレートから起動し、sd-scripts をインストール | 10 分 |
+| SDXL ベースのダウンロード、データセットのアップロード、キャッシュ | 10 分 |
+| 学習（2,000 ステップ、1.1〜1.4 it/s） | 30 分 |
+| サンプルの確認、チェックポイントのダウンロード、インスタンスの削除 | 15 分 |
+| **合計** | **65 分（1.08 時間）** |
+
+- Vast.ai（$0.31/時）：1.08 × $0.31 = **$0.34**。これにストレージと、ホストが決めた帯域幅の料金が加わります。
+- RunPod（$0.74/時）：1.08 × $0.74 = **$0.80**。その 1 時間分の 50 GB のコンテナディスクは 50 × $0.10 ÷ 730 時間 = 1 セント未満です。
+
+FLUX.2 [klein] の LoRA で、学習 1 時間とセットアップ・確認 30 分なら、RunPod で 1.5 × $0.74 = **$1.11**、Vast.ai で 1.5 × $0.31 = **$0.47** です。
+
+<figure>
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="d2-title" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="15">
+<title id="d2-title">レンタルした RTX 4090 での LoRA 学習の費用を、予算 10 ドルと比べた棒グラフ</title>
+<rect width="720" height="300" fill="#ffffff"/>
+<line x1="230" y1="40" x2="230" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="322" y1="40" x2="322" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="414" y1="40" x2="414" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="506" y1="40" x2="506" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="598" y1="40" x2="598" y2="250" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="690" y1="30" x2="690" y2="250" stroke="#f97316" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="698" y="22" text-anchor="end" fill="#f97316" font-size="13">予算 $10</text>
+<text x="220" y="75" text-anchor="end" fill="#1e1b4b">SDXL、Vast.ai</text>
+<rect x="230" y="58" width="15.6" height="26" fill="#16a34a"/>
+<text x="253" y="76" fill="#1e1b4b" font-size="13">$0.34</text>
+<text x="220" y="125" text-anchor="end" fill="#1e1b4b">SDXL、RunPod</text>
+<rect x="230" y="108" width="36.8" height="26" fill="#6366f1"/>
+<text x="275" y="126" fill="#1e1b4b" font-size="13">$0.80</text>
+<text x="220" y="175" text-anchor="end" fill="#1e1b4b">FLUX.2 klein、RunPod</text>
+<rect x="230" y="158" width="51.1" height="26" fill="#6366f1"/>
+<text x="289" y="176" fill="#1e1b4b" font-size="13">$1.11</text>
+<text x="220" y="225" text-anchor="end" fill="#1e1b4b">SDXL 5 回、RunPod</text>
+<rect x="230" y="208" width="184.5" height="26" fill="#6366f1"/>
+<text x="422" y="226" fill="#1e1b4b" font-size="13">$4.01</text>
+<line x1="230" y1="250" x2="690" y2="250" stroke="#64748b" stroke-width="1"/>
+<text x="230" y="270" text-anchor="middle" fill="#64748b" font-size="13">$0</text>
+<text x="322" y="270" text-anchor="middle" fill="#64748b" font-size="13">$2</text>
+<text x="414" y="270" text-anchor="middle" fill="#64748b" font-size="13">$4</text>
+<text x="506" y="270" text-anchor="middle" fill="#64748b" font-size="13">$6</text>
+<text x="598" y="270" text-anchor="middle" fill="#64748b" font-size="13">$8</text>
+<text x="690" y="270" text-anchor="middle" fill="#64748b" font-size="13">$10</text>
+<text x="460" y="292" text-anchor="middle" fill="#64748b" font-size="13">RTX 4090 での 1 回あたりの費用（2026 年 9 月の料金）</text>
+</svg>
+<figcaption>RunPod の定価で SDXL を 5 回別々に試しても、$10 を大きく下回ります。$0.74/時なら $10 で RTX 4090 を 13.5 時間、$0.31/時なら約 32 時間使えます。</figcaption>
+</figure>
+
+$10 の予算を吹き飛ばすのは、たいてい学習ではありません。一晩つけっぱなしにしたインスタンス（$0.74 で 12 時間なら $8.88）、停止したままストレージ料金を払い続ける Vast.ai のインスタンス、課金中の時間に画像のキャプションを付けて過ごした 1 時間です。秒単位の課金が役に立つのは、終わったらマシンを削除する場合だけです。
+
+## GPUFlow の出番
+
+この作業には向きません。GPUFlow が貸し出すのは、プロバイダーが自分の GPU で（たいていは Ollama で）動かしている言語モデルへのアクセスで、OpenAI 互換の API キーで使います。シェルも SSH もファイルへのアクセスもないので、学習ツールをインストールすることも、画像をアップロードすることも、LoRA をダウンロードすることもできません。提供しているのもチャットモデルで、画像モデルではありません。学習には Vast.ai や RunPod など、マシンそのものを貸し出すプラットフォームを使ってください。
+
+画像ではなくテキストを扱うなら、借りて、学習して、削除するという同じやり方が言語モデルにも使えます。[レンタル GPU で LLM を非公開のままファインチューニングする](/ja/private-llm-fine-tuning-guide/)をご覧ください。
+
+## 出典
+
+すべて 2026 年 9 月に確認しました。
+
+- LoRA の論文：[Hu et al., LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
+- sd-scripts：[README とリリース](https://github.com/kohya-ss/sd-scripts)、[SDXL の LoRA 学習](https://github.com/kohya-ss/sd-scripts/blob/main/docs/sdxl_train_network.md)、[SDXL の注意点と VRAM](https://github.com/kohya-ss/sd-scripts/blob/main/docs/train_SDXL-en.md)、[データセットの設定](https://github.com/kohya-ss/sd-scripts/blob/main/docs/config_README-en.md)、[FLUX.1 の LoRA 学習](https://github.com/kohya-ss/sd-scripts/blob/main/docs/flux_train_network.md)、[WD14 tagger](https://github.com/kohya-ss/sd-scripts/blob/main/docs/wd14_tagger_README-en.md)
+- [bmaltais/kohya_ss](https://github.com/bmaltais/kohya_ss)、[Nerogar/OneTrainer](https://github.com/Nerogar/OneTrainer)、[ostris/ai-toolkit](https://github.com/ostris/ai-toolkit)、[JoyCaption](https://github.com/fpgaminer/joycaption)
+- RTX 4090 での SDXL の速度：[kohya_ss issue #1288](https://github.com/bmaltais/kohya_ss/issues/1288)
+- Black Forest Labs：[FLUX.2 [klein] を LoRA で 60 分以内にファインチューニングする](https://huggingface.co/blog/black-forest-labs/flux-2-klein-lora)、モデルカード（[FLUX.1 [dev]](https://huggingface.co/black-forest-labs/FLUX.1-dev)、[FLUX.2 [klein] 4B](https://huggingface.co/black-forest-labs/FLUX.2-klein-base-4B)、[FLUX.2 [klein] 9B](https://huggingface.co/black-forest-labs/FLUX.2-klein-base-9B)）
+- [Stable Diffusion XL base 1.0 のモデルカード](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
+- 料金：[RunPod の料金](https://www.runpod.io/pricing)、[RunPod の Pod 料金とストレージ](https://docs.runpod.io/pods/pricing)、[Vast.ai の料金](https://docs.vast.ai/guides/instances/pricing.md)、getdeploying.com（[RTX 3090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-3090)、[RTX 4090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-4090)、[RTX 5090](https://getdeploying.com/reference/cloud-gpu/nvidia-rtx-5090)、[Vast.ai](https://getdeploying.com/vast-ai)）
+- GPUFlow：[API クイックスタート](https://docs.gpuflow.app/ja/renters/api-quickstart/)
